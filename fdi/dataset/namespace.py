@@ -47,6 +47,7 @@ def refloader(key, mapping, remove=True, exclude=None, ignore_error=False):
        key and load-result pairs. load-result is `Load_Failed` if loading of the key was not successful.
     """
 
+
     if key in exclude:
         res = Load_Failed
     else:
@@ -56,6 +57,8 @@ def refloader(key, mapping, remove=True, exclude=None, ignore_error=False):
     # return key in the mapping and the load result.
     return {key: res}
 
+GLOBAL_MAP = None
+SINGLETON=False
 
 class NameSpace_meta(type):
     """ metaclass for name-spaces such as class white list and schemas.
@@ -69,7 +72,8 @@ class NameSpace_meta(type):
     def __new__(metacls,  clsname, bases, attrs,
                 sources=None,
                 extensions=None,
-                load=None, **kwds):
+                load=None,
+                **kwds):
         """ Internal map is initialized with `sources`.
 
             The internal map is initialized with a `default`
@@ -158,6 +162,8 @@ class NameSpace_meta(type):
             A list of key-value maps to extend the `cache`.
         load: function
             classmethod to load a key from `initial` of the internal map.
+        #singleton : bool
+        #    If set all classes will share the same mapping. Default is `False`.
         kwds: dict
             member `key`-`val` pairs: `k` will be added to instance-classes' class attributes namespace, initiated to `val`
 
@@ -174,7 +180,16 @@ class NameSpace_meta(type):
             # defined in this module
             load = refloader
 
-        nm = Lazy_Loading_ChainMap(*sources, extensions=extensions, load=load)
+        global GLOBAL_MAP
+        global SINGLETON
+        
+        if SINGLETON:
+            if GLOBAL_MAP is None:
+                GLOBAL_MAP = Lazy_Loading_ChainMap(*sources, extensions=extensions, load=load)
+            
+            nm = GLOBAL_MAP
+        else:
+            nm = Lazy_Loading_ChainMap(*sources, extensions=extensions, load=load)
         if kwds:
             for name, value in kwds.items():
                 setattr(new_cls, name, value)

@@ -504,10 +504,8 @@ def test_hist(tmp_remote_storage_no_wipe, tmp_prods):
 
 
 def test_no_auth(server, tmp_pools):
-
+    # reading pool root dir needs no auth
     aburl, client, auth, pool, poolurl, pstore, server_type = server
-    pool, prd, ref, tag = tmp_pools[0]
-    prd_urn = ref.urn
 
     # get pool without auth
     x = safe_client(client.get, aburl, auth=None)

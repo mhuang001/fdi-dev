@@ -21,7 +21,7 @@ test1:
 
 # --cov=fdi/pal
 test2:
-	$(PYTEST) tests/test_pal.py -k 'not _http and not _csdb' $(T)  $(OPT)
+	$(PYTEST) tests/test_pal.py -k 'not _http and not _csdb'  $(OPT) $(T) 
 
 # --cov=fdi/pns
 test3:
@@ -32,10 +32,10 @@ test4:
 	$(PYTEST) $(OPT) -k 'not server' $(T) tests/serv/test_pns.py
 # --cov=fdi/utils
 test5:
-	$(PYTEST)  $(OPT) $(T) tests/test_utils.py
+	$(PYTEST)  $(OPT) tests/test_utils.py $(T) 
 
 test6:
-	$(PYTEST) $(OPT) $(T) tests/serv/test_httppool.py 
+	$(PYTEST) $(OPT) tests/serv/test_httppool.py  $(T) 
 
 test7:
 	$(PYTEST) tests/test_server_setup.py $(OPT) $(T) -k '_pool_'

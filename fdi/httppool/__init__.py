@@ -50,9 +50,8 @@ PC = None
 
 session = None
 
-SES_DBG = 0
+SES_DBG = 1
 """ debug msg for session """
-
 
 def setup_logging(level=LOGGING_NORMAL, extras=None, tofile=None):
     import logging
@@ -249,15 +248,15 @@ def init_httppool_server(app, preload):
     global SES_DBG
     SES_DBG = pc['ses_dbg']
 
-    from ..pal.managedpool import makeLock
+    from ..utils.lock import makeLock
     # client users
     from .model.user import getUsers
     app.config['USERS'] = getUsers(pc)
     sid = hex(os.getpid())
     app.config['LOCKS'] = dict((op, makeLock('FDI_Pool'+sid, op))
                                for op in ('r', 'w'))
-    # setup poolmanager
-    
+
+    # setup UNLOADED pools in poolmanager
     PM_S = init_poolmanager(app, g, pc, preload)
 
     
@@ -285,10 +284,8 @@ def init_poolmanager(app, g, pc, preload):
     if preload:
         # initialize read-only pools
         from ..pal.productstorage  import ProductStorage
-
-        for pn, po in pc['read_only_pools'].items():
-            ps = ProductStorage(poolname=pn, poolurl=po, read_only=True)
-            ##PM_S.save(pn, po, read_only=True)
+        ps = ProductStorage(poolmanager=PM_S)
+        PM_S.getMap().UNLOADED.update(pc['read_only_pools'])
 
         logger.info('PM_S initializing..'+hex(id(PM_S._GlobalPoolList.maps[0])) + ' ' + str(PM_S()))
     
@@ -377,7 +374,8 @@ def create_app(config_object=None, level=None, logstream=None, preload=False):
 
     if os.environ.get('UW_DEBUG', False) in (1, '1', 'True', True):
         from remote_pdb import RemotePdb
-        RemotePdb('127.0.0.1', 4444).set_trace()
+        #RemotePdb('127.0.0.1', 4444).set_trace()
+        RemotePdb('localhost', 4444).set_trace()
 
     global session
     
@@ -454,7 +452,7 @@ def create_app(config_object=None, level=None, logstream=None, preload=False):
     init_httppool_server(app, preload)
     logger.info('Server initialized. logging level ' +
                 str(app.logger.getEffectiveLevel()))
-
+    app.config['SERVER_LOCKED'] = False
         
     @app.before_request
     def b4req():
@@ -466,18 +464,35 @@ def create_app(config_object=None, level=None, logstream=None, preload=False):
 
         logger = current_app.logger
         
+        locked = app.config['SERVER_LOCKED']
+
+        if 0 and locked:
+            if app.logger.isEnabledFor(logging_DEBUG):
+                    app.logger.debug(f"System locked: {locked}")
+            
+            return jsonify ({"result": "BUSY",
+                             "msg": "Server initializing or in maintenance.",
+                             "ts": time.time()}), 409
+
         if logger.getEffectiveLevel() < logging.WARNING: 
             a = lls(request.view_args,50)
             # remove leading e.g. /fdi/v0.16
             s = request.path.split(_BASEURL)
             p = s[0] if len(s) == 1 else s[1] if s[0] == '' else request.path
             method = request.method
-            info = ("%3d >>>[%s] %s %s" % (cnt, method, lls(p, 50), a))
+            if method == 'POST':
+                d = f"data={lls(request.data,50)}"
+            else:
+                d = ''
+            l = 'locked' if locked else ''
+            info = f"{cnt} {l}>>> [{method}] {lls(p, 50)}, {a}, {d}"
             if logger.getEffectiveLevel() < logging.INFO:
                 #if SES_DBG and logger.isEnabledFor(logging_DEBUG):
                 c = ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=None)
                 info += c
             logger.info(info)
+            
+
         return
 
     @app.after_request

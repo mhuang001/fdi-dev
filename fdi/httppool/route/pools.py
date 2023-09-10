@@ -77,6 +77,7 @@ def aftreq_pools(resp):
             logger.debug('Called with no SESSION')
         return resp
 
+    PM_S = PM_S_from_g(g)
     if SES_DBG and logger.isEnabledFor(logging_DEBUG):
         logger.debug(ctx(PM_S=PM_S, app=current_app, session=session,
                          request=request, auth=auth))
@@ -100,11 +101,17 @@ def get_pools_url():
     ts = time.time()
     burl = request.base_url
 
-    res = dict((f"({po.__class__.__name__.replace('Pool','')}) {n}", f"{burl}/{n}") \
-                for n, po in PM_S._GlobalPoolList.maps[0].items())
-    res_ro = dict((f"({po.__class__.__name__.replace('Pool','')}) {n}", f"{burl}/{n}") \
-               for n, po in PM_S._GlobalPoolList.maps[1].items())
-    res.update(res_ro)
+    res = {}
+    symbols = [' ', '*', '.']
+    maps = list(PM_S._GlobalPoolList.maps[:2])
+    maps.append(PM_S._GlobalPoolList.UNLOADED)
+
+    for rank in (0, 1, 2):
+        m = dict((f"({symbols[rank]} "
+                  f"{po.__class__.__name__.replace('Pool','')}) {n}",
+                  f"{burl}/{n}") \
+                 for n, po in maps[rank].items())
+        res.update(m)
 
     dvers = getConfig('docker_version')
     svers = getConfig('server_version')
@@ -273,9 +280,59 @@ def unregister2(pool):
 
     return unregister(pool)
 
+######################################
+#### /pools/lock         ####
+######################################
+
+
+@ pools_api.route('/lock', methods=['PUT', 'GET'])
+@ pools_api.route('/lock/', methods=['PUT', 'GET'])
+@ auth.login_required(role='read_write')
+def lock():
+    """ Stop serving except the `unlock` one.
+
+    """
+
+    logger = current_app.logger
+    ts = time.time()
+    if logger.isEnabledFor(logging_DEBUG):
+        logger.debug('Load all pools.')
+    # will have / at the end
+    burl = request.base_url.rsplit('lock', 1)[0]
+    app.config['SERVER_LOCKED'] = True
+    result = 'OK'
+    msg = 'Server successfully locked.'
+    code = 200
+    return resp(code, result, msg, ts)
 
 ######################################
-#### /pools/regfister_all pools/register_all/  ####
+#### /pools/unlock         ####
+######################################
+
+
+@ pools_api.route('/unlock', methods=['PUT', 'GET'])
+@ pools_api.route('/unlock/', methods=['PUT', 'GET'])
+@ auth.login_required(role='read_write')
+def unlock():
+    """ Resume serving.
+
+    """
+
+    logger = current_app.logger
+    ts = time.time()
+    if logger.isEnabledFor(logging_DEBUG):
+        logger.debug('Load all pools.')
+    # will have / at the end
+    burl = request.base_url.rsplit('unlock', 1)[0]
+    app.config['SERVER_LOCKED'] = False
+    result = 'OK'
+    msg = 'Server successfully unlocked.'
+    code = 200
+    return resp(code, result, msg, ts)
+
+
+######################################
+#### /pools/regfister_all         ####
 ######################################
 
 
@@ -346,7 +403,7 @@ def load_pools(poolnames, usr):
     return pmap, bad
 
 ######################################
-#### /pools/unregister_all  pools/unregister_all/  ####
+#### /pools/unregister_all        ####
 ######################################
 
 

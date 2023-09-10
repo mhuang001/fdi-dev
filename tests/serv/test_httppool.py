@@ -14,7 +14,8 @@ from fdi.dataset.product import Product
 from fdi.pal.httpclientpool import HttpClientPool
 from fdi.pal.poolmanager import PoolManager
 from fdi.pal.productstorage import ProductStorage
-from fdi.pal.managedpool import Lock_Path_Base, makeLock
+from fdi.pal.managedpool import Lock_Path_Base
+from fdi.utils.lock import makeLock
 from fdi.utils.common import lls, trbk, fullname
 from fdi.utils.fetch import fetch
 from fdi.pns.fdi_requests import safe_client

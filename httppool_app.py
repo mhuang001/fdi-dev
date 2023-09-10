@@ -127,7 +127,7 @@ if __name__ == '__main__':
     else:
         # app may have changed debug, so do not use args.debug
         debug = app.debug
-        logger.info(f"App.debug = {debug}")
+        logger.info(f"app.debug = {debug}")
         app.run(host=args.host, port=args.port,
                 threaded=args.threads, processes=1,
                 use_reloader=True, reloader_type='stat',

@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  version: 1.4.1
+  version: 1.4.2
   description: "This is an API description of the HTTPPool Server for FDI (Flexible\
     \ Dataset Integrator)"
   title: "fdi poolserver"
@@ -56,7 +56,7 @@ servers:
         # no enum means it s an open value --
         # there is an opportunity for the provider to assign
         default: 'fdi-dev/v0.16'
-  - url: http://127.0.0.1:{port}/{basePath}
+  - url: http://localhost:{port}/{basePath}
     description: httppool api flask-uwsgi dev version
     variables:
       port:
@@ -85,6 +85,40 @@ security:
   - BasicAuth: []
 
 paths:
+  /lock:
+    get:
+      summary: "Lock server. No reading or writing".
+      tags:
+        - Server
+      description: "Disable all requests, except for unlocking"
+      operationId: lock
+      responses:
+        "200":
+          description: "Server locked, Start to give 409 to all requests.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenericResponseContents"
+            text/html; charset=utf-8:
+              schema:
+                type: string
+  /unlock:
+    get:
+      summary: "Unlock server. Permit reading and writing".
+      tags:
+        - Server
+      description: "Server returns request normally."
+      operationId: unlock
+      responses:
+        "200":
+          description: "Server unlocked."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenericResponseContents"
+            text/html; charset=utf-8:
+              schema:
+                type: string
   /login:
     get:
       summary: "Get Login page from the server."
@@ -494,7 +528,7 @@ paths:
           2:
             value: fdi.dataset.product.Product/0/results/Time_Energy_Pos/Energy/data
             summary: |
-              Sample product from server test pool. e.g.  http://127.0.0.1:5000/fdi/v0.11/serv_test_httppool/
+              Sample product from server test pool. e.g.  http://localhost:9885/fdi/v0.16/serv_test_httppool/
           3:
             value: fdi.pal.context.Context
             summary: A Context.

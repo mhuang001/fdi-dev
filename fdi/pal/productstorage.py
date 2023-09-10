@@ -4,7 +4,7 @@ from . import productref
 from .poolmanager import PoolManager
 from .productpool import ProductPool, PoolNotFoundError
 from ..pns.fdi_requests import ServerError
-from .managedpool import makeLock
+from ..utils.lock import makeLock
 from .urn import Urn
 from ..dataset.odict import ODict
 
@@ -81,7 +81,7 @@ class ProductStorage(object):
         :auth: passed to `PoolManager.getPool`.
         :makenew: Create pool if it does not exist.
         :read_only: if set pool will be registered in the
-        READ_ONLY part of PoolMAnager._GlobalPoolList().
+        READ_ONLY part of PoolManager._GlobalPoolList().
         These pools are showing as registered to all users,
         and cannot be deleted unless the server is restarted.
         """

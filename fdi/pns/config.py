@@ -42,13 +42,13 @@ pnsconfig['url_aliases'] = {}
 # choose from pre-defined profiles. 'production' is for making docker image.
 conf = ['dev', 'production'][1]
 # https://requests.readthedocs.io/en/latest/user/advanced/?highlight=keep%20alive#timeouts
-pnsconfig['requests_timeout'] = (3.3, 909)
+pnsconfig['requests_timeout'] = (0.3, 10)
 
 # nominal username, passwd, flask ip, flask port.
 # For test clients. the username/password must match rw
 pnsconfig['username'] = 'foo'
 pnsconfig['password'] = 'bar'
-pnsconfig['host'] = '127.0.0.1'
+pnsconfig['host'] = 'localhost' #'127.0.0.1'
 pnsconfig['port'] = 9885
 # a dictionary of poolname - poolurl pairs
 pnsconfig['read_only_pools'] = {

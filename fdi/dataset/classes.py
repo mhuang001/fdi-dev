@@ -5,7 +5,7 @@ from .namespace import Load_Failed, NameSpace_meta
 
 import builtins
 from collections import ChainMap
-import sys
+import os, sys
 import logging
 import copy
 import importlib
@@ -157,16 +157,21 @@ def importModuleClasses(scope=None, mapping=None,
 
     return res
 
+from ..utils.lock import makeLock
+_sid = hex(os.getpid())
+CLASS_LOCKS = dict((op, makeLock('FDI_Classes'+_sid, op))
+                           for op in ('r', 'w'))
 
 def load(key, mapping, remove=True,
          exclude=None, ignore_error=False,
          verbose=False):
 
-    res = importModuleClasses(key, mapping=mapping,
-                              exclude=exclude,
-                              ignore_error=ignore_error,
-                              verbose=verbose
-                              )
+    with CLASS_LOCKS['r'], CLASS_LOCKS['w']:
+        res = importModuleClasses(key, mapping=mapping,
+                                  exclude=exclude,
+                                  ignore_error=ignore_error,
+                                  verbose=verbose
+                                  )
     return res
 
 

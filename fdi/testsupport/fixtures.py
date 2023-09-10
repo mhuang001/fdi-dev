@@ -295,12 +295,13 @@ def background_app():
         return pid
 
 
-def checkserver(aburl):
+def checkserver(aburl, times=0):
     """ make sure the server is running when tests start.
 
     Parameters
     ----------
-
+    time : int
+        How many self-calling is this run.
     Return
     ------
     str
@@ -326,7 +327,26 @@ def checkserver(aburl):
         elif e.code == 401:
             logger.info('%s alive. Server response 401' % (aburl))
             server_type = 'live'
+        elif e.code == 409:
+            __import__("pdb").set_trace()
+
+            logger.info('%s %d initializing or being maintained.' % (aburl, e.code))
+
+            if times < 1:
+                time.sleep(5)
+                times += 1
+                test2 = checkserver(aburl, times)
+                msg = 'is XX up after waiting %d s.' 
+                if test2 == 'live':
+                    logger.info('is finally up after waiting %i s.' % (5*times))
+                    server_type = 'live'
+                else:
+                    logger.info('is not up after waiting %i s.' % (5*times))
+                    server_type = test2            
+            else:
+                server_type = 'mock'
         else:
+            # a different code
             logger.warning(aburl + ' is alive. but trouble is ')
             logger.warning(e)
             logger.warning('Live server')
@@ -483,6 +503,10 @@ def server2(_pytestconfig, server_arch, request, urlc=None):
 def server(pytestconfig, set_ids, userpass, mock_app, request):
     """ Server data from r/w user, mock or alive.
 
+    Returns
+    -------
+    tuple
+      baseurl, client, auth, pool (pool name is `http_pool_id`), poolurl, pstore, server_type
     """
     #    yield from server2(pc, pytestconfig, 'http', reuest=request)
 
@@ -506,12 +530,12 @@ def server(pytestconfig, set_ids, userpass, mock_app, request):
             #yield client
             pstore.register(poolurl=poolurl, client=client, auth=auth)
             # pstore.register(poolname=test_pool.poolname, poolurl=poolurl)
-            pool = pstore.getWritablePool(True)  # PublicClientPool(poolurl=url)
+            pool = pstore.getWritablePool(obj=True)  # PublicClientPool(poolurl=url)
             yield url, client, auth, pool, poolurl, pstore, server_type
 
     else:
         auth = HTTPBasicAuth(*userpass)
-        logger.info('**** requests as client *****')
+        logger.info('**** requests as live-client *****')
         with the_session as live_client:
             #yield live_client
             pstore.register(poolurl=poolurl, client=live_client, auth=auth)

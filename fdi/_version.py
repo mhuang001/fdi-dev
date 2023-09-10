@@ -1,7 +1,8 @@
-__version_info__ = (1, 39, 3)
+__version_info__ = (1, 39, 4)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '1.39.3-0-g9182c7c'
+__revision__ = '1.39.3-1-g58cee82'
 
+# reinstate missing keep-alive header. experimenting namespace-based poolmanager.map; lock  implemented for pools.fix code 509. 
 # 1.39.3 pool request keep-alive headerand other things.
 # 1.39.2 Fix bug when secondary pool returns fits.
 # 1.39.1 refactor fixture.py to move some contents to share fixture.

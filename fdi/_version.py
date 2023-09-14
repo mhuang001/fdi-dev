@@ -2,7 +2,7 @@ __version_info__ = (1, 39, 5)
 __version__ = '.'.join(map(str, __version_info__))
 __revision__ = '1.39.4-0-ge888c20'
 
-# new de-reffed pools yml, y2b glb bg fix;
+# 1.39.5 new de-reffed pools yml, y2b glb bg fix;
 # reinstate missing keep-alive header. experimenting namespace-based poolmanager.map; lock  implemented for pools.fix code 509. 
 # 1.39.3 pool request keep-alive headerand other things.
 # 1.39.2 Fix bug when secondary pool returns fits.

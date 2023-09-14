@@ -669,9 +669,7 @@ def content2result_csdb(content):
         else:
             # e.g. /get?urn=...
             ores = obj
-        if logger.isEnabledFor(logging_DEBUG):
-            # XXXXX
-            logger.debug(lls(text, 100))
+
         res.append(ores)
 
     # print('pppp', res[0])

@@ -160,9 +160,9 @@ url_c = None
 def urlcsdb(set_ids):
     global url_c
 
-    url_c = '%s://%s:%d%s/%s' % ('http',
+    url_c = '%s://%s:%s%s/%s' % ('http',
                                  pc['cloud_host'],
-                                 pc['cloud_port'],
+                                 str(pc['cloud_port']),
                                  pc['cloud_api_base'],
                                  pc['cloud_api_version'])
     return url_c

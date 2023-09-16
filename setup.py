@@ -55,6 +55,7 @@ setup(
         'networkx>=2.8.1',
         'pydot>=1.4.2',
         'importlib_resources>=5.12.0',
+        'traceback-with-variables>=2.0.4',
     ],
     entry_points={'console_scripts': [
         'yaml2python=fdi.dataset.yaml2python:main',

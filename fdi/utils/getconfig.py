@@ -6,7 +6,7 @@ from ..dataset.readonlydict import ReadOnlyDict
 from ..pns.config import pnsconfig as builtin_conf
 from requests.auth import HTTPBasicAuth
 from os.path import join, expanduser, expandvars, isdir
-import functools
+import functools, collections
 import socket
 import getpass
 import json
@@ -417,9 +417,9 @@ def main():
         print(f'args: {args}')
     name0 = args.name_pos if args.name is None else args.name
     conf = getConfig(name0, conf=args.conf, force=args.force)
-    if issubclass(conf.__class__, dict):
+    if issubclass(conf.__class__, (dict, collections.ChainMap)):
         # dictionart of all config items.
-        print(json.dumps(conf, indent=4))
+        print(json.dumps(dict(conf), indent=4))
     else:
         print(conf)
     sys.exit(0)

@@ -1,7 +1,8 @@
-__version_info__ = (1, 39, 5)
+__version_info__ = (1, 39, 6)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '1.39.5-1-g231b4b6'
+__revision__ = '1.39.5-3-gac4e653'
 
+# fix user_urlbase confusion and set loggerGPL.
 # 1.39.5 new de-reffed pools yml, y2b glb bg fix;
 # reinstate missing keep-alive header. experimenting namespace-based poolmanager.map; lock  implemented for pools.fix code 509. 
 # 1.39.3 pool request keep-alive headerand other things.

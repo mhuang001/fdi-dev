@@ -10,6 +10,7 @@ import json
 from fdi.pns.fdi_requests import reqst, ServerError
 from fdi.pns.public_fdi_requests import read_from_cloud, load_from_cloud
 from fdi.pal.publicclientpool import PublicClientPool
+from fdi.pal.urn import parse_poolurl
 from fdi.utils.tofits import is_Fits
 from fdi.utils.common import lls
 from fdi.utils.getconfig import getConfig
@@ -25,7 +26,7 @@ from fdi.dataset.stringparameter import StringParameter
 from fdi.dataset.classes import Classes, Class_Module_Map, Class_Look_Up, get_All_Products
 
 from fdi.pal.poolmanager import dbg_7types
-from fdi.testsupport.fixtures import csdb_pool_id, SHORT, make_csdb
+from fdi.testsupport.fixtures import set_ids, SHORT, make_csdb
 # create logger
 
 
@@ -42,6 +43,7 @@ def setuplogging():
     logging.getLogger("requests").setLevel(logging.WARN)
     logging.getLogger("urllib3").setLevel(logging.WARN)
     logging.getLogger("filelock").setLevel(logging.WARN)
+    logging.getLogger("_GPL").setLevel(logging.INFO)
     return logging
 
 
@@ -396,9 +398,10 @@ def prod_to_upload(request):
     return cls_full_name
 
 @pytest.mark.parametrize("prod_to_upload", ['jsn', 'fits'], indirect=True)
-def test_upload_data_Tx(csdb_server, csdb_token, prod_to_upload):
+def test_upload_data_Tx(csdb_server, csdb_token, prod_to_upload, set_ids):
     """ upload a Tx prod. definition not auto uploaded"""
     urlcsdb, client, auth, test_pool, poolurl, pstore, server_type = csdb_server
+    csdb_pool_id, http_pool_id, PTYPES = set_ids
     pool = csdb_pool_id
 
     cls_full_name = prod_to_upload
@@ -581,7 +584,7 @@ def test_getDataInfo(csdb_uploaded, csdb_server):  # _uploaded
     # p = [[0] if i == [] else i for i in ilsns]
     p = ilsns
     assert inds == p
-    logger.info(f'no asyn get index {time.time() - t0}')
+    logger.info(f'no asyn get {num} index {time.time() - t0}')
 
     # a list of urns: fix the pool, get their indices as a list
     t0 = time.time()
@@ -827,10 +830,11 @@ def get_list(csdb_client, urlcsdb):
     return allurns
 
 
-def test_del_7products(csdb_server, upload_7products):
+def test_del_7products(csdb_server, upload_7products, set_ids):
     """ delete product data from a pool"""
 
     urlcsdb, client, auth, test_pool, poolurl, pstore, server_type = csdb_server 
+    csdb_pool_id, http_pool_id, PTYPES = set_ids
 
     poolname = csdb_pool_id
     data = upload_7products
@@ -953,7 +957,7 @@ def test_verifyToken(csdb_server):
 
     poolpath, scheme, place, poolname, username, pasword = \
         parse_poolurl(poolurl)
-    tokenMsg = read_from_cloud('getToken', client=client, user_url_base==f'{scheme}://{place}')
+    tokenMsg = read_from_cloud('getToken', client=client, user_urlbase=f'{scheme}://{place}')
     token = tokenMsg['token']
     # verify it
 
@@ -995,8 +999,10 @@ def test_csdb_createPool(new_csdb):
         pass
 
 
-def test_new_pool(csdb_server):
+def test_new_pool(csdb_server, set_ids):
     urlcsdb, client, auth, test_pool, poolurl, pstore, server_type = csdb_server
+    csdb_pool_id, http_pool_id, PTYPES = set_ids
+
     url = pc['cloud_scheme'] + \
         urlcsdb[len('csdb'):] + '/' + csdb_pool_id
     # url = pc['cloud_scheme'] + urlcsdb[len('csdb'):] + '/' + csdb_pool_id
@@ -1165,9 +1171,10 @@ def csdb_up(_csdb_upload_7types, _csdb_server, ntimes, asyn=False):
 
 
 
-def test_csdb_the_uploaded(csdb_uploaded_fs):
+def test_csdb_the_uploaded(csdb_uploaded_fs, set_ids):
     logger.info('test upload multiple products')
     test_pool, uniq, resPrds, pstore = csdb_uploaded_fs
+    csdb_pool_id, http_pool_id, PTYPES = set_ids
     r = resPrds
 
     urninfo = test_pool.getDataInfo('urn')
@@ -1321,10 +1328,11 @@ def test_csdb_count(csdb_uploaded):
     assert count - last_cnt == 1
 
 
-def test_csdb_remove(csdb_uploaded):
+def test_csdb_remove(csdb_uploaded, set_ids):
     logger.info('test remove product')
     # test_pool, url, pstore = csdb
     test_pool, uniq, resPrds, pstore = csdb_uploaded
+    csdb_pool_id, http_pool_id, PTYPES = set_ids
     poolname = test_pool.poolname
     pinfo = test_pool.getPoolInfo()
     cls = resPrds[0].getType().__name__

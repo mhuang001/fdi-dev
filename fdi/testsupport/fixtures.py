@@ -784,9 +784,10 @@ def clean_csdb_ro(csdb_server_ro):
 
 
 @ pytest.fixture(scope=SHORT)
-def new_csdb(csdb_server):
+def new_csdb(csdb_server, set_ids):
     logger.debug('wipe cdb_new. {purl}')
     urlc, client, auth, test_pool, poolurl, pstore, server_type = csdb_server
+    csdb_pool_id, http_pool_id, PTYPES = set_ids    
     url = pc['cloud_scheme'] + \
         urlc[len('csdb'):] + '/' + csdb_pool_id + str(int(time.time()))
     # url = pc['cloud_scheme'] + urlc[len('csdb'):] + '/' + csdb_pool_id

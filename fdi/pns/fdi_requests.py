@@ -67,10 +67,12 @@ POST_PRODUCT_TAG_NAME = 'FDI-Product-Tags'
 
 SAFE_CLIENT_OUT = 0
 """ logger.info all url going out."""
-
 # all items
 pcc = getConfig()
 defaulturl = getConfig('poolurl:')
+
+AIO_TIMEOUT = ClientTimeout(total=5*10, connect=3,
+                                 sock_connect=5, sock_read=10)
 
 pccnode = pcc
 
@@ -623,15 +625,17 @@ def content2result_csdb(content):
         if is_aio:
             # AIO
             code, text, url = resp  # .status, resp.text(), resp.url.raw_path_qs
+            cont = text
         else:
             # requests
             if resp is None:
                 #__import__("pdb").set_trace()
                 return [None] * len(content) if alist else None
-            code, cont, url = resp.status_code, resp.content, resp.url
+            code, cont, text, url = resp.status_code, resp.content, resp.text, resp.url
         if is_Fits(cont):
-            return cont 
-        obj = deserialize(resp.text)
+            res.append(cont)
+            continue
+        obj = deserialize(text)
         if issubclass(obj.__class__, str):
             # cannot deserialize and/or bad code
             try:
@@ -645,7 +649,7 @@ def content2result_csdb(content):
                     ocode = eo['code']
                     msg = eo['msg']
             except (TypeError, KeyError) as e:
-                msg = lls(text, 200)
+                msg = lls(cont, 200)
                 ocode = None
             if 'not exist' in msg:
                 code = 404
@@ -674,7 +678,7 @@ def content2result_csdb(content):
 
     # print('pppp', res[0])
     if logger.isEnabledFor(logging_DEBUG):
-        logger.debug(f'Result size: {len(res)}.')
+        logger.debug(f'{len(res)} {"asyn" if is_aio else ""} CSDB Results.')
     return res if alist else res[0]
 
 
@@ -803,8 +807,7 @@ def aio_client(method_name, apis, data=None, headers=None,
         # global aio_session
         aio_session = None
         if aio_session is None or aio_session._closed:
-            tout = ClientTimeout(total=5*10, connect=5,
-                                 sock_connect=3, sock_read=8)
+            tout = AIO_TIMEOUT
             client = aiohttp.ClientSession(timeout=tout, **kwds)
         if no_retry_controls:
             aio_session = client

@@ -386,7 +386,7 @@ def report2(self,  f, *args, **kwds):
         except (AttributeError, IndexError) as e:
             _g = "xxx"
 
-        print(f"GPL {_g} {f.__name__}({args}, {kwds})")
+        self.logger.debug(f"GPL {_g} {f.__name__}({args}, {kwds})")
         pass
     
     return f(self, *args, **kwds)

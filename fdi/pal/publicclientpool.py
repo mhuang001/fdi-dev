@@ -152,14 +152,20 @@ def getToken(poolurl, client):
     if True:
         poolpath, scheme, place, poolname, username, pasword = \
             parse_poolurl(poolurl)
-        tokenMsg = read_from_cloud('getToken', client=client, url_user_base=f'http://{place}')
+        uub = f'http://{place}'
+        tokenMsg = read_from_cloud('getToken', client=client, user_urlbase=uub)
         if tokenMsg:
             token = tokenMsg['token']
         else:
             # no token
             if not tokenMsg:
-                logger.error(f'Cannot get token: {tokenMsg}.')
-                return None
+                logger.error(f'Cannot get token from: {poolurl} at {uub} getting msg: {tokenMsg}.')
+                logger.debug('try again')
+                tokenMsg = read_from_cloud('getToken', client=client, user_urlbase=uub)
+                if not tokenMsg:
+                    logger.error(f'Cannot get token from: {poolurl} at {uub} getting msg: {tokenMsg}.')
+                    return None
+                token = tokenMsg['token']
     else:
         token = current_token
 
@@ -625,7 +631,8 @@ class PublicClientPool(ManagedPool):
             if not nulltype:
                 popped = [res.pop(i) for i in range(
                     len(res)-1, -1, -1) if res[i]['dataType'] is None]
-                logger.debug(f'{len(popped)} popped')
+                if len(popped):
+                    logger.debug(f'{len(popped)} None typed res popped')
             if what:
                 r = get_Values_From_A_list_of_dicts(res, what, excpt=excpt)
             else:

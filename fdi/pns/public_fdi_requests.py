@@ -51,7 +51,7 @@ lock_r = threading.Lock()
 lock_w = threading.Lock()
 
 
-def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **kwds):
+def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', user_urlbase=None, **kwds):
     """Apply GET method to CSDB server and get reply info back.
 
     if k-v parameters in kwds are simple values, return simple result,
@@ -62,6 +62,7 @@ def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
     ----------
     requestName : str
     client : str, method-func
+    user_urlbase: str If given non_None value, will be used to prepend API-logic fragment to get URL.
     asyn : bool
         Run asynchronously. On of the parameters must be a list.
     **kwds :
@@ -84,11 +85,11 @@ def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
     header = {'Content-Type': 'application/json;charset=UTF-8'}
     if requestName == 'getToken':
         # e.g. http://10.0.0.2:8888
-        uub = kwds.pop('url_user_base', '')
-        user_url_base = uub if uub else defaulturl
+        uub = kwds.pop('user_urlbase', '')
+        user_urlbase = uub if uub else defaulturl
         header['X-AUTH-TOKEN'] = kwds.pop('token', '')
         with lock_r:
-            requestAPI =  user_url_base + '/user/auth/token'
+            requestAPI =  user_urlbase + '/user/auth/token'
             if client is None or not getattr(client, 'auth', ''):
                 postData = {'username': AUTHUSER, 'password': AUTHPASS}
             else:
@@ -100,10 +101,10 @@ def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
     elif requestName == 'verifyToken':
     
         # e.g. http://10.0.0.2:8888
-        uub = kwds.pop('user_url_base', '')
-        user_url_base = uub if uub else defaulturl
+        uub = kwds.pop('user_urlbase', '')
+        user_urlbase = uub if uub else defaulturl
         with lock_r:
-            requestAPI = user_url_base + \
+            requestAPI = user_urlbase + \
                 '/user/auth/verify?token=' + kwds.pop('token', '')
            # None is sucessful!
             res = reqst(client.get, requestAPI,

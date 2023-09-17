@@ -709,7 +709,7 @@ def test_ProductStorage_init():
     # register pool
     # with a storage that already has a pool
 
-    ps2.register(newpoolname, newpoolurl)
+    ps2.register(poolname=newpoolname, poolurl=newpoolurl)
     assert op.exists(transpath(newpoolname, poolpath))
     assert len(ps2.getPools()) == 2
     assert ps2.getPools()[1] == newpoolname

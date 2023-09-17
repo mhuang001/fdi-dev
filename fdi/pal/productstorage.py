@@ -72,7 +72,7 @@ class ProductStorage(object):
         self.register(pool=pool, poolurl=poolurl,
                       read_only=read_only, **kwds)
 
-    def register(self,  poolname=None, poolurl=None, pool=None,
+    def register(self,  poolname=None, *, poolurl=None, pool=None,
                  makenew=False, read_only=False,
                  **kwds):
         """ Registers the given pools to the storage.

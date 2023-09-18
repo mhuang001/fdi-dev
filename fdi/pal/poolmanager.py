@@ -269,7 +269,7 @@ def remoteRegister(pool):
                 logger.info(_lg)
 
         restore_cookies(pool.client)
-        pool.token = publicclientpool.getToken(poolurl, pool.client)
+        pool.token = publicclientpool.getToken(poolurl, pool.client, pc['scheme']+pool._place)
         pool.client.headers.update({'X-AUTH-TOKEN': pool.token})
 
         pool.poolInfo = pool.getPoolInfo(update_hk=True)

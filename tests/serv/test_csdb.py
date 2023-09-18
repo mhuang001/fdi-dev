@@ -957,6 +957,8 @@ def test_verifyToken(csdb_server):
 
     poolpath, scheme, place, poolname, username, pasword = \
         parse_poolurl(poolurl)
+    # for token related, the base url is http://ip:port. everything
+    # else http://ip:port/csdb/v1
     tokenMsg = read_from_cloud('getToken', client=client, user_urlbase=f'{scheme}://{place}')
     token = tokenMsg['token']
     # verify it

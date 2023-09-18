@@ -86,7 +86,7 @@ class ProductStorage(object):
         and cannot be deleted unless the server is restarted.
         """
 
-        if issubclass(pool.__class__, str) and poolname is None:
+        if issubclass(pool.__class__, str) and not poolname:
             pool, poolname = poolname, pool
         with self._locks['w'], self._locks['r']:
             if pool and issubclass(pool.__class__, ProductPool):

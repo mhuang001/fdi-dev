@@ -78,12 +78,11 @@ def get_Values_From_A_list_of_dicts(res, what, get_list=True, excpt=True):
         return [r[what] for r in res]
 
 
-def verifyToken(token, client):
+def verifyToken(token, client, user_urlbase=None):
     err = False
     try:
         # None is OK (wtf)
-        tokenMsg = read_from_cloud(
-            'verifyToken', token=token, client=client)
+        tokenMsg = read_from_cloud('verifyToken', token=token, client=client, user_urlbase=user_urlbase)
     except ServerError as e:
         err = e
         pass
@@ -114,11 +113,15 @@ def verifyToken(token, client):
         return -1, tokenMsg['message']
 
 
-def getToken(poolurl, client):
+def getToken(poolurl, client, user_urlbase=None):
     """Get CSDB acces token.
 
     ref http://123.56.102.90:31101/sources/satellite-data-pipeline/-/blob/master/csdb/csdb/csdb.py#L74
     There seems no need to verify existing token. it costs less to get a new one.
+
+    Parameters
+    ----------
+    user_urlbase: str If given non_None value, will be used to prepend API-logic fragment to get URL. Default `None`, using configged.
     
     Returns
     -------
@@ -150,22 +153,21 @@ def getToken(poolurl, client):
     #     logger.info(f'Cloud token {lls(current_token, 50)} {trouble} ')
     # 
     if True:
-        poolpath, scheme, place, poolname, username, pasword = \
-            parse_poolurl(poolurl)
-        uub = f'http://{place}'
-        tokenMsg = read_from_cloud('getToken', client=client, user_urlbase=uub)
+        __import__("pdb").set_trace()
+
+        tokenMsg = read_from_cloud('getToken', client=client, user_urlbase=user_urlbase)
         if tokenMsg:
             token = tokenMsg['token']
         else:
             # no token
             if not tokenMsg:
-                logger.error(f'Cannot get token from: {poolurl} at {uub} getting msg: {tokenMsg}.')
+                logger.error(f'Cannot get token from: {poolurl} at {user_urlbase} getting msg: {tokenMsg}.')
                 logger.debug('try again')
-                tokenMsg = read_from_cloud('getToken', client=client, user_urlbase=uub)
-                if not tokenMsg:
-                    logger.error(f'Cannot get token from: {poolurl} at {uub} getting msg: {tokenMsg}.')
+                tokenMsg2 = read_from_cloud('getToken', client=client, user_urlbase=user_urlbase)
+                if not tokenMsg2:
+                    logger.error(f'Cannot get token from: {poolurl} at {user_urlbase} getting msg: {tokenMsg2}.')
                     return None
-                token = tokenMsg['token']
+                token = tokenMsg2['token']
     else:
         token = current_token
 
@@ -209,7 +211,7 @@ class PublicClientPool(ManagedPool):
         self.auth = auth
         self.client = client
         #### 
-        self.token = getToken(self.poolurl, client)
+        self.token = getToken(self.poolurl, client, user_urlbase=self._user_urlbase)
         self.poolInfo = None
         self.serverDatatypes = []
         self.CSDB_LOG = self.loggen()
@@ -228,10 +230,12 @@ class PublicClientPool(ManagedPool):
 
     def setPoolurl(self, poolurl):
         """ Replaces the current poolurl of this pool.
-            For cloud pool, there are also self._cloudpoolpath and self._cloudpoolname
+            For cloud pool, there are also self._cloudpoolpath and self._cloudpoolname, and self._user_urlbase ::
+        
             csdb:///csdb_test_pool
             self._poolpath, self._scheme, self._poolname = '', 'csdb', 'csdb_test_pool'
             self._cloudpoolpath = /csdb_test_pool
+        self._user_urlbase = {pnsconfig['scheme']/csdb_test_pool
         """
         s = (not hasattr(self, '_poolurl') or not self._poolurl)
         self._poolpath, self._scheme, self._place, \
@@ -240,6 +244,8 @@ class PublicClientPool(ManagedPool):
         if self._scheme == '' or self._scheme == None:
             self._scheme = 'csdb'
         self._cloudpoolpath = self._poolpath + '/' + self._poolname
+        # used in ..pns.public_fdi_requests apis
+        self._user_urlbase = pcc['scheme'] + self._place + self._poolpath
         self._poolurl = poolurl
         # call setup only if poolurl was None
         if s:
@@ -255,8 +261,7 @@ class PublicClientPool(ManagedPool):
         if poolname is None:
             poolname = self.poolname
         try:
-            res = read_from_cloud(
-                'existPool', poolname=poolname, client=self.client, token=self.token)
+            res = read_from_cloud('existPool', poolname=poolname, client=self.client, token=self.token, user_urlbase=self._user_urlbase)
             return True
         except ServerError as e:
             if e.code == 404:
@@ -266,7 +271,7 @@ class PublicClientPool(ManagedPool):
     def restorePool(self):
         try:
             res = read_from_cloud(
-                'restorePool', poolname=self.poolname, client=self.client, token=self.token)
+                'restorePool', poolname=self.poolname, client=self.client, token=self.token, user_urlbase=self._user_urlbase)
             return True
         except:
             return False
@@ -280,8 +285,7 @@ class PublicClientPool(ManagedPool):
         if exlog:
             logger.info(f'^^^^')
         while True:
-            res = read_from_cloud(
-                'poolLogInfo', client=self.client, token=self.token)
+            res = read_from_cloud('poolLogInfo', client=self.client, token=self.token, user_urlbase=self._user_urlbase)
             if exlog:
                 logger.info(f'>>>cnt={cnt} last={last} len={len(res)}')
             lines = []
@@ -330,8 +334,7 @@ class PublicClientPool(ManagedPool):
 
     def createPool2(self):
 
-        res = read_from_cloud(
-            'createPool', poolname=self.poolname, client=self.client, token=self.token)
+        res = read_from_cloud('createPool', poolname=self.poolname, client=self.client, token=self.token, user_urlbase=self._user_urlbase)
 
         return res
 
@@ -373,8 +376,7 @@ class PublicClientPool(ManagedPool):
         if update_hk:
             with self._locks['r'], self._locks['w']:
 
-                res = read_from_cloud(
-                    'infoPool', pools=self.poolname, getCount=0, client=self.client, token=self.token)
+                res = read_from_cloud('infoPool', pools=self.poolname, getCount=0, client=self.client, token=self.token, user_urlbase=self._user_urlbase)
                 rdata = res
                 if rdata:
                     if self._poolname in rdata:
@@ -424,8 +426,7 @@ class PublicClientPool(ManagedPool):
         else:
             # update_hk is False
             if count:
-                res = read_from_cloud(
-                    'infoPool', pools=self.poolname, getCount=1, client=self.client, token=self.token)
+                res = read_from_cloud('infoPool', pools=self.poolname, getCount=1, client=self.client, token=self.token, user_urlbase=self._user_urlbase)
                 return res
             else:
                 return self.poolInfo
@@ -530,8 +531,7 @@ class PublicClientPool(ManagedPool):
 
         mh: returns an iterator.
         """
-        res = read_from_cloud(requestName='getMeta', urn=urn,
-                              client=self.client, token=self.token)
+        res = read_from_cloud(requestName='getMeta', urn=urn, client=self.client, token=self.token, user_urlbase=self._user_urlbase)
         return res
 
     def getDataType(self, substrings=None):
@@ -558,8 +558,7 @@ class PublicClientPool(ManagedPool):
         """
 
         if substrings is None:
-            res = read_from_cloud(
-                'getDataType', client=self.client, token=self.token)
+            res = read_from_cloud('getDataType', client=self.client, token=self.token, user_urlbase=self._user_urlbase)
             return res
         # [t for t in res if substring in t] if substring else res
 
@@ -570,8 +569,7 @@ class PublicClientPool(ManagedPool):
             substrings = [substrings]
         res = []
         for substring in substrings:
-            r = read_from_cloud('getDataType', substring=substring, client=self.client,
-                                token=self.token)
+            r = read_from_cloud('getDataType', substring=substring, client=self.client, token=self.token, user_urlbase=self._user_urlbase)
             res.append(r)
 
         return r if alist else res[0]
@@ -625,8 +623,7 @@ class PublicClientPool(ManagedPool):
             # if both are empty, pool takes self.poolname
             if not pool and not paths:
                 pool = pname
-            res = read_from_cloud('getDataInfo', client=self.client, token=self.token,
-                                  paths=paths, pool=pool, limit=limit)
+            res = read_from_cloud('getDataInfo', client=self.client, token=self.token, user_urlbase=self._user_urlbase, paths=paths, pool=pool, limit=limit)
             # if input is not list the output of each query is not a list
             if not nulltype:
                 popped = [res.pop(i) for i in range(
@@ -644,8 +641,7 @@ class PublicClientPool(ManagedPool):
         # if both are empty, pool takes self.poolname
         if not pool:
             pool = pname
-        res = read_from_cloud('getDataInfo', client=self.client, token=self.token,
-                              paths=paths, pool=pool, limit=limit, asyn=asyn)
+        res = read_from_cloud('getDataInfo', client=self.client, token=self.token, user_urlbase=self._user_urlbase, paths=paths, pool=pool, limit=limit, asyn=asyn)
         # in the output each query is a list[[p,p..],[p,p,...]]
         if not nulltype:
             popped = [q.pop(i) for q in res for i in range(
@@ -670,6 +666,7 @@ class PublicClientPool(ManagedPool):
                               tags=tags,
                               resourcetype=resourcetype,
                               #content=content,
+                              user_urlbase=self._user_urlbase,
                               **kwds)
         return res
 
@@ -831,6 +828,7 @@ class PublicClientPool(ManagedPool):
                                       products=jsonPrds, path=paths,
                                       resourcetype=resourcetypes, client=self.client,
                                       tags=tags, asyn=True,
+                                      user_urlbase=self._user_urlbase,
                                       **kwds)
             for i, uploadRes in enumerate(uploadr):
                 self._format_res(uploadRes, geturnobjs,
@@ -879,8 +877,7 @@ class PublicClientPool(ManagedPool):
                     if index in pinfo[spn]['_classes'][resourcetype]['sn']:
                         urn = makeUrn(poolname=spn,
                                       typename=resourcetype, index=index)
-                        res = load_from_cloud(
-                            'pullProduct', token=self.token, client=self.client, urn=urn)
+                        res = load_from_cloud('pullProduct', token=self.token, client=self.client, urn=urn, user_urlbase=self._user_urlbase)
                         # res is a product like ..dataset.product.Product
 
                         if issubclass(res.__class__, BaseProduct):
@@ -928,7 +925,9 @@ class PublicClientPool(ManagedPool):
                                   ensure_ascii=ensure_ascii,
                                   picked=picked,
                                   token=self.token,
-                                  asyn=False)
+                                  asyn=False,
+                                  user_urlbase=self._user_urlbase
+                                  )
         else:
             res = read_from_cloud('defineProductTypes', client=self.client,
                                   cls_full_name=resourcetype,
@@ -937,7 +936,9 @@ class PublicClientPool(ManagedPool):
                                   ensure_ascii=ensure_ascii,
                                   picked=picked,
                                   token=self.token,
-                                  asyn=False)
+                                  asyn=False,
+                                  user_urlbase=self._user_urlbase
+                                  )
 
         return res
 
@@ -975,8 +976,7 @@ class PublicClientPool(ManagedPool):
         datatype, sns, alist = ProductPool.vectorize(resourcetype, index)
 
         path = [f'{path0}/{f}/{i}' for f, i in zip(datatype, sns)]
-        res = read_from_cloud('remove', client=self.client,
-                              token=self.token, path=path, asyn=asyn)
+        res = read_from_cloud('remove', client=self.client, token=self.token, path=path, asyn=asyn, user_urlbase=self._user_urlbase)
         return res
 
     def XdoAsyncRemove(self, resourcetype, index):
@@ -984,8 +984,7 @@ class PublicClientPool(ManagedPool):
         """
         # path = self._cloudpoolpath + '/' + resourcetype + '/' + str(index)
 
-        res = read_from_cloud('remove', client=self.client,
-                              token=self.token, path=path)
+        res = read_from_cloud('remove', client=self.client, token=self.token, path=path, user_urlbase=self._user_urlbase)
         if res['code'] and not getattr(self, 'ignore_error_when_delete', False):
             raise ValueError(
                 f"Remove product {path} failed: {res['msg']}")
@@ -1051,14 +1050,12 @@ class PublicClientPool(ManagedPool):
             for clazz in cnt:
                 path = f'/{poolname}/{clazz}'
 
-                r = read_from_cloud(
-                    'delDataTypeData', path=path, client=self.client, token=self.token)
+                r = read_from_cloud('delDataTypeData', path=path, client=self.client, token=self.token, user_urlbase=self._user_urlbase)
                 res.append(r)
                 logger.debug(f'Removed {path}')
             if not keep:
                 # remove the pool object from the DB
-                r = read_from_cloud(
-                    'wipePool', poolname=poolname, client=self.client, token=self.token)
+                r = read_from_cloud('wipePool', poolname=poolname, client=self.client, token=self.token, user_urlbase=self._user_urlbase)
                 if r is None:
                     logger.debug(f'Done removing {path}')
                 else:
@@ -1071,8 +1068,7 @@ class PublicClientPool(ManagedPool):
         if (not include_read_only) and poolname in self.getPoolManager().getMap().maps[1]:
             r = None
         else:
-            r = read_from_cloud(
-                'wipePool', poolname=poolname, client=self.client, token=self.token, keep=keep)
+            r = read_from_cloud('wipePool', poolname=poolname, client=self.client, token=self.token, keep=keep, user_urlbase=self._user_urlbase)
         if r is None:
             logger.debug(f'Done removing {poolname}')
         else:
@@ -1114,8 +1110,7 @@ class PublicClientPool(ManagedPool):
             # no space in "."
             t = ','.join(tag) if isinstance(tag, list) else tag
             try:
-                res = read_from_cloud(
-                    'addTag', client=self.client, token=self.token, tag=t, urn=u)
+                res = read_from_cloud('addTag', client=self.client, token=self.token, user_urlbase=self._user_urlbase, tag=t, urn=u)
             except ServerError as e:
                 msg = f'Set {tag} to {urn} failed: {e}'
                 logger.warning(msg)
@@ -1166,8 +1161,7 @@ class PublicClientPool(ManagedPool):
             raise ValueError('Cannot take None or "" as a tag.')
 
         try:
-            res = read_from_cloud(
-                'tagExist', client=self.client, token=self.token, tag=tag)
+            res = read_from_cloud('tagExist', client=self.client, token=self.token, tag=tag, user_urlbase=self._user_urlbase)
         except ServerError as e:
             msg = f'Get existance tag failed: {e}'
             logger.warning(msg)
@@ -1207,8 +1201,7 @@ class PublicClientPool(ManagedPool):
 
         if update:
             try:
-                res = read_from_cloud(
-                    'getUrn', client=self.client, token=self.token, tag=tag)
+                res = read_from_cloud('getUrn', client=self.client, token=self.token, tag=tag, user_urlbase=self._user_urlbase)
             except ServerError as e:
                 __import__("pdb").set_trace()
 

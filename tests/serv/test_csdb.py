@@ -26,7 +26,7 @@ from fdi.dataset.stringparameter import StringParameter
 from fdi.dataset.classes import Classes, Class_Module_Map, Class_Look_Up, get_All_Products
 
 from fdi.pal.poolmanager import dbg_7types
-from fdi.testsupport.fixtures import set_ids, SHORT, make_csdb
+from fdi.testsupport.fixtures import set_ids, SHORT, make_ps
 # create logger
 
 
@@ -293,6 +293,7 @@ def upload_prod_data(prd, cls_full_name,
                                   resourcetype=cls_full_name,
                                   header=hdr,
                                   content=content,
+                                  user_urlbase=self._user_urlbase,
                                   asyn=True,
                                   **kwds)
             od = res[0]
@@ -959,7 +960,9 @@ def test_verifyToken(csdb_server):
         parse_poolurl(poolurl)
     # for token related, the base url is http://ip:port. everything
     # else http://ip:port/csdb/v1
-    tokenMsg = read_from_cloud('getToken', client=client, user_urlbase=f'{scheme}://{place}')
+    tokenMsg = read_from_cloud('getToken', client=client, user_urlbase=f'http://{place}')
+    assert scheme != pc['scheme']
+    assert f'http://{place}' == test_pool._user_urlbase
     token = tokenMsg['token']
     # verify it
 
@@ -1009,7 +1012,7 @@ def test_new_pool(csdb_server, set_ids):
         urlcsdb[len('csdb'):] + '/' + csdb_pool_id
     # url = pc['cloud_scheme'] + urlcsdb[len('csdb'):] + '/' + csdb_pool_id
     
-    ps = make_csdb(url)
+    ps = make_ps()
     ps.register(poolurl=url, client=client, auth=auth)
     pool = ps.getWritablePool(True)  # PublicClientPool(poolurl=url)
     poolname = pool._poolname

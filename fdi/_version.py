@@ -1,7 +1,8 @@
-__version_info__ = (1, 39, 7)
+__version_info__ = (1, 40, 0)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '1.39.5-3-gac4e653'
+__revision__ = '1.39.7-2-g1d73bbc'
 
+# star added to pool register api; introducing pool._user_urlbase
 # 1.39.7 include traceback-with-variables
 # 1.39.6 fix user_urlbase confusion and set loggerGPL.
 # 1.39.5 new de-reffed pools yml, y2b glb bg fix;

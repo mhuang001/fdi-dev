@@ -67,6 +67,9 @@ POST_PRODUCT_TAG_NAME = 'FDI-Product-Tags'
 
 SAFE_CLIENT_OUT = 0
 """ logger.info all url going out."""
+
+SHOW_REQ_SENT = 0
+
 # all items
 pcc = getConfig()
 defaulturl = getConfig('poolurl:')
@@ -231,6 +234,10 @@ def safe_client(method, api, *args, headers=None, no_retry_controls=False, **kwd
     res = None
     for n in range(tries):
         try:
+            if SHOW_REQ_SENT:
+                __import__("pdb").set_trace()
+                api = 'https://httpbin.org/delete'
+
             res = method(api, *args, **kwds)
             if FORCED is None or res.status_code not in FORCED:
                 break
@@ -369,7 +376,7 @@ def read_from_server(urn, poolurl, contents='product', headers=None, result_only
         aheaders.update(headers)
     headers = aheaders
 
-    if 0:
+    if SHOW_REQ_SENT:
         __import__("pdb").set_trace()
         api = 'https://httpbin.org/get'
         
@@ -420,7 +427,7 @@ def put_on_server(urn, poolurl, contents='pool', headers=None, result_only=False
         aheaders.update(headers)
     headers = aheaders
 
-    if 0:
+    if SHOW_REQ_SENT:
         __import__("pdb").set_trace()
         api = 'https://httpbin.org/put'
     # auth has priority over headers here
@@ -486,7 +493,7 @@ def delete_from_server(urn, poolurl, contents='product', headers=None, result_on
         rs = []
         for u in urns:
             api = urn2fdiurl(u, poolurl, contents=contents, method='DELETE')
-            if 0:
+            if SHOW_REQ_SENT:
                 __import__("pdb").set_trace()
                 api = 'https://httpbin.org/delete'
 
@@ -635,6 +642,13 @@ def content2result_csdb(content):
         if is_Fits(cont):
             res.append(cont)
             continue
+        if text.startswith('<html>'):
+            eo = text
+            ocode = resp.status_code
+            msg = resp.reason
+            raise ServerError(
+                f'REQ {resp.request.method} error: {ocode} Messag: {msg}', rsps=resp, code=code)
+
         obj = deserialize(text)
         if issubclass(obj.__class__, str):
             # cannot deserialize and/or bad code
@@ -643,8 +657,11 @@ def content2result_csdb(content):
                     eo = resp.json()
                     ocode = ['status']
                     msg = eo['message']
+                elif code == 404:
+                    eo = resp.text
+                    ocode = ['status']
+                    msg = eo['message']
                 else:
-                    con = resp.contents
                     eo = resp.json()
                     ocode = eo['code']
                     msg = eo['msg']
@@ -737,8 +754,11 @@ def reqst(meth, apis, *args, server_type='httppool', auth=None, return_response=
             raise ValueError('Unknown server type: {server_type}.')
     elif ismethod(meth):
         # use request, urllib3.Session
-        content = safe_client(
-            meth, apis, *args, auth=auth, **kwds)
+        if SHOW_REQ_SENT:
+            __import__("pdb").set_trace()
+            apis = 'https://httpbin.org/get'
+
+        content = safe_client(meth, apis, *args, auth=auth, **kwds)
         
         if server_type == 'httppool':
             res = content

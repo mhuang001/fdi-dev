@@ -256,6 +256,9 @@ def remoteRegister(pool):
                         msg = 'Bad pool name.'
                     else:
                         msg = 'Unknown reason.'
+                    pw = f'{"*"*len(pool.auth.password)}'
+                    np = f'<{pool.auth.username} ' +\
+                        (pw+'>') if pool.auth else ' (no authorization)>'
                     msg = f'Registering {poolurl} failed with auth {np}. {msg} {e}'
                     logger.error(msg)
                     res = 'FAILED'
@@ -269,7 +272,7 @@ def remoteRegister(pool):
                 logger.info(_lg)
 
         restore_cookies(pool.client)
-        pool.token = publicclientpool.getToken(poolurl, pool.client, pc['scheme']+pool._place)
+        pool.token = publicclientpool.getToken(poolurl, pool.client, pool._user_urlbase)
         pool.client.headers.update({'X-AUTH-TOKEN': pool.token})
 
         pool.poolInfo = pool.getPoolInfo(update_hk=True)

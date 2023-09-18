@@ -140,22 +140,24 @@ def getToken(poolurl, client, user_urlbase=None):
     from ..httppool.model.user import SESSION
     from flask import session as sess
 
-    # current_token = None
-    # if sess and SESSION:
-    #     # saved token
-    #     if 'tokens' in sess and sess['tokens']:
-    #         current_token = sess['tokens'].get(poolurl, '')
+    if 0:
+        current_token = None
+        if sess and SESSION:
+            # saved token
+            if 'tokens' in sess and sess['tokens']:
+                current_token = sess['tokens'].get(poolurl, '')
 
-    # if not current_token:
-    #     current_token = pcc['cloud_token']
-    # trouble = verifyToken(current_token, client)
-    # if trouble:
-    #     logger.info(f'Cloud token {lls(current_token, 50)} {trouble} ')
-    # 
+        if not current_token:
+            current_token = pcc['cloud_token']
+        trouble = verifyToken(current_token, client, user_urlbase=user_urlbase)
+        if trouble:
+            logger.info(f'Cloud token {lls(current_token, 50)} {trouble} ')
+
     if True:
-        __import__("pdb").set_trace()
+        current_token = ''
+        #__import__("pdb").set_trace()
 
-        tokenMsg = read_from_cloud('getToken', client=client, user_urlbase=user_urlbase)
+        tokenMsg = read_from_cloud('getToken', client=client, user_urlbase=user_urlbase, token=current_token)
         if tokenMsg:
             token = tokenMsg['token']
         else:
@@ -163,7 +165,7 @@ def getToken(poolurl, client, user_urlbase=None):
             if not tokenMsg:
                 logger.error(f'Cannot get token from: {poolurl} at {user_urlbase} getting msg: {tokenMsg}.')
                 logger.debug('try again')
-                tokenMsg2 = read_from_cloud('getToken', client=client, user_urlbase=user_urlbase)
+                tokenMsg2 = read_from_cloud('getToken', client=client, user_urlbase=user_urlbase, token=current_token)
                 if not tokenMsg2:
                     logger.error(f'Cannot get token from: {poolurl} at {user_urlbase} getting msg: {tokenMsg2}.')
                     return None
@@ -245,7 +247,7 @@ class PublicClientPool(ManagedPool):
             self._scheme = 'csdb'
         self._cloudpoolpath = self._poolpath + '/' + self._poolname
         # used in ..pns.public_fdi_requests apis
-        self._user_urlbase = pcc['scheme'] + self._place + self._poolpath
+        self._user_urlbase = f"{pcc['scheme']}://{self._place}"
         self._poolurl = poolurl
         # call setup only if poolurl was None
         if s:
@@ -619,7 +621,7 @@ class PublicClientPool(ManagedPool):
         if not alist:
             if paths and pool:
                 raise ValueError(
-                    f"Path '{a}' and pool '{pool}' cannot be both non-empty for getDataInfo.")
+                    f"Path '{paths}' and pool '{pool}' cannot be both non-empty for getDataInfo.")
             # if both are empty, pool takes self.poolname
             if not pool and not paths:
                 pool = pname
@@ -773,7 +775,7 @@ class PublicClientPool(ManagedPool):
         """ uploadRes : record of the csdb upload. """
         utype = uploadRes.get('dataType', '')
         if utype == '':
-            raise Exception('Upload failed: product "%s" to %s:' % (
+            raise ServerError('Upload failed: product "%s" to %s:' % (
                 prd.description, self.poolurl) + uploadRes['msg'])
 
         urn = uploadRes['urn']
@@ -828,7 +830,7 @@ class PublicClientPool(ManagedPool):
                                       products=jsonPrds, path=paths,
                                       resourcetype=resourcetypes, client=self.client,
                                       tags=tags, asyn=True,
-                                      user_urlbase=self._user_urlbase,
+                                      user_urlbase=self._user_urlbase+'/csdb/v1',
                                       **kwds)
             for i, uploadRes in enumerate(uploadr):
                 self._format_res(uploadRes, geturnobjs,

@@ -713,7 +713,7 @@ def demo_product():
     v = get_demo_product()
     return v, get_related_product()
 
-def make_csdb(poolurl):
+def make_ps():
     # client = requests_retry_session()
 
     ps = ProductStorage()
@@ -791,7 +791,7 @@ def new_csdb(csdb_server, set_ids):
     url = pc['cloud_scheme'] + \
         urlc[len('csdb'):] + '/' + csdb_pool_id + str(int(time.time()))
     # url = pc['cloud_scheme'] + urlc[len('csdb'):] + '/' + csdb_pool_id
-    ps = make_csdb(url)
+    ps = make_ps()
     ps.register(poolurl=url, client=the_session, auth=auth)
     pool = ps.getWritablePool(True)  # PublicClientPool(poolurl=url)
     poolname = pool._poolname

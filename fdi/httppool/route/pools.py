@@ -227,10 +227,10 @@ def get_registered_pools():
 
     logger = current_app.logger
     ts = time.time()
+    PM_S  = PM_S_from_g(g)
     if logger.isEnabledFor(logging_DEBUG):
         logger.debug('Listing all registered pools.')
 
-        PM_S  = PM_S_from_g(g)
         # [p.getPoolurl() for p in PM_S.getMap()()]
     result = list(PM_S.getMap())
     msg = 'There is/are %d pools registered to the PoolManager.' % len(result)

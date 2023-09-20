@@ -1,7 +1,8 @@
-__version_info__ = (1, 40, 0)
+__version_info__ = (1, 40, 1)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '1.39.7-2-g1d73bbc'
+__revision__ = '1.40.0-1-gef4e05c'
 
+# fix content-type bug.
 # 1.40.0 star added to pool register api; introducing pool._user_urlbase
 # 1.39.7 include traceback-with-variables
 # 1.39.6 fix user_urlbase confusion and set loggerGPL.

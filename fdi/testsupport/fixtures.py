@@ -91,8 +91,9 @@ def pytest_addoption(parser):
         "1 for http test_pool_1 /csdb sv2 / fsc types;"
         "2 for http test_pool_1 /csdb test_sdb_vt / fsc types;"
         "3 for http test_pool_1 /csdb test_e2e2_vt / all fsc _vt types;"
+        "4 for http test_pool_4 /csdb test_e2e2_sdb / all fsc types;"
         ,
-        choices=(0, 1, 2, 3)
+        choices=(0, 1, 2, 3, 4)
     )
 
 def pytest_configure(config):

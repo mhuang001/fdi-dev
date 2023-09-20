@@ -249,7 +249,9 @@ def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', us
             header["accept"] = "*/*"
             # somehow application/json will cause error "unsupported"
             # = 'application/json'  # ;charset=UTF-8'
+            # must delete so it will be changed to multipart
             del header['Content-Type']
+            del header['Content-type']
             requestAPI = uub + \
                 '/datatype/upload'
             ea=kwds.pop('ensure_ascii', True),

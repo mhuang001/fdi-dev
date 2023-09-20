@@ -40,7 +40,7 @@ if 0:
 
 
 commonheaders = {
-    'Accept': 'application/json',
+    'Accept': 'application/json;charset=UTF-8',
     'Accept-Charset': 'utf-8',
     'Accept-Encoding': 'identity',
     'SameSite': 'Strict',

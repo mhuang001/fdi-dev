@@ -756,7 +756,7 @@ def reqst(meth, apis, *args, server_type='httppool', auth=None, return_response=
         # use request, urllib3.Session
         if SHOW_REQ_SENT:
             __import__("pdb").set_trace()
-            apis = 'https://httpbin.org/get'
+            apis = f'https://httpbin.org/{meth.__func__.__name__}'
 
         content = safe_client(meth, apis, *args, auth=auth, **kwds)
         

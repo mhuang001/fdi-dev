@@ -2,7 +2,7 @@ __version_info__ = (1, 40, 2)
 __version__ = '.'.join(map(str, __version_info__))
 __revision__ = '1.40.1-0-g29a36a7'
 
-# fix 2017 TAI. wip metaname separator
+# 1.40.2 fix 2017 TAI. wip metaname separator
 # 1.40.1 fix content-type bug.
 # 1.40.0 star added to pool register api; introducing pool._user_urlbase
 # 1.39.7 include traceback-with-variables

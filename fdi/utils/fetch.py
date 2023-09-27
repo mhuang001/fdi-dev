@@ -6,6 +6,7 @@ from operator import methodcaller
 import inspect
 from itertools import chain
 
+META_NAME_HIER_SEPARATOR = '.'
 
 def fetch(paths, nested, re='', sep='/', exe=['is'], not_quoted=True):
     """ Use paths to access values of internal elements of a nested python object.
@@ -62,9 +63,10 @@ def fetch(paths, nested, re='', sep='/', exe=['is'], not_quoted=True):
         all_args=p0, not_quoted=not_quoted)
     p0, args = m_args[0], m_args[1:]
 
+    
     if hasattr(nested, p0):
         v0 = getattr(nested, p0)
-        rep = re + '.' + p0
+        rep = f"{re}{META_NAME_HIER_SEPARATOR}{p0}"
         if inspect.ismethod(v0) or inspect.isfunction(v0):
             if '*' in exe:
                 can_exec = True

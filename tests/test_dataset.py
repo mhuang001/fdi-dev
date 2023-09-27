@@ -2740,8 +2740,13 @@ def test_FineTime():
         datetime.datetime(2000, 1, 1, 0, 0, 0))
     assert FineTime(b'3000', format='%Y') == FineTime(
         datetime.datetime(3000, 1, 1, 0, 0, 0))
-    v = FineTime('1990-09-09T12:34:56.789098 UTC')
 
+    v = FineTime('2017-01-01T00:00:00.000000 UTC')
+    assert v == FineTime('2017', format='%Y')
+    assert v == FineTime(datetime.datetime(2017, 1, 1, 0, 0, 0))
+    assert v == FineTime(1861920037000000)
+
+    
     # comparison
     v1 = FineTime(12345678901234)
     v2 = FineTime(12345678901234)

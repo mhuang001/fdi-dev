@@ -17,6 +17,45 @@ logger = logging.getLogger(__name__)
 
 utcobj = datetime.timezone.utc
 
+def try_pz(t, msg):
+    for end in ('%Z', '%z'):
+        for _f in (FineTime.DEFAULT_FORMAT,
+                   FineTime.DEFAULT_FORMAT_SECOND):
+            for sept in ('T', ''):
+                for sepz in (' ', ''):
+                    if sept != 'T':
+                        _f = _f.replace('T', sept)
+                    fmt = f"{_f}{sepz}{end}"
+                    try:
+                        d = datetime.datetime.strptime(t, fmt)
+                        gotit = 2
+                        return gotit, fmt, d
+                    except ValueError:
+                        msg += '\n%s does not match %s.' % (t, fmt)
+    logger.warning('Time zone %s assumed for %s' %
+                   (t.rsplit(' ')[1], t))
+    return None, msg
+
+                                    
+def try_ends(t, ends, msg):
+    for end in ends:
+        for case in set((end, end.upper())):
+            if t.endswith(case):
+                for _f in (FineTime.DEFAULT_FORMAT,
+                           FineTime.DEFAULT_FORMAT_SECOND):
+                    fmt = f"{_f}{case}"
+                    try:
+                        d = datetime.datetime.strptime(t, fmt).replace(
+                            tzinfo=utcobj)
+                        gotit = 2
+                        return gotit, fmt, d
+                    except ValueError:
+                        msg += '\n%s does not match %s.' % (t, fmt)
+                        pass
+    # not ending with case or not match fmt+case
+        
+    return try_pz(t, msg)
+
 class FineTime(Copyable, DeepEqual, Serializable):
     """ Atomic time (SI seconds) elapsed since the TAI epoch
     of 1 January 1958 UT2. The resolution is one microsecond and the
@@ -230,68 +269,12 @@ class FineTime(Copyable, DeepEqual, Serializable):
                     d = datetime.datetime.strptime(t, fmt)
                 except ValueError:
                     msg += '\n%s does not match %s.' % (t, fmt)
-                    if ' ' in t:
-                        fmt = FineTime.DEFAULT_FORMAT.replace(' ','T')
-                        try:
-                            d = datetime.datetime.strptime(t, fmt)
-                            gotit = 2
-                        except ValueError:
-                            msg += '\n%s does not match %s.' % (t, fmt)
-                            if ' ' in t:
-                                fmt = FineTime.DEFAULT_FORMAT_SECOND.replace(' ','T')
-                                try:
-                                    d = datetime.datetime.strptime(t, fmt)
-                                    gotit = 2
-                                except ValueError:
-                                    msg += '\n%s does not match %s.' % (t, fmt)
-                                    if ' ' in t:
-                                        fmt = FineTime.DEFAULT_FORMAT + ' %Z'
-                                        try:
-                                            d = datetime.datetime.strptime(t, fmt)
-                                            gotit = 2
-                                        except ValueError:
-                                            msg += '\n%s does not match %s.' % (t, fmt)
-                                            fmt = FineTime.DEFAULT_FORMAT + ' %z'
-                                            try:
-                                                d = datetime.datetime.strptime(t, fmt)
-                                                gotit = 2
-                                            except ValueError:
-                                                msg += '\n%s does not match %s.' % (t, fmt)
-                                                raise ValueError(msg)
-                                        logger.warning('Time zone %s assumed for %s' %
-                                                       (t.rsplit(' ')[1], t))
+                    got = try_ends(t, ('Z',), msg)
+                    if got[0] is None:
+                        gotit, msg = got
                     else:
-                        # No ' ' in time string
-                        gotit = False
-                        if t.endswith('Z'):
-                            fmt = FineTime.DEFAULT_FORMAT + 'Z'
-                            try:
-                                d = datetime.datetime.strptime(t, fmt).replace(
-                                    tzinfo=utcobj)
-                                gotit = 2
-                            except ValueError:
-                                msg += '\n%s does not match %s.' % (t, fmt)
-                                fmt = FineTime.DEFAULT_FORMAT_SECOND + 'Z'
-                                try:
-                                    d = datetime.datetime.strptime(t, fmt).replace(
-                                        tzinfo=utcobj)
-                                    gotit = 2
-                                except ValueError:
-                                    msg += '\n%s does not match %s.' % (t, fmt)
-                                pass
-                        if not gotit:
-                            # not ending with 'Z' or not match fmt+'Z'
-                            fmt = FineTime.DEFAULT_FORMAT + '%Z'
-                            try:
-                                d = datetime.datetime.strptime(t, fmt)
-                            except ValueError:
-                                msg += '\n%s does not match %s.' % (t, fmt)
-                                fmt = FineTime.DEFAULT_FORMAT + '%z'
-                                try:
-                                    d = datetime.datetime.strptime(t, fmt)
-                                except ValueError:
-                                    msg += '\n%s does not match %s.' % (t, fmt)
-                                    raise TypeError(msg)
+                        gotit, fmt, d = got
+
                     if gotit != 2:
                         logger.warning('Time zone %s taken for %s' %
                                        (str(d.tzname()), t))
@@ -523,7 +506,6 @@ class FineTime(Copyable, DeepEqual, Serializable):
         """ Can be encoded with serializableEncoder """
         return OrderedDict(tai=self.tai,
                            format=self.format)
-
 
 class FineTime1(FineTime):
     """ Same as FineTime but Epoch is 2017-1-1 0 UTC and unit is millisecond"""

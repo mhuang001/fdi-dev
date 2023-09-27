@@ -1139,6 +1139,7 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
                     tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
                     extra=extra,
                     alist=True)
+
                 att.update(a)
 
                 from ..utils.fits_kw import getFitsKw
@@ -1215,10 +1216,12 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
         if level == 0:
             thewidths = get_thewidths_l0(param_widths)
             headers = list(thewidths)
-            if extra:
-                headers.extend(ext_hdr)
             fmt = tablefmt
             maxwidth = list(thewidths.values())
+
+            if extra:
+                headers.extend(ext_hdr)
+                maxwidth += [Default_Extra_Param_Width] * len(ext_hdr)
             s += tabulate.tabulate(tab, headers=headers, tablefmt=fmt,
                                    missingval='', maxcolwidths=maxwidth,
                                    disable_numparse=True)

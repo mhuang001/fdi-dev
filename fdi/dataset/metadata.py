@@ -1221,7 +1221,11 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
 
             if extra:
                 headers.extend(ext_hdr)
-                maxwidth += [Default_Extra_Param_Width] * len(ext_hdr)
+                # width of extra attributes
+                for eh in ext_hdr:
+                    _dwidth = Default_Extra_Param_Width * 2 if \
+                        'description' else Default_Extra_Param_Width
+                    maxwidth.append(_dwidth)
             s += tabulate.tabulate(tab, headers=headers, tablefmt=fmt,
                                    missingval='', maxcolwidths=maxwidth,
                                    disable_numparse=True)

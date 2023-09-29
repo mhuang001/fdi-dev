@@ -1,7 +1,8 @@
-__version_info__ = (1, 40, 2)
+__version_info__ = (1, 40, 3)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '1.40.1-0-g29a36a7'
+__revision__ = '1.40.2-1-g7b3d208'
 
+# wide meta extra. # fixed length fits
 # 1.40.2 fix 2017 TAI. wip metaname separator
 # 1.40.1 fix content-type bug.
 # 1.40.0 star added to pool register api; introducing pool._user_urlbase

@@ -10,16 +10,16 @@ from collections import UserDict
 JEXP = jex.parse('$..*')
 
 
-def flatten_compact(roots, num=False, style='short', sep='.', path_list=False):
+def flatten_compact(roots, num=False, style='short', sep=',', path_list=False):
     """ Colapse datapaths of elements of an object.
 
     Duplicated paths will only have the last one. For example::
 
-    for n, c in {'group1.val': a10['col1'], 'group1.err': a10['col2'],
-                 'no-group.val': a10['col1'],
-                 'group2.val': a10['col1'], 'group2.err': a10['col2'],
-                 'group2.seq': a10['col2'],
-                 'group2.wgt': Column(data=['', 0.32, -9876543210], unit='g'),
+    for n, c in {'group1,val': a10['col1'], 'group1,err': a10['col2'],
+                 'no-group,val': a10['col1'],
+                 'group2,val': a10['col1'], 'group2,err': a10['col2'],
+                 'group2,seq': a10['col2'],
+                 'group2,wgt': Column(data=['', 0.32, -9876543210], unit='g'),
                  }.items():
         v.addColumn(n, c)
 
@@ -27,36 +27,36 @@ will make one-level datapath::
 
     col1
     col2
-    group1.val
-    group1.err
-    no-group.val
-    group2.val
-    group2.err
-    group2.seq
-    group2.wgt
+    group1,val
+    group1,err
+    no-group,val
+    group2,val
+    group2,err
+    group2,seq
+    group2,wgt
 
 shown in a tree::
 
     |__ 'col1'                                     <Column> (3,)
     |__ 'col2'                                     <Column> (3,)
-    |__ 'group1.val'                               <Column> (3,)
-    |__ 'group1.err'                               <Column> (3,)
-    |__ 'no-group.val'                             <Column> (3,)
-    |__ 'group2.val'                               <Column> (3,)
-    |__ 'group2.err'                               <Column> (3,)
-    |__ 'group2.seq'                               <Column> (3,)
-    \__ 'group2.wgt'                               <Column> (3,)
+    |__ 'group1,val'                               <Column> (3,)
+    |__ 'group1,err'                               <Column> (3,)
+    |__ 'no-group,val'                             <Column> (3,)
+    |__ 'group2,val'                               <Column> (3,)
+    |__ 'group2,err'                               <Column> (3,)
+    |__ 'group2,seq'                               <Column> (3,)
+    \__ 'group2,wgt'                               <Column> (3,)
 
 
-Flatten_compact  ```print('\n'self.join(flatten_compact([v]).keys()))```::
+Flatten_compact  ```print('\n'.join(flatten_compact([v]).keys()))```::
 
     col1
     col2
-    g.val
-    g.err
-    n.val
-    g.seq
-    g.wgt
+    g,val
+    g,err
+    n,val
+    g,seq
+    g,wgt
 
 The 'group' part  look good in a table header::
 
@@ -77,8 +77,8 @@ The 'group' part  look good in a table header::
 
     :roots: where. A list of maps.
     :num: preceed keys with sequence numbers.
-    :style: for keys, `short`: use shortened path e.g. ```abc.def.hgi``` ```a.d.hgi```. `last2`: use the right-most 2 segments, `full` for untrated paths, anything else to use only the last one.
-    :sep: separater used in output. Default is '.'.
+    :style: for keys, `short`: use shortened path e,g. ```abc,def,hgi``` ```a,d,hgi```. `last2`: use the right-most 2 segments, `full` for untrated paths, anything else to use only the last one.
+    :sep: separater used in output. Default is ','.
     :path_list: a list of path segments in place of value. Defalut `False`.
     :return: dict(flatten_compact_path:(list of path|val)
     """
@@ -91,7 +91,7 @@ The 'group' part  look good in a table header::
 
         for node in match:
             if not issubclass(node.value.__class__, (dict, list, UserDict)):
-                # abc/def/ghi ->a.d.ghi
+                # abc/def/ghi ->a,d,ghi
                 fp = str(node.full_path).split('.')
                 npre = (str(n)+'_') if num else ''
                 if style == 'short':

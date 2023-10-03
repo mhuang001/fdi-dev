@@ -4,6 +4,7 @@ from .fits_kw import FITS_KEYWORDS, getFitsKw
 from ..dataset.arraydataset import ArrayDataset
 from ..dataset.tabledataset import TableDataset
 from ..dataset.dataset import CompositeDataset
+from ..dataset.serializable import Serializable
 from ..dataset.unstructureddataset import UnstructuredDataset
 from ..dataset.dataset import Dataset
 from ..dataset.datatypes import DataTypes
@@ -13,14 +14,22 @@ from ..dataset.stringparameter import StringParameter
 from ..dataset.numericparameter import NumericParameter, BooleanParameter
 from ..dataset.datatypes import Vector
 from ..pal.context import RefContainer
+
 import os
 from collections.abc import Sequence
 import io
+from string import Template
+import logging
+# create logger
+logger = logging.getLogger(__name__)
+logger.debug('logging level %d' % (logger.getEffectiveLevel()))
+
 
 FITS_INSTALLED = True
 try:
     import numpy as np
     from astropy.io import fits
+    from astropy.io.fits import HDUList
     from astropy.table import Table
     from astropy.table import Column
 except ImportError:
@@ -117,7 +126,7 @@ def toFits(data, file='', **kwds):
     """convert dataset to FITS.
 
     :data: a list of Dataset or a BaseProduct (or its subclass).
-    :file: '' for returning fits stream. string for file name. default ''.
+    :file: A non-empty string for file name. `None` means return HDUList only. Default '', for only returning fits stream/BLOB. 
     """
 
     hdul = fits.HDUList()
@@ -153,13 +162,13 @@ def toFits(data, file='', **kwds):
     if file:
         hdul.writeto(file, **kwds)
         return hdul
-    elif file == '':
+    elif file is None:
+        return hdul
+    else:
         with io.BytesIO() as iob:
             hdul.writeto(iob, **kwds)
             fits_im = iob.getvalue()
         return fits_im
-    else:
-        return hdul
 
 
 def fits_dataset(hdul, dataset_list, name_list=None, level=0):
@@ -285,25 +294,78 @@ def add_header(meta, header, zim={}):
     return header
 
 
-def fits_header():
-    fitsdir = '/Users/jia/desktop/vtse_out/'
-    f = fits.open(fitsdir + 'array.fits')
-    h = f[0].header
+def fits_header_list(fitsobj):
+    if issubclass(fitsobj.__class__, str):
+        fitspath = fitsobj
+        with fits.open(fitspath, memmap=True, lazy_load_hdus=False) as hdul:
+            h = hdul
+            return h
+    elif issubclass(fitsobj.__class__, bytes):
+        #with io.BytesIO(fits) as iob:
+        h = []
+        hdul = HDUList(h, file=fitsobj)
+        return hdul
+    else:
+        raise ValueError('Need bytes or file name')
     # h.set('add','header','add a header')
-    h['add'] = ('header', 'add a header')
-    h['test'] = ('123', 'des')
-    f.close()
-
-    return h
+    #h['add'] = ('header', 'add a header')
+    #h['test'] = ('123', 'des')
 
 
-def test_fits_kw(h):
-    # print(h)
-    # print(list(h.keys()))
-    # assert FITS_KEYWORDS['CUNIT'] == 'cunit'
-    assert getFitsKw(list(h.keys())[0]) == 'SIMPLE'
-    assert getFitsKw(list(h.keys())[3]) == 'NAXIS1'
+def write_to_file(p, fn, dct=None):    
+    """write out fits file for the given product and try to send samp notices.
 
+    Parameters
+    ----------
+    p : Serializable, bytes, or HDUList
+        The product that can be a BLOB, fits HDU list,
+        `BaseProduct` (or `Serializable`). Or else quietly pass.
+    fn : str
+        fits file path. it will go througMh template expansion using FITS keywords name to their values. E.g. "It is $SIMPLE." becomes "It is True."
+    dct : Mapping
+        A dictionary for translating keys in `fn` to values. Default is `None` which uses the `PrimaryHDU.header`.
+    Returns
+    -------
+    str
+        expanded fits file path.
+
+    Examples
+    --------
+    FIXME: Add docs.
+
+    """
+    if not (issubclass(p.__class__, Serializable) or \
+       issubclass(p.__class__, HDUList) or\
+       is_Fits(p)):
+
+        raise TypeError(f"{p} is not FITS data.")
+    
+    if issubclass(p.__class__, Serializable):
+        p = p.fits()
+
+    # get a k-v dictionary  for this data
+    kv = dct if dct else dict(
+        (k, (v.strip() if issubclass(v.__class__, str) else v)) \
+         for k,v in fits_header_list(p)[0].header.items())
+
+    # expand name
+    sp = Template(fn).safe_substitute(kv)
+    # print(sp)
+
+    try:
+        with open(sp, 'wb') as fitsf:
+            if is_Fits(p):
+                fitsf.write(p)
+            elif issubclass(p.__class__, HDUList):
+                p.writeto(fitsf)
+            else:
+                pass
+    except TypeError as e:
+        logger.debug('error writing FITS:'+str(e))
+        raise
+    logger.debug(f'{sp} ({fn})')
+
+    return sp
 
 if __name__ == '__main__':
 

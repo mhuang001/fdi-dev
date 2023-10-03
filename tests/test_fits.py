@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from fdi.utils.fits_kw import FITS_KEYWORDS, getFitsKw
-from fdi.utils.tofits import is_Fits, toFits, fits_dataset
+from fdi.utils.tofits import is_Fits, toFits, fits_dataset, fits_header_list, write_to_file
 from fdi.dataset.arraydataset import ArrayDataset, Column as aCol
 from fdi.dataset.tabledataset import TableDataset
 from fdi.dataset.dataset import CompositeDataset
@@ -25,6 +25,10 @@ except ImportError:
 import sys
 import os
 import pytest
+import logging
+# create logger
+logger = logging.getLogger(__name__)
+logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
     PY3 = True
@@ -280,3 +284,28 @@ def test_Fits_Kw():
         # wrong format in `extra`
         assert getFitsKw('foo0123', 5, (('foo', 'BAR'))) == 'BAR00123'
     assert getFitsKw('foo0123', 5, (('foo', 'BAR'),)) == 'BAR00123'
+
+def test_fits_header_list():
+    fn = 'tests/'+'resources/SD_24_0791_20170101T000324_0078972002.fits'
+    assert fits_header_list(fn)[0].header['DESC'] == 'SVOM VT Single Exposure (VTSE) 1B v1.32.2-0-g0a61c71'
+    with open(fn, 'rb') as f:
+        blob = f.read()
+    assert is_Fits(blob)
+    assert fits_header_list(blob)[0].header['DESC'] == 'SVOM VT Single Exposure (VTSE) 1B v1.32.2-0-g0a61c71'
+
+def test_write_to_file():
+    fn = 'tests/'+'resources/SD_24_0791_20170101T000324_0078972002.fits'
+    assert fits_header_list(fn)[0].header['DESC'] == 'SVOM VT Single Exposure (VTSE) 1B v1.32.2-0-g0a61c71'
+    with open(fn, 'rb') as f:
+        blob = f.read()
+    assert is_Fits(blob)
+    tf = f'/tmp/It_is_{True}'
+    try:
+        os.unlink(tf)
+    except OSError:
+        pass
+    filepath = write_to_file(blob, '/tmp/It_is_$SIMPLE')
+    assert filepath == tf
+    with open(tf, 'rb') as f:
+        blob2 = f.read()
+    assert blob == blob2

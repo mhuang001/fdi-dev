@@ -39,6 +39,7 @@ setup(
         'requests>=2.23.0',
         'filelock>=3.10',
         'ruamel.yaml<0.17',
+        'colorama>=0.4.6',
         #'tabulate-expwidth>=0.9.0.1',
         # for actual use
         # 'tabulate @ file://%s/resources/tabulate-0.8.10-py3-none-any.whl' % pkgd,

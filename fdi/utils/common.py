@@ -40,6 +40,11 @@ logging_WARNING = logging.WARNING
 logging_INFO = logging.INFO
 logging_DEBUG = logging.DEBUG
 
+def b2i(b, endian='big'):
+    if issubclass(b.__class__, bytes):
+        return int.from_bytes(b, byteorder=endian)
+    return b
+
 
 def str2md5(string):
     return hashlib.md5(string.encode('utf8')).hexdigest()

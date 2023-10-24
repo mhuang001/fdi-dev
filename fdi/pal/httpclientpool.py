@@ -293,8 +293,6 @@ class HttpClientPool(ProductPool):
         Pool is still left registered to ProductStorage and PoolManager.
         """
 
-    removeAll = wipe
-
     @ toServer(method_name='select')
     def schematicSelect(self,  query, results=None):
         """
@@ -366,6 +364,9 @@ class HttpClientPool(ProductPool):
         """
 
         # return self.toserver('isEmpty')
+
+    # removeAll API is actually wipe. The same line is also in parent class `PRoductPool`. USually this line should not be put in this class but because we need to decorate `wipe` `toServer` so wipe is "defined" and this line has to be here.
+    removeAll = wipe
 
     def meta(self,  urn):
         """

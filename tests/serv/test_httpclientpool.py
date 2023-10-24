@@ -181,7 +181,7 @@ num = 0
 def test_foo(tmp_remote_storage_no_wipe, set_ids):
     ps, pool  = tmp_remote_storage_no_wipe
     csdb_pool_id, http_pool_id, PTYPES = set_ids
-    assert http_pool_id + '_remote' in ps
+    assert http_pool_id in ps
     wtb = ps.getWritablePool()
     pw = ps._pools[wtb]
     pw.removeAll()
@@ -194,7 +194,7 @@ def test_foo(tmp_remote_storage_no_wipe, set_ids):
 def test_foo1(set_ids, tmp_remote_storage_no_wipe):
     csdb_pool_id, http_pool_id, PTYPES = set_ids
     ps, pool  = tmp_remote_storage_no_wipe
-    assert http_pool_id + '_remote' in ps
+    assert http_pool_id  in ps
     wtb = ps.getWritablePool()
     pw = ps._pools[wtb]
     assert pw.getCount() == num + 1
@@ -239,8 +239,9 @@ def get_PS_for_CRUD(server, tmp_remote_storage):
 
     logger.info('Init a pstore')
 
-    ps_remote = tmp_remote_storage
     aburl, client, auth, pool, poolurl, pstore, server_type = server
+    ps_remote = tmp_remote_storage
+
     poolid = pool.poolname
     
     # poolid = ps_remote.getPools()[0]

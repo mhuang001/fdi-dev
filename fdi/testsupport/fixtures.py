@@ -879,7 +879,7 @@ def tmp_remote_storage_no_wipe(server, set_ids):
 
     csdb_pool_id, http_pool_id, PTYPES = set_ids
 
-    poolid = http_pool_id + '_remote'
+    poolid = http_pool_id
 
     ps = ProductStorage(poolname=poolid, poolurl=aburl + '/' + poolid,
                         client=client, auth=auth)
@@ -891,12 +891,12 @@ def tmp_remote_storage_no_wipe(server, set_ids):
 
 @ pytest.fixture(scope=SHORT)
 def tmp_remote_storage(tmp_remote_storage_no_wipe):
-    """ temporary servered with pools cleared  """
+    """ temporary servered with pools and poolManager cleared  """
     ps, pool = tmp_remote_storage_no_wipe
 
     ps._pools.clear()
-    PM_S = PM_S_from_g(g)
-    PM_S._GlobalPoolList.clear(include_read_only=True)
+    ps.PM.removeAll(include_read_only=True)
+    ps.register(pool=pool)
     yield ps
 
 

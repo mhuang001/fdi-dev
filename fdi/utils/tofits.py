@@ -14,6 +14,7 @@ from ..dataset.stringparameter import StringParameter
 from ..dataset.numericparameter import NumericParameter, BooleanParameter
 from ..dataset.datatypes import Vector
 from ..pal.context import RefContainer
+from .common import lls
 
 import os
 from collections.abc import Sequence
@@ -312,7 +313,7 @@ def fits_header_list(fitsobj):
     #h['test'] = ('123', 'des')
 
 
-def write_to_file(p, fn, dct=None):    
+def write_to_file(p, fn, dct=None, ignore_type_error=False):    
     """write out fits file for the given product and try to send samp notices.
 
     Parameters
@@ -324,10 +325,11 @@ def write_to_file(p, fn, dct=None):
         fits file path. it will go througMh template expansion using FITS keywords name to their values. E.g. "It is $SIMPLE." becomes "It is True."
     dct : Mapping
         A dictionary for translating keys in `fn` to values. Default is `None` which uses the `PrimaryHDU.header`.
+    ignore_type_error: if set, do not raise `TypeError` if `p` is not acceptable.
     Returns
     -------
     str
-        expanded fits file path.
+        expanded fits file path. or the input `fn` if the product has wrong format and `ignore_type_error` is set.
 
     Examples
     --------
@@ -338,7 +340,7 @@ def write_to_file(p, fn, dct=None):
        issubclass(p.__class__, HDUList) or\
        is_Fits(p)):
 
-        raise TypeError(f"{p} is not FITS data.")
+        raise TypeError(f"{lls(p, 100)} is not FITS data.")
     
     if issubclass(p.__class__, Serializable):
         p = p.fits()
@@ -361,6 +363,8 @@ def write_to_file(p, fn, dct=None):
             else:
                 pass
     except TypeError as e:
+        if ignore_type_error:
+            return fn
         logger.debug('error writing FITS:'+str(e))
         raise
     logger.debug(f'{sp} ({fn})')

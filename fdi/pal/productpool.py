@@ -449,7 +449,7 @@ When implementing a ProductPool, the following rules need to be applied:
                
         return res
 
-    def schematicWipe(self):
+    def schematicWipe(self, asyn=False):
         """ to be implemented by subclasses to do the scheme-specific wiping.
         """
         raise (NotImplementedError)

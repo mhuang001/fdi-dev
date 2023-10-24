@@ -2,7 +2,7 @@ __version_info__ = (1, 40, 4)
 __version__ = '.'.join(map(str, __version_info__))
 __revision__ = '1.40.3-0-gb7899b5'
 
-# fix toFits return, docs, Flatten_compact separatoe set to ','.
+# 1.40.4 fix toFits return, docs, Flatten_compact separatoe set to ','.
 # 1.40.3 wide meta extra. # fixed length fits
 # 1.40.2 fix 2017 TAI. wip metaname separator
 # 1.40.1 fix content-type bug.

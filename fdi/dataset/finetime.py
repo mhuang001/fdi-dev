@@ -18,13 +18,13 @@ logger = logging.getLogger(__name__)
 utcobj = datetime.timezone.utc
 
 def try_pz(t, msg):
-    for end in ('%Z', '%z'):
+    for end in ('', '%Z', '%z'):
         for _f in (FineTime.DEFAULT_FORMAT,
                    FineTime.DEFAULT_FORMAT_SECOND):
-            for sept in ('T', ''):
-                for sepz in (' ', ''):
-                    if sept != 'T':
-                        _f = _f.replace('T', sept)
+            for sept in ('T', ' '):
+                for sepz in ('', ' '):
+                    if sept != 'T':                
+                        _f = _f.replace('T', sept, 1)
                     fmt = f"{_f}{sepz}{end}"
                     try:
                         d = datetime.datetime.strptime(t, fmt)
@@ -32,13 +32,16 @@ def try_pz(t, msg):
                         return gotit, fmt, d
                     except ValueError:
                         msg += '\n%s does not match %s.' % (t, fmt)
-    logger.warning('Time zone %s assumed for %s' %
+    if end:
+        logger.warning('Time zone %s assumed for %s' %
                    (t.rsplit(' ')[1], t))
     return None, msg
 
                                     
 def try_ends(t, ends, msg):
     for end in ends:
+        if end == '':
+            break
         for case in set((end, end.upper())):
             if t.endswith(case):
                 for _f in (FineTime.DEFAULT_FORMAT,
@@ -145,7 +148,7 @@ class FineTime(Copyable, DeepEqual, Serializable):
         fmt = self.format
         # setting to an impossible value
         setTai = ...
-        if time is None:
+        if time is None or time == 'None':
             self.tai = None
             return
         # def default_conv(t):
@@ -269,7 +272,7 @@ class FineTime(Copyable, DeepEqual, Serializable):
                     d = datetime.datetime.strptime(t, fmt)
                 except ValueError:
                     msg += '\n%s does not match %s.' % (t, fmt)
-                    got = try_ends(t, ('Z',), msg)
+                    got = try_ends(t, ('', 'Z'), msg)
                     if got[0] is None:
                         gotit, msg = got
                     else:
@@ -277,7 +280,7 @@ class FineTime(Copyable, DeepEqual, Serializable):
 
                     if gotit != 2:
                         logger.warning('Time zone %s taken for %s' %
-                                       (str(d.tzname()), t))
+                                       ('?', t))
             d1 = d.replace(tzinfo=utcobj) if d.tzinfo != utcobj else d
             setTai = self.datetimeToFineTime(d1)
         # setTai has a value

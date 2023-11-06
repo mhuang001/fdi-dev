@@ -706,8 +706,8 @@ def wipeLocal(path, keep=True):
     try:
         if op.exists(path):
             shutil.rmtree(path)
-            if keep:
-                os.makedirs(path)
+        if keep:
+            os.makedirs(path)
     except OSError as e:
         msg = 'remove-mkdir failed. exc: %s trbk: %s.' % (str(e), trbk(e))
         logger.error(msg)

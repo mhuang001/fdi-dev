@@ -243,7 +243,7 @@ def add_header(meta, header, zim={}):
     """ Populate  header with keyword lines extracted from MetaData.
 
     :meta: :class: `MetaData`
-    :zim: `zInfo['metadata']`.
+    :zim: `zInfo['metadata']` for lookingup FITS keywords.
 
     """
     for name, param in meta.items():
@@ -296,6 +296,7 @@ def add_header(meta, header, zim={}):
 
 
 def fits_header_list(fitsobj):
+    """ Returs HDUList given fits file name or a readable object. """
     if issubclass(fitsobj.__class__, str):
         fitspath = fitsobj
         with fits.open(fitspath, memmap=True, lazy_load_hdus=False) as hdul:
@@ -322,7 +323,7 @@ def write_to_file(p, fn, dct=None, ignore_type_error=False):
         The product that can be a BLOB, fits HDU list,
         `BaseProduct` (or `Serializable`). Or else quietly pass.
     fn : str
-        fits file path. it will go througMh template expansion using FITS keywords name to their values. E.g. "It is $SIMPLE." becomes "It is True."
+        fits file path. it will go throug template expansion using FITS keywords name to their values. E.g. "It is $SIMPLE." becomes "It is True."
     dct : Mapping
         A dictionary for translating keys in `fn` to values. Default is `None` which uses the `PrimaryHDU.header`.
     ignore_type_error: if set, do not raise `TypeError` if `p` is not acceptable.
@@ -336,8 +337,12 @@ def write_to_file(p, fn, dct=None, ignore_type_error=False):
     FIXME: Add docs.
 
     """
+
+    if not fn:
+        raise ValueError('Bad product file name: %s.' % str(fn))
+
     if not (issubclass(p.__class__, Serializable) or \
-       issubclass(p.__class__, HDUList) or\
+       issubclass(p.__class__, HDUList) or \
        is_Fits(p)):
 
         raise TypeError(f"{lls(p, 100)} is not FITS data.")
@@ -345,14 +350,26 @@ def write_to_file(p, fn, dct=None, ignore_type_error=False):
     if issubclass(p.__class__, Serializable):
         p = p.fits()
 
-    # get a k-v dictionary  for this data
-    kv = dct if dct else dict(
-        (k, (v.strip() if issubclass(v.__class__, str) else v)) \
-         for k,v in fits_header_list(p)[0].header.items())
+    sp = fn
+    if '${' in fn:
+        # get a k-v dictionary  for this data
+        kv = dct if dct else dict(
+            (k, (v.strip() if issubclass(v.__class__, str) else v)) \
+             for k,v in fits_header_list(p)[0].header.items())
 
-    # expand name
-    sp = Template(fn).safe_substitute(kv)
-    # print(sp)
+        # expand name
+        #kv = {'date-obs':'ASD', 'e-o':'4543'}
+        #sp = '${date-obs} ${e-o}'
+
+        for k,v in kv.items():
+            if '${' in sp:
+                if isinstance(v, bool):
+                    _v = 'T' if v else 'F'
+                else:
+                    _v = str(v)
+                sp = sp.replace(('${%s}' % k), _v)
+            else:
+                break
 
     try:
         with open(sp, 'wb') as fitsf:
@@ -362,15 +379,54 @@ def write_to_file(p, fn, dct=None, ignore_type_error=False):
                 p.writeto(fitsf)
             else:
                 pass
+            print('**', sp)
     except TypeError as e:
         if ignore_type_error:
             return fn
         logger.debug('error writing FITS:'+str(e))
         raise
-    logger.debug(f'{sp} ({fn})')
+    logger.debug(f"{sp} ({fn if sp != fn else ''})")
 
     return sp
 
+def send_samp(filepath, client, **kwds):
+    """Send url and name notify messages by SAMP.
+
+    Parameters
+    ----------
+    filepath : str
+        for making URL and name.
+    client : SAMPclient
+        SAMP client
+    kwds : dict
+        extra kv to add to parameters.
+
+    Returns
+    -------
+    int
+        -1 for not connected, rest from `client.notify_all`.
+
+    Examples
+    --------
+    FIXME: Add docs.
+
+    """
+    
+    if client.is_connected:
+        params = dict(
+            url=f'file://{filepath}',
+            name=filepath.rsplit('/',1)[-1]
+        )
+        params.update(kwds)
+        
+        message = {}
+        message["samp.mtype"] = "image.load.fits"
+        message["samp.params"] = params
+        return client.notify_all(message)
+    else:
+        logger.debug('SAMP hub not conncted.')
+        return -1
+    
 if __name__ == '__main__':
 
     # test_fits_kw(fits_data())

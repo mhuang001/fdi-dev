@@ -1,9 +1,9 @@
-__version_info__ = (1, 40, 1)
+__version_info__ = (1, 40, 6)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '1.40-0-ge51b3cf'
+__revision__ = '1.40-1-gf6e0987'
 
-# minor fixed for the pipelines
-# 1.40 improve FineTine an toFits to suppot L1B_vtse.
+# 1.40.6 minor fixed for the pipelines and wrong version id
+# 1.40.5 improve FineTine an toFits to suppot L1B_vtse.
 # 1.40.4 fix toFits return, docs, Flatten_compact separatoe set to ','.
 # 1.40.3 wide meta extra. # fixed length fits
 # 1.40.2 fix 2017 TAI. wip metaname separator

@@ -372,7 +372,7 @@ def write_to_file(p, fn, dct=None, ignore_type_error=False):
                 break
 
     try:
-        with open(sp, 'wb') as fitsf:
+        with open(sp.replace(':','_'), 'wb') as fitsf:
             if is_Fits(p):
                 fitsf.write(p)
             elif issubclass(p.__class__, HDUList):

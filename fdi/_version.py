@@ -1,7 +1,8 @@
-__version_info__ = (1, 40, 6)
+__version_info__ = (1, 40, 7)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '1.40.6-0-ge91b5af'
+__revision__ = '1.40.6-1-gd92c07a'
 
+# add adapted tabulate wheel
 # 1.40.6 minor fixed for the pipelines and wrong version id
 # 1.40.5 improve FineTine an toFits to suppot L1B_vtse.
 # 1.40.4 fix toFits return, docs, Flatten_compact separatoe set to ','.

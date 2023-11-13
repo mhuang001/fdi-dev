@@ -42,11 +42,11 @@ setup(
         'colorama>=0.4.6',
         #'tabulate-expwidth>=0.9.0.1',
         # for actual use
-        # 'tabulate @ file://%s/resources/tabulate-0.8.10-py3-none-any.whl' % pkgd,
+        'tabulate @ file://%s/resources/tabulate_expwidth-0.9.0.1.3.8-py3-none-any.whl' % pkgd,
         # not uploadable for pypi
         # 'tabulate @ git+https://github.com/mhuang001/python-tabulate.git@r1',
         # 'tabulate @ git+http://mercury.bao.ac.cn:9006/mirrors/tabulate.git@r1',
-        'tabulate @ git+ssh://git@mercury.bao.ac.cn:9005/mirrors/tabulate.git@r1',
+        # 'tabulate @ git+ssh://git@mercury.bao.ac.cn:9005/mirrors/tabulate.git@r1',
         'cwcwidth>=0.1.5',
         'paho-mqtt>=1.6.1',
         'jsonschema==4.17.3',

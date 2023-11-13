@@ -299,12 +299,12 @@ def test_write_to_file():
     with open(fn, 'rb') as f:
         blob = f.read()
     assert is_Fits(blob)
-    tf = f'/tmp/It_is_{True}'
+    tf = f'/tmp/It_is_T'
     try:
         os.unlink(tf)
     except OSError:
         pass
-    filepath = write_to_file(blob, '/tmp/It_is_$SIMPLE')
+    filepath = write_to_file(blob, '/tmp/It_is_${SIMPLE}')
     assert filepath == tf
     with open(tf, 'rb') as f:
         blob2 = f.read()

@@ -330,7 +330,7 @@ def write_to_file(p, fn, dct=None, ignore_type_error=False):
     Returns
     -------
     str
-        expanded fits file path. or the input `fn` if the product has wrong format and `ignore_type_error` is set.
+        expanded fits file path. or the input `fn` if the product has wrong format and `ignore_type_error` is set. Logical values are 'T' and 'F'.
 
     Examples
     --------

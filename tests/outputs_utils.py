@@ -61,7 +61,7 @@ out_tree = """tree out_tree
 │   │   ├── default                               <FineTime>
 │   │   │   ├── tai                                    <int>
 │   │   │   └── format                                 <str>
-│   │   ├── value                                 <FineTime>
+│   │   ├── value                                <FineTime1>
 │   │   │   ├── tai                                    <int>
 │   │   │   └── format                                 <str>
 │   │   ├── valid                                 <NoneType>
@@ -223,7 +223,7 @@ out_tree = """tree out_tree
 |   |   |__ default                               <FineTime>
 |   |   |   |__ tai                                    <int>
 |   |   |   \__ format                                 <str>
-|   |   |__ value                                 <FineTime>
+|   |   |__ value                                <FineTime1>
 |   |   |   |__ tai                                    <int>
 |   |   |   \__ format                                 <str>
 |   |   |__ valid                                 <NoneType>

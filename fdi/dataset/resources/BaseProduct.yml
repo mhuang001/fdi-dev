@@ -39,7 +39,7 @@ metadata:
     creationDate:
         id_zh_cn: 产品生成时间
         fits_keyword: DATE
-        data_type: finetime
+        data_type: finetime1
         description: Creation date of this product
         description_zh_cn: 本产品生成时间
         default: 0
@@ -66,7 +66,7 @@ metadata:
         data_type: string
         description: Version of product schema and revision
         description_zh_cn: 产品格式版本
-        default: 1.6.0.11
+        default: 1.6.0.12
         valid: ''
         typecode: B
 datasets: {}

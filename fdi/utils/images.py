@@ -139,6 +139,8 @@ def toPng(adset, grey=False, compression=0, cspace=8, cmap=None,
     else:
         data = adset
 
+    if not data:
+        return b''
     height = len(data)
     width = len(data[0])
     tcode = getattr(adset, 'typecode', 'H')[0]
@@ -195,13 +197,13 @@ def toPng(adset, grey=False, compression=0, cspace=8, cmap=None,
             ))
             for row in chain(data, clegend))
         # print('AAAA', max(chain(*img)))
+
         if png_file_name:
             if use_pypng:
-                if png_file_name:
-                    with open(png_file_name+'.png', 'wb') as f:
-                        w = png.Writer(width, height, greyscale=grey,
-                                       bitdepth=bitdepth, compression=compression)
-                        w.write(f, img)
+                with open(png_file_name+'.png', 'wb') as f:
+                    w = png.Writer(width, height, greyscale=grey,
+                                   bitdepth=bitdepth, compression=compression)
+                    w.write(f, img)
             else:
                 if img[0].typecode[0] in [unsigned_tc, 'h'] and sys.byteorder == 'little':
                     for i in img:
@@ -211,13 +213,6 @@ def toPng(adset, grey=False, compression=0, cspace=8, cmap=None,
                         b.write(generate_png(img, width, height, greyscale=grey,
                                              bitdepth=bitdepth, compression=compression))
         else:
-
-            if return_medw:
-                image_dset = MediaWrapper(data=img,
-                                          description=png_file_name, typ_='image/png',
-                                          shape=[height, width])
-                return image_dset
-
             if return_bin:
                 bf = b''.join(x.tobytes() for x in data)
                 return bf

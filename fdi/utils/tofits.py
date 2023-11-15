@@ -20,6 +20,7 @@ import os
 from collections.abc import Sequence
 import io
 from string import Template
+import itertools
 import logging
 # create logger
 logger = logging.getLogger(__name__)
@@ -188,7 +189,14 @@ def fits_dataset(hdul, dataset_list, name_list=None, level=0):
     for n, ima in enumerate(dataset_list):
         header = fits.Header()
         if issubclass(ima.__class__, ArrayDataset):
-            a = np.array(ima)
+            try:
+                a = np.array(ima)
+            except ValueError as e:
+                ima.data = list(itertools.chain(*ima.data))
+                ima.meta['numpy'] = StringParameter(str(e),
+                                                    description='Numpy conversion error')
+                a = np.array(ima)
+               
             if not dataset_only:
                 header = add_header(ima.meta, header)
             ename = ima.__class__.__name__ if len(

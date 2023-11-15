@@ -66,7 +66,7 @@ Test_Pool_Name = __name__.replace('.', '_')
 defaultpoolPath = '/tmp/fditest'
 
 # make format output in /tmp/outputs.py
-mk_outputs = 0
+mk_outputs = 1
 output_write = 'tests/outputs_pal.py'
 
 if mk_outputs:

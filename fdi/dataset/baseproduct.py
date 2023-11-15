@@ -15,7 +15,7 @@ import logging
 
 from collections import OrderedDict
 from builtins import str
-from fdi.dataset.finetime import FineTime
+from fdi.dataset.finetime import FineTime1
 
 
 # create logger
@@ -48,7 +48,7 @@ class BaseProduct( AbstractComposite, Copyable, EventSender):
     =====
     BaseProduct class schema 1.6 inheriting [None].
 
-Automatically generated from baseproduct.yml on 2023-07-04 06:45:21.419074.
+Automatically generated from baseproduct.yml on 2023-11-15 10:38:26.471265.
 
 Description:
 FDI base class data model
@@ -60,10 +60,10 @@ FDI base class data model
                  typ_ = 'BaseProduct',
                  level = 'ALL',
                  creator = 'UNKNOWN',
-                 creationDate = FineTime(0),
+                 creationDate = FineTime1(0),
                  rootCause = 'UNKNOWN',
                  version = '0.8',
-                 FORMATV = '1.6.0.11',
+                 FORMATV = '1.6.0.12',
                  zInfo=None,
                  **kwds):
 
@@ -204,7 +204,7 @@ _Model_Spec = {
         'creationDate': {
                 'id_zh_cn': '产品生成时间',
                 'fits_keyword': 'DATE',
-                'data_type': 'finetime',
+                'data_type': 'finetime1',
                 'description': 'Creation date of this product',
                 'description_zh_cn': '本产品生成时间',
                 'default': 0,
@@ -234,7 +234,7 @@ _Model_Spec = {
                 'data_type': 'string',
                 'description': 'Version of product schema and revision',
                 'description_zh_cn': '产品格式版本',
-                'default': '1.6.0.11',
+                'default': '1.6.0.12',
                 'valid': '',
                 'typecode': 'B',
                 },

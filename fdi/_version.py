@@ -1,8 +1,9 @@
-__version_info__ = (1, 40, 7)
+__version_info__ = (1, 41, 0)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '1.40.6-1-gd92c07a'
+__revision__ = '1.40.7-0-g138af4e'
 
-# add adapted tabulate wheel
+# Since CreationDate is usually used for marking product production instead of event time, its type is changed to FineTime1.
+# 1.40.7 add adapted tabulate wheel
 # 1.40.6 minor fixed for the pipelines and wrong version id
 # 1.40.5 improve FineTine an toFits to suppot L1B_vtse.
 # 1.40.4 fix toFits return, docs, Flatten_compact separatoe set to ','.

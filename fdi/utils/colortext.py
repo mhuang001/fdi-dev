@@ -14,15 +14,22 @@ import curses
 import functools
 import logging
 
-just_fix_windows_console()
-
-TEMPL = "\033[%s%dsm"
-can = True #curses.can_change_color()
+logger = logging.getLogger(__name__)
 
 NOT_INITIALIZED = True
 
+can = False
 if NOT_INITIALIZED:
+    #curses.initscr()
     init(autoreset=True)
+    NOT_INITIALIZED = False
+    can = True # curses.can_change_color()
+    logger.info('Color text initialized successfully.')
+
+...#just_fix_windows_console()
+
+TEMPL = "\033[%s%dsm"
+
 
 """
 Fore: BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE, RESET.
@@ -41,6 +48,21 @@ def ctext(fore, back='BLACK', style='NORMAL'):
             
         return ''.join(v)
 
+# to use: print(f'{_BLACK_RED}Hello World!')
+_BLUE = ctext('blue', back=None, style=None)
+_BLUE_DIM = ctext('blue', back=None, style='dim')
+_CYAN = ctext('cyan', back=None, style='bright')
+_MAGENTA = ctext('magenta', back=None, style='bright')
+_MAGENTA_DIM = ctext('magenta', back=None, style='dim')
+_RED = ctext('red', back=None, style='bright')
+_WHITE = ctext('white', back=None, style=None)
+_BLACK_RED = ctext('black', back='red', style=None)
+_YELLOW = ctext('yellow', back=None, style='bright')
+_YELLOW_RED = ctext('lightyellow_ex', back='red', style='bright')
+_HIWTE_RED = ctext('white', back='red', style='bright')
+_RESET = Style.RESET_ALL
+
+# loging.logger text
 COLORS = {
     "CRITICAL": Fore.YELLOW,
     "ERROR": Fore.RED,

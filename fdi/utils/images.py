@@ -40,7 +40,7 @@ def generate_png(buf, width, height, greyscale=True, bitdepth=8, compression=9):
     2: RGB  (3 channels)
     3: color palette (1 channel)
     4: Grey-alpha (2 channels)
-    6: RGBA (4 channels)
+nn,n    6: RGBA (4 channels)
     """
 
     # reverse the vertical line order and add null bytes at the start
@@ -107,7 +107,7 @@ def longrainbowl(n=8):
     return ret
 
 
-use_pypng = 1
+use_pypng = 0
 
 
 def toPng(adset, grey=False, compression=0, cspace=8, cmap=None,
@@ -283,24 +283,28 @@ def toPng(adset, grey=False, compression=0, cspace=8, cmap=None,
             i.byteswap()
 
     if use_pypng:
+        height = len(data)
+        width = len(data[0])
+
         wtr = png.Writer(width, height, palette=cmap.values(),
                          bitdepth=cspace,
                          compression=compression)
 
-        with io.BytesIO() as iob:
-            wtr.write(iob, img)
-            png_im = iob.getvalue()
-        if png_file_name:
-            with open(png_file_name+'.png', 'wb') as b:
-                b.write(png_im)
+        try:
+            with io.BytesIO() as iob:
+                wtr.write(iob, img)
+                png_im = iob.getvalue()
+        except Exception as e:
+            __import__("pdb").set_trace()
+
     else:
         png_im = generate_png(img, width, height, greyscale=False,
                               bitdepth=8, compression=compression)
-    if 0: #png_file_name:
+    if png_file_name:
         # if output PNG, output BIN, too.
-        bf = b''.join(x.tobytes() for x in data)
-        with open(png_file_name+'.bin', 'wb') as b:
-            b.write(bf)
+        ##bf = b''.join(x.tobytes() for x in data)
+        with open(png_file_name+'.png', 'wb') as b:
+            b.write(png_im)
     if 0:
         print('p', time.time()-t1, 'sec')
 

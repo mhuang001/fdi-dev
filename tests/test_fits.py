@@ -200,7 +200,7 @@ def test_toFits_metadata(make_composite_prd):
         assert w.header['FLOAT'] == 1.234
         assert w.header['INTEGER'] == 1234
         assert w.header['STRING_T'] == 'abc'
-        assert w.header['BOOLEAN_'] == 'T'
+        assert w.header['BOOLEAN_'] == True
 
         if issubclass(ds, ArrayDataset):
             assert w.header['NAXIS1'] == len(ima.data[0])
@@ -299,7 +299,7 @@ def test_write_to_file():
     with open(fn, 'rb') as f:
         blob = f.read()
     assert is_Fits(blob)
-    tf = f'/tmp/It_is_T'
+    tf = f'/tmp/It_is_True'
     try:
         os.unlink(tf)
     except OSError:

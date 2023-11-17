@@ -226,7 +226,7 @@ gcam:
 	sed -i.save "/$${line}/c# $(VERSION) $${msg}" $(VERSIONFILE)
 	@grep '^ *#' $(VERSIONFILE)  | head -n 1
 
-tri:
+gmgm:
 	git checkout LICENSE&& make gcam && git push && make vtag
 
 FORCE:

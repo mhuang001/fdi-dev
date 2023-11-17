@@ -292,7 +292,7 @@ def add_header(meta, header, zim={}):
             header[kw] = (v, param.description)
         elif issubclass(param.__class__, BooleanParameter):
             kw = getFitsKw(name, extra=ex)
-            v = 'T' if pval else 'F'
+            v = bool(pval)
             header[kw] = (v, param.description)
         else:
             kw = getFitsKw(name, extra=ex)
@@ -338,7 +338,7 @@ def write_to_file(p, fn, dct=None, ignore_type_error=False):
     Returns
     -------
     str
-        expanded fits file path. or the input `fn` if the product has wrong format and `ignore_type_error` is set. Logical values are 'T' and 'F'.
+        expanded fits file path. or the input `fn` if the product has wrong format and `ignore_type_error` is set. Logical values are 'True' and 'False'.
 
     Examples
     --------
@@ -371,10 +371,7 @@ def write_to_file(p, fn, dct=None, ignore_type_error=False):
 
         for k,v in kv.items():
             if '${' in sp:
-                if isinstance(v, bool):
-                    _v = 'T' if v else 'F'
-                else:
-                    _v = str(v)
+                _v = str(v)
                 sp = sp.replace(('${%s}' % k), _v)
             else:
                 break

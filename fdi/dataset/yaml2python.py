@@ -262,7 +262,7 @@ def params(val, indents, demo, onlyInclude, debug=False):
                 iss = (val['data_type'] == 'string') and (pval != 'None')
             s = sq(pval) if iss else pval
         modelString += indents[1] + '%s: %s,\n' % (sq(pname), s)
-    modelString += indents[1] + '},\n'
+        modelString += indents[1] + '},\n'
 
     return modelString, code
 
@@ -306,6 +306,7 @@ def read_yaml(ypath, shema_version=None, verbose=False):
 
             # pyYAML d = OrderedDict(yaml.load(f, Loader=yaml.FullLoader))
             ytext = f.read()
+        print(f"Parsing ===\n{ytext[:180]}\n===")
         y = yaml.load(ytext)
         d = dict(OrderedDict(y))
 
@@ -1051,6 +1052,7 @@ def main():
             output(nm, {nm: yml_level}, ypath, shema_version,
                    dry_run=dry_run, verbose=verbose)
             continue
+
         infs, default_code = get_Python(d, indents[1:], demo, onlyInclude)
         # remove the ',' at the end.
         modelString = (ei + '_Model_Spec = ' + infs).strip()[: -1]

@@ -964,7 +964,7 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
         Returns
         -------
         """
-        self.getDataWrappers().clear()
+        self._data.clear()
 
     def set(self, name, newParameter):
         """ Saves the parameter and  adds eventhandling.
@@ -1087,15 +1087,14 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
 
         def _fix_bool(l):
 
-            # __import__("pdb").set_trace()
-
             # work around a bug in tabulate
-            for i in range(len(l)):
-                v = l[i]
+            for i, v in enumerate(l):
                 if isinstance(v, bool):
                     v = str(v)
+                if not v or len(v)>5:
+                    continue
                 ll = v.lower()
-                if ll in ('true', 'false'):
+                if ll == 'true' or ll == 'false':
                     l[i] = ll
             # ll = l[5].lower()
             # if l[5] in ('true', 'false'):
@@ -1171,21 +1170,20 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
                 thewidths = get_thewidths_l0(param_widths)
                 # l = list(map(str, att.values()))
                 l = list(str(att[n]) for n in thewidths)
-                # print('+++ %s' % str(l))
-                if l[3] == 'boolean':
-                    _fix_bool(l)
-                # print('### %s' % str(l))
                 if extra:
-                    l += list(map(str, ext.values()))
+                    l.extend(map(str, ext.values()))
+                #print('+++ %s' % str(l))
+                #if 'isten' in l[0]:
+                #    __import__("pdb").set_trace()
+                    
+                _fix_bool(l)
                 l = tuple(l)
 
                 tab.append(l)
-                if 0:
-                    ext_hdr = [v for v in ext.keys()]
-                else:
-                    for v in ext.keys():
-                        if v not in ext_hdr:
-                            ext_hdr.append(v)
+                # ext_hdr = [v for v in ext.keys()]
+                for v in ext.keys():
+                    if v not in ext_hdr:
+                        ext_hdr.append(v)
 
             elif level == 1:
                 ps = '%s= %s' % (att['name'], str(att['value']))

@@ -19,7 +19,6 @@ from .common import lls
 import os
 from collections.abc import Sequence
 import io
-from string import Template
 import itertools
 import logging
 # create logger
@@ -234,7 +233,7 @@ def fits_dataset(hdul, dataset_list, name_list=None, level=0):
         else:
             raise TypeError('Must be a Dataset to convert to fits.')
     if debug:
-        print("****", len(hdul))
+        print("**** tofits.py", len(hdul))
     return hdul
 
     # hdul.writeto(fitsdir + 'array.fits')
@@ -370,11 +369,8 @@ def write_to_file(p, fn, dct=None, ignore_type_error=False):
         #sp = '${date-obs} ${e-o}'
 
         for k,v in kv.items():
-            if '${' in sp:
-                _v = str(v)
-                sp = sp.replace(('${%s}' % k), _v)
-            else:
-                break
+            _v = str(v)
+            sp = sp.replace(('${%s}' % k), _v)
 
     try:
         with open(sp.replace(':','_'), 'wb') as fitsf:
@@ -390,7 +386,7 @@ def write_to_file(p, fn, dct=None, ignore_type_error=False):
             return fn
         logger.debug('error writing FITS:'+str(e))
         raise
-    logger.debug(f"{sp} ({fn if sp != fn else ''})")
+    logger.debug(f"{sp} ({fn})" if sp != fn else f"{sp}")
 
     return sp
 

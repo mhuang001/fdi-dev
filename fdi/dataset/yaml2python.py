@@ -90,8 +90,14 @@ def sq(s):
     -------
     """
 
+    if len(s) == 0:
+        return "''"
     if "'" in s or '\n' in s:
-        qm = '""' if '"' in s or '\n' in s else '"'
+        ss = s.strip('"')
+        if '"' in ss or '\n' in s:
+            return '"""%s"""' % ss
+        else:
+            return '"%s"' % ss
     else:
         qm = "'"
     return '%s%s%s' % (qm, s, qm)
@@ -116,6 +122,7 @@ def get_Python(val, indents, demo, onlyInclude, debug=False):
             if debug:
                 logger.info('KWD[%s]=%s' %
                             (str(k), '...' if k == 'metadata' else str(v)))
+
             sk = str(k)
             infostr += '%s%s: ' % (indents[0], sq(sk))
             if issubclass(v.__class__, dict) and 'default' in v:
@@ -262,7 +269,7 @@ def params(val, indents, demo, onlyInclude, debug=False):
                 iss = (val['data_type'] == 'string') and (pval != 'None')
             s = sq(pval) if iss else pval
         modelString += indents[1] + '%s: %s,\n' % (sq(pname), s)
-        modelString += indents[1] + '},\n'
+    modelString += indents[1] + '},\n'
 
     return modelString, code
 
@@ -386,7 +393,6 @@ def yaml_upgrade(descriptors, ypath, shema_version, dry_run=False, verbose=False
     for nm, daf in descriptors.items():
         d, attrs, datasets, fins = daf
         in_doc_schema = float(d['schema'])
-        # __import__("pdb").set_trace()
 
         if target_version == 1.9:
             # this one is from the future
@@ -769,7 +775,6 @@ def inherit_from_parents(parentNames, attrs, datasets, schema, seen):
                 raise ValueError(f'{schema} is too old.')
             if val is None:
                 if temp is None:
-                    #__import__("pdb").set_trace()
                     raise ValueError(f"{attr['type']['default']} attribute {nam}  must be explicitly defined as the parents did not define it.")
             elif 'data_type' not in val or 'default' not in val:
                 # reduced attributes  that expexts the parents and define the ommitted attrs.

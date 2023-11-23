@@ -257,9 +257,9 @@ def add_header(meta, header, zim={}):
         pval = param.value
         if name in zim and 'fits_keyword' in zim[name]:
             kw = zim[name]['fits_keyword']
-            ex = ((name, kw),)
+            ex = ((name, kw if kw else ''),)
         else:
-            ex = None
+            ex = ()
         if pval is None:
             v = fits.card.Undefined()
             kw = getFitsKw(name, extra=ex)

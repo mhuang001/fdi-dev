@@ -9,6 +9,7 @@ from importlib_resources.readers import MultiplexedPath
 
 import hashlib
 import array
+from mmap import mmap
 import traceback
 import shutil
 import textwrap
@@ -41,7 +42,7 @@ logging_INFO = logging.INFO
 logging_DEBUG = logging.DEBUG
 
 def b2i(b, endian='big'):
-    if issubclass(b.__class__, bytes):
+    if issubclass(b.__class__, (bytes, bytearray, mmap)):
         return int.from_bytes(b, byteorder=endian)
     return b
 

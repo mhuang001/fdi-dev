@@ -1,8 +1,9 @@
-__version_info__ = (1, 41, 2)
+__version_info__ = (1, 41, 3)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '1.41.1-0-g772dc7f'
+__revision__ = '1.41.2-0-g8f241ee'
 
-# minor fixes to fits and metadata.
+# Fix mysterious indent bug in y2p and multiline comment in yml.
+# 1.41.2 minor fixes to fits and metadata.
 # 1.41.1 fix protocolError by using the writen png generator.
 # 1.41.0 Since CreationDate is usually used for marking product production instead of event time, its type is changed to FineTime1.
 # 1.40.7 add adapted tabulate wheel

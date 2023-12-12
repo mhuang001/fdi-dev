@@ -21,7 +21,7 @@ from ...utils.common import (trbk, trbk2,
                              )
 
 from ...utils.fetch import fetch
-from ...utils.tofits import is_Fits
+from ...utils.tofits import is_Fits, fits_header_list
 from ...pns.fdi_requests import POST_PRODUCT_TAG_NAME
 
 # from .db_utils import check_and_create_fdi_record_table, save_action
@@ -64,7 +64,9 @@ PM_S = None
 # =============HTTP POOL=========================
 
 
-def resp(code, result, msg, ts, serialize_out=False, ctype='application/json', length=80, req_auth=False):
+def resp(code, result, msg, ts, serialize_out=False,
+         ctype='application/json',
+         length=80, req_auth=False, extra_headers=None):
     """
     Make response.
 
@@ -91,9 +93,13 @@ def resp(code, result, msg, ts, serialize_out=False, ctype='application/json', l
         if logger.isEnabledFor(logging_DEBUG):
             logger.debug(lls(w, length))
             # logger.debug(pprint.pformat(w, depth=3, indent=4))
-
+            if issubclass(w.__class__, bytes):
+                with open(f'/tmp/test_{time.time()}_.png', 'wb') as b:
+                    b.write(w)
         resp = make_response(w, code)
         resp.headers['Content-Type'] = ctype
+        if extra_headers:
+            resp.headers.update(extra_headers)
 
     if req_auth:
         resp.headers['WWW-Authenticate'] = 'Basic'
@@ -489,7 +495,9 @@ def get_component_or_method(paths, mInfo, serialize_out=False):
         code, result, msg = load_product(1, paths, serialize_out=serialize_out)
         if is_Fits(result):
             ct = 'application/fits'
-            return 0, resp(code, result, msg, ts, ctype=ct, serialize_out=False), 0
+            filename = fits_header_list(result)[0].header.get('aid','a')
+            ex = {'Content-Disposition': 'attachment; filename="%s.fits"' % filename}
+            return 0, resp(code, result, msg, ts, ctype=ct, serialize_out=False, extra_headers=ex), 0
         return 0, resp(code, result, msg, ts, serialize_out=serialize_out), 0
     elif paths[2].isnumeric():
         # grand tour
@@ -528,7 +536,10 @@ def get_component_or_method(paths, mInfo, serialize_out=False):
             elif compo_meth_name.startswith('fits('):
                 ct = 'application/fits'
                 result = compo
-                return 0, resp(code, result, msg, ts, ctype=ct, serialize_out=False), 0
+                filename = fits_header_list(result)[0].header.get('aid','a')
+                ex = {'Content-Disposition': 'attachment; filename="%s.fits"' % filename}
+                return 0, resp(code, result, msg, ts, ctype=ct, serialize_out=False, extra_headers=ex), 0
+                
             elif issubclass(compo.__class__, MediaWrapper):
                 ct = compo.type
                 result = compo.data
@@ -630,8 +641,8 @@ def mkv(v, t):
         v) if t in Builtins else deserialize(v)
     return m
 
-@data_api.before_app_request
-def b4req_httppool():
+#@data_api.before_app_request
+def XXXb4req_httppool():
     global PM_S
     
     logger = current_app.logger
@@ -647,10 +658,12 @@ def b4req_httppool():
 
         _c =  (ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=auth))
         logger.debug(f"{_c}")
-    
+    return
+#
 @data_api.after_app_request
-def aftreq_httppool(resp):
+def XXXaftreq_httppool(resp):
 
+    return resp
     logger = current_app.logger
 
     if not SESSION:
@@ -660,6 +673,7 @@ def aftreq_httppool(resp):
 
     #session.user_id = user_id
 
+    
     PM_S = PM_S_from_g(g)
 
     if SES_DBG and logger.isEnabledFor(logging_DEBUG):

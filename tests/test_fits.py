@@ -280,11 +280,14 @@ def test_Fits_Kw():
     # with pytest.raises(ValueError):
     assert getFitsKw('checksumData0123', 3) == 'DATAS123'
     assert getFitsKw('checksumData0123', 2) == 'DATASU23'
-    with pytest.raises(TypeError):
+    with pytest.raises(ValueError):
         # wrong format in `extra`
         assert getFitsKw('foo0123', 5, (('foo', 'BAR'))) == 'BAR00123'
     assert getFitsKw('foo0123', 5, (('foo', 'BAR'),)) == 'BAR00123'
-
+    # multi
+    lst = getFitsKw('startDate', multi=True)
+    assert all(r in lst for r in ('DATE-OBS', 'DATE_OBS', 'DATE-BEG', 'DATE_BEG'))
+    
 def test_fits_header_list():
     fn = 'tests/'+'resources/SD_24_0791_20170101T000324_0078972002.fits'
     assert fits_header_list(fn)[0].header['DESC'] == 'SVOM VT Single Exposure (VTSE) 1B v1.32.2-0-g0a61c71'

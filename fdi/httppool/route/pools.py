@@ -48,14 +48,15 @@ endp = swag['paths']
 
 pools_api = Blueprint('pools', __name__)
 
-# Do not redirect a URL ends with no spash to URL/
+# Do not redirect a URL ends with no slash to URL/
 
-@pools_api.before_app_request
-def b4req_pools():
+#@pools_api.before_app_request
+def XXXb4req_pools():
 
     logger = current_app.logger
+    return
 
-    PM_S = PM_S_from_g(g)
+    ##PM_S = PM_S_from_g(g)
     
     if not SESSION:
         if logger.isEnabledFor(logging_DEBUG):
@@ -67,10 +68,11 @@ def b4req_pools():
                    request=request, auth=auth))
         logger.debug(f"{_c}")
 
-@pools_api.after_app_request
-def aftreq_pools(resp):
+#@pools_api.after_app_request
+def XXXaftreq_pools(resp):
 
     logger = current_app.logger
+    return resp
 
     if not SESSION:
         if logger.isEnabledFor(logging_DEBUG):
@@ -81,6 +83,7 @@ def aftreq_pools(resp):
     if SES_DBG and logger.isEnabledFor(logging_DEBUG):
         logger.debug(ctx(PM_S=PM_S, app=current_app, session=session,
                          request=request, auth=auth))
+    resp = save_registered_pools(resp)
     
     return resp
 
@@ -436,7 +439,7 @@ def unregister_pools(poolnames=None):
     Returns: a list of successfully unregistered pools names in `good`, and troubled ones in `bad` with associated exception info.
     """
     logger = current_app.logger
-    PM_S = PM_S = PM_S_from_g(g)
+    PM_S = PM_S_from_g(g)
     
     good = []
     notgood = []
@@ -547,6 +550,7 @@ def get_pool(pool):
         logger.debug('Get pool info of ' + pool)
 
     result = get_pool_info(pool)
+
     return result
 
 

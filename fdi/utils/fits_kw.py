@@ -1,7 +1,20 @@
+
 # -*- coding: utf-8 -*-
 
-from functools import lru_cache
+from ..dataset.namespace import NameSpace_meta, refloader
+from .common import find_all_files, trbk
+
+from werkzeug.datastructures import MultiDict
+
+import os
 import copy
+from functools import lru_cache
+from collections import ChainMap
+import logging
+# create logger
+logger = logging.getLogger(__name__)
+# logger.debug('level %d' %  (logger.getEffectiveLevel()))
+
 
 #      Dictionary of Commonly Used FITS Keywords
 #
@@ -11,7 +24,7 @@ import copy
 #
 # Resource: http://heasarc.gsfc.nasa.gov/docs/fcg/common_dict.html
 #
-FITS_keywords_HEASARC = {
+Parameter_Names_for_FITS_keywords_HEASARC = MultiDict({
     # -- HIFI, see HCSS-18735',
     'BAND': 'Band',
     # -- HERSCHEL-HSC-DOC-0662 Herschel Pointing Product Specification',
@@ -107,7 +120,7 @@ FITS_keywords_HEASARC = {
     # -- WAVELN': '',
     'WAVELNTH': 'wavelnth',
     'WAVEUNIT': 'waveunit',
-}
+})
 
 # FITS keywords that are part of the FITS Standard definition:
 #   Definition of the Flexible Image Transport System (FITS)
@@ -115,7 +128,7 @@ FITS_keywords_HEASARC = {
 #   July 22, 2016
 #   http://archive.stsci.edu/fits/fits_standard/
 #
-FITS_keywords_Standard = {
+Parameter_Names_for_FITS_keywords_Standard = MultiDict({
     'AUTHOR': 'author',
     'CREATOR': 'creator',
     'DATE': 'creationDate',
@@ -129,12 +142,12 @@ FITS_keywords_Standard = {
     'OBSERVER': 'observer',
     'REFERENC': 'reference',
     'TELESCOP': 'telescope',
-}
+})
 
 
 # Dictionary of commonly used HCSS keywords that follow a numbering pattern
 # e.g. OBSID123': 'obsid123, PROP1': 'proposal1
-FITS_keywords_Numbered = {
+Parameter_Names_for_FITS_keywords_Numbered = {
     'OBSID': 'obsid',
     'PROP': 'proposal',
     'CUNIT': 'cunit',
@@ -157,7 +170,7 @@ FITS_keywords_Numbered = {
 }
 
 
-FITS_keywords_2 = {
+Parameter_Names_for_FITS_keywords_2 = MultiDict({
     'APID': 'apid',
     'CHANGLOG': 'changelog',
     'DEC': 'dec',
@@ -180,26 +193,52 @@ FITS_keywords_2 = {
     'ONSRCTIM': 'onSourceTime',
     'ONTARF': 'onTargetFlag',
     'ORIGIN': 'origin',
-}
+})
 
-FITS_KEYWORDS = copy.copy(FITS_keywords_Standard)
-FITS_KEYWORDS.update(FITS_keywords_HEASARC)
-FITS_KEYWORDS.update(FITS_keywords_Numbered)
-FITS_KEYWORDS.update(FITS_keywords_2)
+FITS_KEYWORDS = Parameter_Names_for_FITS_keywords_Standard.copy()
+FITS_KEYWORDS.update(Parameter_Names_for_FITS_keywords_HEASARC)
+FITS_KEYWORDS.update(Parameter_Names_for_FITS_keywords_Numbered)
+FITS_KEYWORDS.update(Parameter_Names_for_FITS_keywords_2)
 
-# Gives Parameter name from a FITS keyword
-Param_Names = dict((v, k) for k, v in FITS_KEYWORDS.items())
+# Gives FITS keyword for a Parameter name.
+Key_Words0 = MultiDict((v, k) for k, v in FITS_KEYWORDS.items(multi=True))
 EXTRA_KWDS = None
 
+def ud_loader(key, *args, **kwds):
+    res = refloader(key, *args, **kwds)
+    if res != 'Load_Failed':
+        return res
+    if '_' in key :
+        res = refloader(key.replace('_','-'), *args, **kwds)
+        if res != 'Load_Failed':
+            return res
+    if '-' in key :
+        res = refloader(key.replace('-','_'), *args, **kwds)
+        if res != 'Load_Failed':
+            return res
+
+class FitsParameterNames(metaclass=NameSpace_meta,
+              sources=[Parameter_Names_for_FITS_keywords_Standard,
+                       Parameter_Names_for_FITS_keywords_HEASARC,
+                       Parameter_Names_for_FITS_keywords_Numbered,
+                       Parameter_Names_for_FITS_keywords_2
+                       ],
+              load=ud_loader
+              ):
+    pass
+
+FitsParameterName_Look_Up = FitsParameterNames.mapping
+
+Key_Words = MultiDict((v, k) for k, v in FitsParameterNames.mapping.items())
 
 @lru_cache(maxsize=256)
-def getFitsKw(name, ndigits=-1, extra=None):
+def getFitsKw0(name, ndigits=-1, extra=None, multi=False):
     """ Returns the FITS keyword for a name.
 
     If `name` ends with a digit, split `name` to a digital part consists if all digits on the right, and a "non-digital part" on the left. Take `ndigits` continuoud digits, counting from right, to form the "numeric-part". The "non-digital part", or the `name` if not endibg with digits, get the pre-translation according to:
 
     1. try the `extra` dictionary if provided. if fails,
-    2. Look up in the `Param_Names` table (inverse `FITS_KEYWORDS` table, if fails,
+    2. Look up in the `Key_Words` table (inverse `FITS_KEYWORDS` table, if fails,
     3. take key value
 
     If `name` ends with a digit, append the "numeric-part", 0-padded or truncated to `ndigits`, to the first `8 - ndigits` (maximum) of characters from pre-transition, uppercased, to form the result; Iff `ndigits` is -1, it is deactivated.
@@ -208,7 +247,8 @@ def getFitsKw(name, ndigits=-1, extra=None):
     :name: the name of e.g. a parameter.
     :ndigits: how many digits (right to left) to take maximum if `name` ends with digits. default -1 (deactivated). Raises `ValueError` if more than 7.
     :extra: tuple of `(parameter_name, fits_kw)` tuples to provide first look-up dictionary that overrides values from the default one.
-    :returns: FITS keyword.
+    :multi: if set, all matching KWs will be returned in a `list`. If not set, only the first match will be returned in a `str`.
+    :returns: FITS keyword(s) in a `list` or a `str` depending on `milti`.
     """
     if ndigits > 7:
         raise ValueError(
@@ -216,12 +256,12 @@ def getFitsKw(name, ndigits=-1, extra=None):
     lname = len(name)
     if extra is None:
         extra = EXTRA_KWDS
-    elif not issubclass(extra.__class__, (tuple)) or\
-            (extra and not issubclass(extra[0].__class__, tuple)):
-        raise TypeError(
-            '"extra" must be a tuple of a seriese (param:fitsKw) tuples.')
+    # elif not issubclass(extra.__class__, (tuple)) or\
+    #         (extra and not issubclass(extra[0].__class__, tuple)):
+    #     raise TypeError(
+    #         '"extra" must be a tuple of a seriese (param:fitsKw) tuples.')
     # reverse_extradict = dict((v, k) for k, v in extra) if extra else {}
-    extradict = dict(extra) if extra else {}
+    extradict = MultiDict(extra) if extra else MultiDict({})
 
     non_digital = name.rstrip('0123456789')
     lnondigi = len(non_digital)
@@ -241,20 +281,113 @@ def getFitsKw(name, ndigits=-1, extra=None):
         key = non_digital
     else:
         key = name
+
     if extra and key in extradict:
-        pre_translation = extradict[key]
+        if multi:
+            pre_translation = extradict.getlist(key)
+        else:
+            pre_translation = extradict.get(key)
     else:
-        pre_translation = Param_Names.get(key, key)
+        if multi:
+            pre_translation = Key_Words.getlist(key)
+        else:
+            pre_translation = Key_Words.get(key, default=key)
     if endswith_digit:
+        if multi:
+            return [r[:8-lnpart].upper() + numeric_part for r in pre_translation]
         return pre_translation[:8-lnpart].upper() + numeric_part
     else:
+        if multi:
+            return [r[:8].upper() for r in pre_translation]
+        return pre_translation[:8].upper()
+
+
+@lru_cache(maxsize=256)
+def getFitsKw(name, ndigits=-1, extra=None, multi=False):
+    """ Returns the FITS keyword for a name.
+
+    If `name` ends with a digit, split `name` to a digital part consists if all digits on the right, and a "non-digital part" on the left. Take `ndigits` continuoud digits, counting from right, to form the "numeric-part". The "non-digital part", or the `name` if not endibg with digits, get the pre-translation according to:
+
+    1. try the `extra` dictionary if provided. if fails,
+    2. Look up in the `Key_Words` table (inverse `FITS_KEYWORDS` table, if fails,
+    3. take key value
+
+    If `name` ends with a digit, append the "numeric-part", 0-padded or truncated to `ndigits`, to the first `8 - ndigits` (maximum) of characters from pre-transition, uppercased, to form the result; Iff `ndigits` is -1, it is deactivated.
+ else take a maximum of 8 characters from pre-transition. uppercased, to form the resukt.
+
+    :name: the name of e.g. a parameter.
+    :ndigits: how many digits (right to left) to take maximum if `name` ends with digits. default -1 (deactivated). Raises `ValueError` if more than 7.
+    :extra: tuple of `(parameter_name, fits_kw)` tuples to provide first look-up dictionary that overrides values from the default one.
+    :multi: if set, all matching KWs will be returned in a `list`. If not set, only the first match will be returned in a `str`.
+    :returns: FITS keyword(s) in a `list` or a `str` depending on `milti`.
+    """
+    if ndigits > 7:
+        raise ValueError(
+            'Cannot allow %d digits in FITS keywords (max 7).' % ndigits)
+    lname = len(name)
+    if extra is None:
+        extra = EXTRA_KWDS
+    # elif not issubclass(extra.__class__, (tuple)) or\
+    #         (extra and not issubclass(extra[0].__class__, tuple)):
+    #     raise TypeError(
+    #         '"extra" must be a tuple of a seriese (param:fitsKw) tuples.')
+    # reverse_extradict = dict((v, k) for k, v in extra) if extra else {}
+    extradict = MultiDict(extra) if extra else MultiDict({})
+
+    non_digital = name.rstrip('0123456789')
+    lnondigi = len(non_digital)
+    lnumerics = lname - lnondigi
+    endswith_digit = lnumerics > 0
+    if endswith_digit:
+        # has trailing digits
+        numerics = name[lnondigi:]
+        if ndigits != -1:
+            # if lnumerics > ndigits, take the last ndigits
+            # else if lnumerics < ndigits, pad (ndigits-lnumerics) '0's to the left of `numerics`
+            numeric_part = numerics[-ndigits:] if lnumerics > ndigits else numerics if lnumerics == ndigits else '0'*(
+                ndigits-lnumerics)+numerics
+        else:
+            numeric_part = numerics
+        lnpart = len(numeric_part)
+        key = non_digital
+    else:
+        key = name
+
+    if extra and key in extradict:
+        if multi:
+            pre_translation = extradict.getlist(key)
+        else:
+            pre_translation = extradict.get(key)
+    else:
+        if multi:
+            pre_translation = Key_Words.getlist(key)
+        else:
+            pre_translation = Key_Words.get(key, default=key)
+
+    # '_' == '-'
+    if multi:
+        k = []
+        for key in pre_translation:
+            if '_' in key :
+                k.append(key.replace('_','-'))
+            if '-' in key :
+                k.append(key.replace('-','_'))
+        pre_translation.extend(k)
+
+    if endswith_digit:
+        if multi:
+            return [r[:8-lnpart].upper() + numeric_part for r in pre_translation]
+        return pre_translation[:8-lnpart].upper() + numeric_part
+    else:
+        if multi:
+            return [r[:8].upper() for r in pre_translation]
         return pre_translation[:8].upper()
 
 
 ##########################
 ######## NOT USED ########
 ##########################
-FITS_keywords_HCSS = {
+Parameter_Names_for_FITS_keywords_HCSS = {
 
     # Dictionary of commonly used HCSS keywords
     #
@@ -1337,7 +1470,7 @@ FITS_keywords_HCSS = {
 
 # Dictionary of commonly used CLASS keywords
 #
-FITS_keywords_CLASS = {
+Parameter_Names_for_FITS_keywords_CLASS = {
     'MODELNAM': 'modelName',
     'TEMPERAT': 'temperature',
     'MAXIS': 'MAXIS',

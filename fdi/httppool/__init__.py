@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 
 """ https://livecodestream.dev/post/python-flask-api-starter-kit-and-project-layout/ """
@@ -9,6 +8,10 @@ from .route.getswag import swag
 
 from .._version import __version__, __revision__
 from ..utils import getconfig
+from ..pal.poolmanager import DEFAULT_MEM_POOL, PM_S_from_g
+
+from .session import init_session, SESSION, SES_DBG
+
 from ..utils.common import (getUidGid,
                             trbk,
                             logging_ERROR,
@@ -16,13 +19,22 @@ from ..utils.common import (getUidGid,
                             logging_INFO,
                             logging_DEBUG, lls
                             )
-from ..pal.poolmanager import DEFAULT_MEM_POOL, PM_S_from_g
-
-from .session import init_session, SESSION
+from ..utils.colortext import (ctext,
+                               _CYAN,
+                               _GREEN,
+                               _HIWHITE,
+                               _WHITE_RED,
+                               _YELLOW,
+                               _MAGENTA,
+                               _BLUE,
+                               _RED,
+                               _BLACK_RED,
+                               _RESET
+                               )
 
 from flasgger import Swagger
 from werkzeug.exceptions import HTTPException
-from flask import Flask, make_response, jsonify, request, current_app, g
+from flask import Flask, make_response, jsonify, request, current_app, g, session, app as _app
 from werkzeug.routing import RequestRedirect
 from werkzeug.routing import RoutingException, Map
 
@@ -49,11 +61,10 @@ cnt = 0
 _BASEURL = ''
 
 PC = None
-
-session = None
-
-SES_DBG = 1
 """ debug msg for session """
+
+app = Flask(__name__.split('.')[0], instance_relative_config=False,
+            root_path=os.path.abspath(os.path.dirname(__file__)))
 
 def setup_logging(level=LOGGING_NORMAL, extras=None, tofile=None):
     import logging
@@ -69,6 +80,7 @@ def setup_logging(level=LOGGING_NORMAL, extras=None, tofile=None):
                  ' %(filename)6s:%(lineno)3s'
                  ' - %(message)s',
                  datefmt="%y%m%d %H:%M:%S")
+
     detailed = dict(format='%(asctime)s.%(msecs)03d'
                     ' %(process)d %(thread)6d '
                     ' %(levelname)4s'
@@ -131,6 +143,9 @@ def setup_logging(level=LOGGING_NORMAL, extras=None, tofile=None):
         if sys.version_info[0] > 2:
             logging.getLogger("urllib3").setLevel(extras)
     return logging
+
+# for those who cannot wait for create_app to set up  logging
+logging = setup_logging()
 
 ########################################
 #### Config initialization Function ####
@@ -238,7 +253,7 @@ def setOwnerMode(p, username, logger):
     return username
 
 
-def init_httppool_server(app, preload):
+def init_httppool_server(app, preload, g):
     """ Init a global HTTP POOL """
 
     # get settings from ~/.config/pnslocal.py config
@@ -248,12 +263,12 @@ def init_httppool_server(app, preload):
     Classes = init_conf_classes(pc, logger)
     app.config['LOOKUP'] = Classes.mapping
     global SES_DBG
-    SES_DBG = pc['ses_dbg']
 
     from ..utils.lock import makeLock
     # client users
     from .model.user import getUsers
     app.config['USERS'] = getUsers(pc)
+
     sid = hex(os.getpid())
     app.config['LOCKS'] = dict((op, makeLock('FDI_Pool'+sid, op))
                                for op in ('r', 'w'))
@@ -266,9 +281,9 @@ def init_poolmanager(app, g, pc, preload):
 
     # PoolManager is a singleton. get PM_S from 
 
-    with app.app_context():
-        PM_S = PM_S_from_g(g)
-        
+    # with app.app_context():
+    #    PM_S = PM_S_from_g(g)
+    PM_S = PM_S_from_g(g)
     if PM_S.isLoaded(DEFAULT_MEM_POOL):
         if logger.isEnabledFor(logging_DEBUG):
             logger.debug('cleanup DEFAULT_MEM_POOL')
@@ -311,7 +326,7 @@ def init_poolmanager(app, g, pc, preload):
     app.config['FULL_BASE_LOCAL_POOLPATH'] = full_base_local_poolpath
     app.config['POOLURL_BASE'] = scheme + \
         '://' + full_base_local_poolpath + '/'
-
+    return PM_S
 
 ######################################
 #### Application Factory Function ####
@@ -328,7 +343,8 @@ def create_app(config_object=None, level=None, logstream=None, preload=False):
 
     global logger
     global _BASEURL
-
+    
+    
     _BASEURL = config_object['baseurl']
     _d = os.environ.get('PNS_DEBUG', None)
     _d = level if level else _d if _d else LOGGING_NORMAL
@@ -369,8 +385,7 @@ def create_app(config_object=None, level=None, logstream=None, preload=False):
     logger.setLevel(level)
     # app = Flask('HttpPool', instance_relative_config=False,
     #            root_path=os.path.abspath(os.path.dirname(__file__)))
-    app = Flask(__name__.split('.')[0], instance_relative_config=False,
-                root_path=os.path.abspath(os.path.dirname(__file__)))
+    global app
     app.logger = logger
     app.config_object = config_object
     app.config['LOGGER_LEVEL'] = level
@@ -380,9 +395,6 @@ def create_app(config_object=None, level=None, logstream=None, preload=False):
         #RemotePdb('127.0.0.1', 4444).set_trace()
         RemotePdb('localhost', 4444).set_trace()
 
-    global session
-    
-    session = init_session(app)
 
     if debug:
         from werkzeug.debug import DebuggedApplication
@@ -395,7 +407,7 @@ def create_app(config_object=None, level=None, logstream=None, preload=False):
         app.wsgi_app = ProxyFix(app.wsgi_app, **app.config_object['proxy_fix'])
 
     app.config['PREFERRED_URL_SCHEME'] = config_object['scheme']
-    app.config['SERVER_NAME'] = f"{config_object['self_host']}:{config_object['self_port']}"
+    #app.config['SERVER_NAME'] = f"{config_object['self_host']}:{config_object['self_port']}"
     app.config['APPLICATION_ROOT'] = config_object['baseurl']
     with app.test_request_context():
         app.config['REQUEST_BASE_URL'] = request.base_url
@@ -420,16 +432,20 @@ def create_app(config_object=None, level=None, logstream=None, preload=False):
 
     # initialize_extensions(app)
     # register_blueprints(app)
-    from .model.user import user
-    app.register_blueprint(user, url_prefix=_BASEURL)
+    from .session import session_api
+    app.register_blueprint(session_api, url_prefix=_BASEURL)
+
+    from .model.user import user_api
+    app.register_blueprint(user_api, url_prefix=_BASEURL)
 
     from .route.pools import pools_api
     app.register_blueprint(pools_api, url_prefix=_BASEURL)
+    
     from .route.httppool_server import data_api
     app.register_blueprint(data_api, url_prefix=_BASEURL)
 
     from .model.user import LOGIN_TMPLT
-    if 0 and LOGIN_TMPLT:
+    if 0: # LOGIN_TMPLT:
         @app.errorhandler(401)
         @app.errorhandler(403)
         def handle_auth_error_codes(error):
@@ -444,29 +460,35 @@ def create_app(config_object=None, level=None, logstream=None, preload=False):
                 raise ValueError('Must be 401 or 403. Not %s' % str(error))
 
     # handlers for exceptions and some code
-    add_errorhandlers(app)
+    #add_errorhandlers(app)
 
     # Do not redirect a URL ends with no spash to URL/
     app.url_map.strict_slashes = False
 
-    # with app.app_context():
     app.config['POOLS'] = {}
     app.config['ACCESS'] = {'usrcnt': defaultdict(int)}
-    init_httppool_server(app, preload)
+    with app.app_context():
+        # Flask proxy, NOT module variable holding initialized session
+        session = init_session(current_app)
+        init_httppool_server(current_app, preload, g)
     logger.info('Server initialized. logging level ' +
                 str(app.logger.getEffectiveLevel()))
     app.config['SERVER_LOCKED'] = False
-        
+    
+    return app
+
+if 1:
     @app.before_request
     def b4req():
         global cnt
         #global session
-
-        PM_S = PM_S_from_g(0)
+        #global PM_S
+        
+        PM_S = PM_S_from_g(g)
         cnt += 1
 
         logger = current_app.logger
-        
+
         locked = app.config['SERVER_LOCKED']
 
         if 0 and locked:
@@ -487,27 +509,54 @@ def create_app(config_object=None, level=None, logstream=None, preload=False):
                 d = f"data={lls(request.data,50)}"
             else:
                 d = ''
-            l = 'locked' if locked else ''
-            info = f"{cnt} {l}>>> [{method}] {lls(p, 50)}, {a}, {d}"
+            l = 'locked' if locked else 'notlocked'
+            info = f"{cnt} {l}{_WHITE_RED}>>> [{method}] {lls(p, 50)}, {a}, {d}"
             if logger.getEffectiveLevel() < logging.INFO:
                 #if SES_DBG and logger.isEnabledFor(logging_DEBUG):
                 c = ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=None)
                 info += c
             logger.info(info)
-            
+
+        pools = session.get('registered_pools', {})
+
+        if SES_DBG and logger.isEnabledFor(logging_DEBUG):
+            from .model.user import auth
+            _c =  (ctx(PM_S=PM_S, app=current_app, session=session,
+                       request=request, auth=auth))
+            logger.debug(f"{_c}")
+        if 0:
+            GPL = PM_S.getMap().maps[0]
+            for pn, pu in pools.items():
+                if 0: #'ol_1' in pn:
+                    __import__("pdb").set_trace()
+
+                if pn not in GPL:
+                    logger.info(f'{_RED}{pn} is not found in GPL.')
+                    #code, po, msg = register_pool(
+                    #    pn, current_app.config['USERS'][username], poolurl=pu)
+                    #ssert po is GPL[pn]
+                else:
+                    #assert pn in GPL
+                    logger.info(f'GPL.purl{"==" if GPL[pn]._poolurl == pu else "!="}cookie.')
 
         return
 
     @app.after_request
     def aftreq(resp):
 
-        #PM_S = PM_S_from_g(g)
+        PM_S = PM_S_from_g(g)
         
-        #c = ctx(PM_S=None, app=current_app, session=session, request=request, auth=None)
-        #logger.debug(c)
+        c = ctx(PM_S=None, app=current_app, session=session, request=request, auth=None)
+        logger.debug(c)
+        if  0:
+            #from .model.user import save_registered_pools
+            #resp = save_registered_pools(resp)
+            GPL = PM_S.getMap().maps[0]
+            session['registered_pools'] = dict((pn, x._poolurl) for pn, x in GPL.items())
+            session.modified = True
+            logger.debug(f"Updated SesPools{_YELLOW}{' '.join(session['registered_pools'])}")
+
         return resp
-    
-    return app
 
 def ctx(PM_S, app, session, request, auth, **kwds):
     G = hex(id(PM_S.getMap().maps[0]))[-4:] if PM_S else "nul"
@@ -516,20 +565,25 @@ def ctx(PM_S, app, session, request, auth, **kwds):
     _s = hex(id(session))[-4:]
     #_g = hex(id(g._get_current_object()))[-4:]
     _g = hex(id(g))[-4:]
-    _ps = list(map(list,PM_S.getMap().maps)) if PM_S else "nul"
+    _ps = ' '.join(map(str, map(list,PM_S.getMap().maps))) if PM_S else "nul"
     _u = f"auth.cuser{auth.current_user()}" if auth else "no-auth"
     if hasattr(request, 'authorization'):
         _u += f" req.ausr={request.authorization['username']}" if request.authorization else "none"
     else:
         _u += "no-autho"
-    m = f"{G} {_ps}, app:{_a} req:{_r} sess:{_s} g:{_g}"
+    m = f"{_MAGENTA}GPL:{_HIWHITE}{G} {_GREEN}{_ps}{_MAGENTA}, app:{_a} req:{_r} sess:{_HIWHITE}{_s}{_MAGENTA} g:{_g}"
+    headers = dict(request.headers)
+    cook = dict(request.cookies)
+    user_id = getattr(session,'user_id', 'None')
+    guser = getattr(g,'user', 'No g usr')
+    m += (f" {_BLUE}Ses'{user_id}'>{current_app.config['ACCESS']['usrcnt'][user_id]} {headers.get('Authorization', '')[:12]}, gusr={guser} cookie.ses={cook.get('session', 'None')[-5:]}")
     return m
-
 
 def add_errorhandlers(app):
     @app.errorhandler(Exception)
     def handle_excep(error):
         """ ref flask docs """
+
         ts = time.time()
         if issubclass(error.__class__, HTTPException):
             # https://flask.palletsprojects.com/en/latest/errorhandling/#generic-exception-handlers

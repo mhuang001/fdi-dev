@@ -225,6 +225,9 @@ def toPng(adset, grey=False, compression=0, cspace=8, cmap=None,
         cmap = longrainbowl(cspace)
 
     uniq_vals = list(set(chain.from_iterable(data)))
+    if len(uniq_vals) == 0:
+        return b''
+    
     uniq_vals.sort()
     nuniq_vals = len(uniq_vals)
     scl = float(ncolor)/nuniq_vals

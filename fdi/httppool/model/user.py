@@ -9,6 +9,19 @@ from ...utils.common import (logging_ERROR,
                              logging_INFO,
                              logging_DEBUG
                              )
+from ...utils.colortext import (ctext,
+                               _CYAN,
+                               _GREEN,
+                               _HIWHITE,
+                               _WHITE_RED,
+                               _YELLOW,
+                               _MAGENTA,
+                               _BLUE_DIM,
+                               _BLUE,
+                               _RED,
+                               _BLACK_RED,
+                               _RESET
+                               )
 from flask import (abort,
                    Blueprint,
                    current_app,
@@ -38,9 +51,9 @@ auth = HTTPBasicAuth()
 LOGIN_TMPLT = ''  # 'user/login.html'
 """ Set LOGIN_TMPLT to '' to disable the login page."""
 
-from fdi.httppool import SES_DBG
+from ..session import SES_DBG
 
-user = Blueprint('user', __name__)
+user_api = Blueprint('user', __name__)
 
 
 class User():
@@ -139,57 +152,37 @@ def getUsers(pc):
 if SESSION:
 
     def set_user_session(username, pools=None, session=None, new=False, logger=logger):
-        """ Every session keeps record of what pools it had
-        registered is the last request, everyone make the
-        record when leaving a request, and registers when
-        entering a request when current Poolmanager does not
-        have the pool.
+        """ set session user to username if username is different from the sessioin one.
         """
-        from ..route.pools import register_pool
-
         if session is None:
             logger.debug('No session. Return.')
             return
 
         PM_S =  PM_S_from_g(g)
-        if not pools:
-            pools = session.get('registered_pools', {})
-
         if logger.isEnabledFor(logging_DEBUG):
             logger.debug(ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=auth))
             
-        session['user_id'] = username
-        
-        # for pn, pu in pools.items():
-        #     if 1: #'ol_1' in pn:
-        #         __import__("pdb").set_trace()
-                
-        #     if pn not in GPL:
-        #         code, po, msg = register_pool(
-        #             pn, current_app.config['USERS'][username], poolurl=pu)
-        #         assert po is GPL[pn]
-        #     assert pn in GPL
-        #     assert GPL[pn]._poolurl == pu
-
         if not username:
             g.user = None
+        elif session.get('user_id', None) == username:
+            return
         else:
             g.user = current_app.config['USERS'][username]
-
-        # this will trigger session cookie-remaking
-        session.new = new
+            # this will trigger session cookie-remaking
+            session.new = new
         current_app.config['ACCESS']['usrcnt'][username] += 1
-        ##session.modified = True
+        
         if logger.isEnabledFor(logging_DEBUG):
             m = (ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=auth))
             logger.debug(f'END of sus GPL {m}')
 
-        del PM_S
+        load_logged_in_user(username)
         
-    @user.before_app_request
-    def load_logged_in_user():
+    def load_logged_in_user(username):
+        """ put session user ID to g.user.
+        """
         logger = current_app.logger
-
+        
         if not SESSION:
             if logger.isEnabledFor(logging_DEBUG):
                 logger.warning('Called with no SESSION')
@@ -198,7 +191,11 @@ if SESSION:
         PM_S = PM_S_from_g(g)
         assert id(PM_S._GlobalPoolList.maps[0]) == id(pm_mod._PM_S._GlobalPoolList.maps[0])
         
-        user_id = session.get('user_id', '')
+        if g is None or not hasattr(g, 'user') or g.user is None or g.user is None or g.user.username == username:
+            return
+        else:
+            g.user = username
+            
         # if user_id:
         #     if 'registered_pools' not in session:
         #         session['registered_pools'] = {}
@@ -208,14 +205,12 @@ if SESSION:
         #    pools = {}
 
         if SES_DBG and logger.isEnabledFor(logging_DEBUG):
-            headers = dict(request.headers)
-            cook = dict(request.cookies)
+            _d = f"Updated g.usr {_YELLOW}{g.user}"
             _c =  (ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=auth))
+            logger.debug(f"{_BLUE}Load_Usr, {_d} {_c}")
 
-            logger.debug(f"Ses'{user_id}'>{current_app.config['ACCESS']['usrcnt'][user_id]} {headers.get('Authorization', '')}, {cook.get('session', '')[-6:]}, {_c}")
-
-    @user.after_app_request
-    def save_registered_pools(resp):
+    @user_api.after_app_request
+    def save_user(resp):
 
         logger = current_app.logger
 
@@ -224,20 +219,26 @@ if SESSION:
                 logger.debug('Called with no SESSION')
             return resp
 
-        user_id = session.get('user_id', None)
-
-        if 0 and not user_id:
+        gu = getattr(g, 'user', None)
+        if not gu or gu.username  == session.get('user_id', None): 
+            if SES_DBG and logger.isEnabledFor(logging_DEBUG):
+                logger.debug(f'No need to save g.user.')
             return resp
+
+        session['user_id'] = gu.username
+        session.modified = True
 
         PM_S = PM_S_from_g(g)
         assert id(PM_S._GlobalPoolList.maps[0]) == id(pm_mod._PM_S._GlobalPoolList.maps[0])
         
         if SES_DBG and logger.isEnabledFor(logging_DEBUG):
-            logger.debug(' Ses"%s"<%d, %s' %
-                         (str(user_id),
+            user_id = session['user_id']
+            _d = (f"Updated Ses Uid {_YELLOW}{user_id}")
+            logger.debug('%s %sSave_Ses U "%s"<%d, %s' %
+                         (_d, _BLUE, str(user_id),
                           current_app.config['ACCESS']['usrcnt'][user_id],
                           ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=auth)))
-        del PM_S
+
         return resp
 
 @auth.get_user_roles
@@ -253,9 +254,9 @@ def get_user_roles(user):
 ######################################
 
 
-@ user.route('/login/', methods=['GET', 'POST'])
-@ user.route('/login', methods=['GET', 'POST'])
-# @ auth.login_required(role=['read_only', 'read_write'])
+@user_api.route('/login/', methods=['GET', 'POST'])
+@user_api.route('/login', methods=['GET', 'POST'])
+# @auth.login_required(role=['read_only', 'read_write'])
 def login():
     """ Logging in on the server.
 
@@ -336,9 +337,9 @@ def login():
 ######################################
 
 
-@ user.route('/logout/', methods=['GET', 'POST'])
-@ user.route('/logout', methods=['GET', 'POST'])
-# @ auth.login_required(role=['read_only', 'read_write'])
+@user_api.route('/logout/', methods=['GET', 'POST'])
+@user_api.route('/logout', methods=['GET', 'POST'])
+# @auth.login_required(role=['read_only', 'read_write'])
 def logout():
     """ Logging in on the server.
 
@@ -436,9 +437,11 @@ def verify_password(username, password, check_session=True):
     assert id(PM_S._GlobalPoolList.maps[0]) == id(pm_mod._PM_S._GlobalPoolList.maps[0])
 
     if SES_DBG and logger.isEnabledFor(logging_DEBUG):
-        logger.debug('%s %s %s %s' % (username, '' if password is None else (len(password) * '*'),
-                     'check' if check_session else 'nochk',
-                                  'Sess' if SESSION else 'noSess'))
+        logger.debug('%s =U= %s %s %s %s %s' % (
+            _HIWHITE, username, '' if password is None else (len(password) * '*'),
+            'check' if check_session else 'nochk',
+            session.get('user_id','NO SESS USR') if SESSION else 'noSess',
+            getattr(g, 'user','NO g USR')))
         logger.debug(ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=auth))
             
     if check_session:
@@ -464,11 +467,11 @@ def verify_password(username, password, check_session=True):
                         return user
                         #################
                     else:
-                        # headers do not agree with cookies token
+                        # headers do not agree with cookies token. take header's
                         if logger.isEnabledFor(logging_INFO):
                             logger.info(f"New session {username}")
                         set_user_session(
-                            username, session=session, logger=logger)
+                            username, session=session, new=True, logger=logger)
                         return newu
                         #################
                 if logger.isEnabledFor(logging_DEBUG):
@@ -501,7 +504,7 @@ def verify_password(username, password, check_session=True):
                         logger.info(
                             f"{stat}Approved user {username}. Start session.")
                     set_user_session(newu.username, pools=None,
-                                     session=session, new=False, logger=logger)
+                                     session=session, new=True, logger=logger)
                     return newu
                     #################
                 else:
@@ -554,7 +557,7 @@ def verify_password(username, password, check_session=True):
 ######################################
 
 
-@user.route('/register', methods=('GET', 'POST'))
+@user_api.route('/register', methods=('GET', 'POST'))
 def user_register():
     ts = time.time()
     from ..route.httppool_server import resp

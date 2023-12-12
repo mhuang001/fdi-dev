@@ -317,6 +317,7 @@ def checkserver(aburl, times=0):
 
     server_type = None
     # check if data already exists
+
     try:
         o = getJsonObj(aburl)
         assert o is not None, 'Cannot connect to the server'

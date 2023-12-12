@@ -327,6 +327,7 @@ def test_CRUD_product_by_client(get_PS_for_CRUD):
             urn.urn.replace('Product', 'this_and_the_last_errors.are.expected'))
 
     logger.info('Wipe a pool')
+
     pstore.getPool(poolid).removeAll()
     try:
         assert pool.isEmpty()

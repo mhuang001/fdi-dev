@@ -4,6 +4,7 @@ from .metadataholder import MetaDataHolder
 from .metadata import AbstractParameter, Parameter
 from .datatypes import DataTypes
 from .finetime import FineTime
+from .classes import Class_Look_Up
 
 from collections import ChainMap
 import os
@@ -178,7 +179,9 @@ class Attributable(MetaDataHolder):
         value : Value of the parameter.
         met : FrozenDict
             Is `zInfo('metadata']` or `zInfo['dataset'][xxx]`self.
-
+        strict : bool
+            Check type
+        
         Returns
         -------
         None

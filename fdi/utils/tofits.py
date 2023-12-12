@@ -255,7 +255,7 @@ def add_header(meta, header, zim={}):
     """
     for name, param in meta.items():
         pval = param.value
-        if name in zim and 'fits_keyword' in zim[name]:
+        if name in zim and zim[name].get('fits_keyword', None):
             kw = zim[name]['fits_keyword']
             ex = ((name, kw if kw else ''),)
         else:
@@ -263,7 +263,9 @@ def add_header(meta, header, zim={}):
         if pval is None:
             v = fits.card.Undefined()
             kw = getFitsKw(name, extra=ex)
-            header[kw] = (v, param.description)
+            c = param.description
+            c = c.replace('\n','\\n')
+            header[kw] = (v, c)
         elif issubclass(param.__class__, DateParameter):
             value = pval.isoutc() if pval.tai else fits.card.Undefined()
             kw = getFitsKw(name, extra=ex)
@@ -288,7 +290,10 @@ def add_header(meta, header, zim={}):
                 v = fits.card.Undefined()
             else:
                 v = pval
-            header[kw] = (v, param.description)
+            c = param.description
+            c = c.replace('\n','\\n')
+            #c = c.decode(encoding="ascii",errors="backslashreplace") if issubclass(c.__class__, bytes) else c.encode(encoding="ascii",errors="backslashreplace")
+            header[kw] = (v, c)
         elif issubclass(param.__class__, BooleanParameter):
             kw = getFitsKw(name, extra=ex)
             v = bool(pval)
@@ -321,43 +326,29 @@ def fits_header_list(fitsobj):
     #h['test'] = ('123', 'des')
 
 
-def write_to_file(p, fn, dct=None, ignore_type_error=False):    
-    """write out fits file for the given product and try to send samp notices.
-
+def expand_template(p, fn, dct):
+    """
     Parameters
     ----------
     p : Serializable, bytes, or HDUList
         The product that can be a BLOB, fits HDU list,
         `BaseProduct` (or `Serializable`). Or else quietly pass.
     fn : str
-        fits file path. it will go throug template expansion using FITS keywords name to their values. E.g. "It is $SIMPLE." becomes "It is True."
+        String with templates. it will go throug template expansion using FITS keywords name to their values. E.g. "It is $SIMPLE." becomes "It is True."
     dct : Mapping
         A dictionary for translating keys in `fn` to values. Default is `None` which uses the `PrimaryHDU.header`.
-    ignore_type_error: if set, do not raise `TypeError` if `p` is not acceptable.
     Returns
     -------
     str
-        expanded fits file path. or the input `fn` if the product has wrong format and `ignore_type_error` is set. Logical values are 'True' and 'False'.
+        expanded string expanded by fits blob key-value set and `dct`. Logical values are 'True' and 'False'.
 
     Examples
     --------
     FIXME: Add docs.
 
     """
-
-    if not fn:
-        raise ValueError('Bad product file name: %s.' % str(fn))
-
-    if not (issubclass(p.__class__, Serializable) or \
-       issubclass(p.__class__, HDUList) or \
-       is_Fits(p)):
-
-        raise TypeError(f"{lls(p, 100)} is not FITS data.")
-    
-    if issubclass(p.__class__, Serializable):
-        p = p.fits()
-
     sp = fn
+
     if '${' in fn:
         # get a k-v dictionary  for this data
         kv = dct if dct else dict(
@@ -371,7 +362,42 @@ def write_to_file(p, fn, dct=None, ignore_type_error=False):
         for k,v in kv.items():
             _v = str(v)
             sp = sp.replace(('${%s}' % k), _v)
+    return sp
+        
+def write_to_file(p, fn, dct=None, ignore_type_error=False):
+    """write out fits file for the given product and try to send samp notices.
 
+    Parameters
+    ----------
+    p : Serializable, bytes, or HDUList
+        The product that can be a BLOB, fits HDU list,
+        `BaseProduct` (or `Serializable`). Or else quietly pass.
+    fn : str
+        fits file path. it will go throug template expansion using FITS keywords name to their values. E.g. "It is $SIMPLE." becomes "It is True."
+    dct : Mapping
+        A dictionary for translating keys in `fn` to values. Default is `None` which uses the `PrimaryHDU.header`.
+
+    Returns
+    -------
+    str
+        expanded fits file path. or the input `fn` if the product has wrong format and `ignore_type_error` is set. Logical values are 'True' and 'False'.
+
+    Examples
+    --------
+    FIXME: Add docs.
+    """
+    if not fn:
+        raise ValueError('Bad product file name: %s.' % str(fn))
+    if not (issubclass(p.__class__, Serializable) or \
+       issubclass(p.__class__, HDUList) or \
+       is_Fits(p)):
+
+        raise TypeError(f"{lls(p, 100)} is not FITS data.")
+
+    if issubclass(p.__class__, Serializable):
+        p = p.fits()
+
+    sp = expand_template(p, fn, dct)
     try:
         with open(sp.replace(':','_'), 'wb') as fitsf:
             if is_Fits(p):
@@ -379,11 +405,11 @@ def write_to_file(p, fn, dct=None, ignore_type_error=False):
             elif issubclass(p.__class__, HDUList):
                 p.writeto(fitsf)
             else:
-                pass
-            print('**', sp)
+                logger.info(f'Cannot save {p.__class} to FITS.')
+
     except TypeError as e:
         if ignore_type_error:
-            return fn
+            return sp
         logger.debug('error writing FITS:'+str(e))
         raise
     logger.debug(f"{sp} ({fn})" if sp != fn else f"{sp}")

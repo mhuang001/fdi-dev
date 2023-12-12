@@ -1047,7 +1047,7 @@ class PM_S(PoolManager):
 def PM_S_from_g(gvar):
 
     global PM_S
-    return PM_S
+    #return PM_S
   
     try:
         pg = hex(id(_PM_S._GlobalPoolList.maps[0]))
@@ -1055,7 +1055,7 @@ def PM_S_from_g(gvar):
         pg = ''
     if gvar is None:
         return PM_S
-    if 'PM_S' not in gvar or not gvar.PM_S:
+    if getattr(gvar, 'PM_S', None):
         from fdi.httppool import SES_DBG
         if SES_DBG:
             print('**UPDATING g** g, _PMS_G_[0]', hex(id(gvar))[-5:], pg[-5:])

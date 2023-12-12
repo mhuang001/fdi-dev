@@ -6,7 +6,6 @@ https://stackoverflow.com/questions/13751277/how-can-i-use-an-app-factory-in-fla
 """
 
 from fdi.httppool import create_app, LOGGING_NORMAL, LOGGING_DETAILED
-# from fdi.httppool.route.httppool_server import init_httppool_server, httppool_api
 from fdi.httppool.model.user import User
 
 from fdi._version import __version__, __revision__

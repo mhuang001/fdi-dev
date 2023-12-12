@@ -52,11 +52,12 @@ setup(
         'jsonschema==4.17.3',
         'xmltodict>=0.12.0',
         'jsonpath-ng>=1.5.3',
-        'pypng',
+        'pypng>=0.20220715.0',
         'networkx>=2.8.1',
         'pydot>=1.4.2',
         'importlib_resources>=5.12.0',
         'traceback-with-variables>=2.0.4',
+        'Werkzeug>=3.0.0'
     ],
     entry_points={'console_scripts': [
         'yaml2python=fdi.dataset.yaml2python:main',
@@ -72,15 +73,15 @@ setup(
             'setuptools>=43.0.0',
             'wheel>=0.32.1',
             'pytest>=5.4.1',
-            'pytest-cov',
-            'remote-pdb'
+            'pytest-cov>=4.1.0',
+            'remote-pdb>=2.1.0'
         ],
         'SERV': [
             'requests == 2.28.1',
             'urllib3 == 1.26.13',
             'Flask_HTTPAuth >= 4.1.0',
             'Flask<2.3',
-            'Werkzeug[watchdog]',
+            'Werkzeug[watchdog]>=3.0.0',
             'uwsgi>=2.0.20',
             'flasgger>=0.9.5',
             'aiohttp>=3.8.3',

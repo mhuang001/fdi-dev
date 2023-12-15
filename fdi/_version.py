@@ -1,8 +1,9 @@
-__version_info__ = (1, 40, 0)
+__version_info__ = (1, 40, 1)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '1.41.3-0-gb5a2b88'
+__revision__ = '1.41.3-1-gdecc68d'
 
-# overhaul pool server user and pool persistence. Reright FITS KW management with Namespace.
+# remake file name expansion and minor issues with tofits and FineTime.
+# 1.40.0 overhaul pool server user and pool persistence. Reright FITS KW management with Namespace.
 # 1.41.3 Fix mysterious indent bug in y2p and multiline comment in yml.
 # 1.41.2 minor fixes to fits and metadata.
 # 1.41.1 fix protocolError by using the writen png generator.

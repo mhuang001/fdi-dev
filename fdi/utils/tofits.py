@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from .fits_kw import FITS_KEYWORDS, getFitsKw
+from .fits_kw import Key_Words, getFitsKw, FitsParameterName_Look_Up
 from ..dataset.arraydataset import ArrayDataset
 from ..dataset.tabledataset import TableDataset
 from ..dataset.dataset import CompositeDataset
@@ -24,9 +24,13 @@ import logging
 # create logger
 logger = logging.getLogger(__name__)
 logger.debug('logging level %d' % (logger.getEffectiveLevel()))
+import re
 
+Template_Pattern = re.compile(r"\${([\w-]+)+}")
+""" Use this rule to parse templates. """
 
 FITS_INSTALLED = True
+
 try:
     import numpy as np
     from astropy.io import fits
@@ -35,6 +39,9 @@ try:
     from astropy.table import Column
 except ImportError:
     FITS_INSTALLED = False
+
+FITSKW_VECTOR_XYZ_INDEX = {0:'X', 1:'Y', 2:'Z'}
+""" What to use for labeling the components, x,y,z or 0,1,2. """
 
 debug = False
 typecode2np = {
@@ -255,6 +262,7 @@ def add_header(meta, header, zim={}):
     """
     for name, param in meta.items():
         pval = param.value
+
         if name in zim and zim[name].get('fits_keyword', None):
             kw = zim[name]['fits_keyword']
             ex = ((name, kw if kw else ''),)
@@ -279,8 +287,13 @@ def add_header(meta, header, zim={}):
                         print(kw, com)
             elif issubclass(pval.__class__, (Vector)):
                 for i, com in enumerate(pval.components):
-                    kw = getFitsKw(name, ndigits=1, extra=ex)[:7]+str(i)
-                    header[kw] = (com, param.description+str(i))
+                    kw = getFitsKw(name, ndigits=1, extra=ex)
+                    if len(pval.components) < 4:
+                        ind = FITSKW_VECTOR_XYZ_INDEX[i]
+                    else:
+                        ind = str(i)
+                    kw = kw[:7] + ind
+                    header[kw] = (com, param.description+ind)
             else:
                 kw = getFitsKw(name, extra=ex)
                 header[kw] = (pval, param.description)
@@ -347,21 +360,29 @@ def expand_template(p, fn, dct):
     FIXME: Add docs.
 
     """
-    sp = fn
 
     if '${' in fn:
         # get a k-v dictionary  for this data
-        kv = dct if dct else dict(
-            (k, (v.strip() if issubclass(v.__class__, str) else v)) \
-             for k,v in fits_header_list(p)[0].header.items())
+        kv = dct if dct else fits_header_list(p)[0].header
 
         # expand name
         #kv = {'date-obs':'ASD', 'e-o':'4543'}
         #sp = '${date-obs} ${e-o}'
 
-        for k,v in kv.items():
-            _v = str(v)
-            sp = sp.replace(('${%s}' % k), _v)
+        pars = re.findall(Template_Pattern, fn)
+        sp = fn
+        # expand kwfound in p and try - _ if needed
+        for k in pars:
+            if k in kv:
+                sp = sp.replace('${%s}' % k, str(kv[k]))
+            else:
+                nm = FitsParameterName_Look_Up[k]
+                for kk in getFitsKw(nm, multi=True):
+                    if kk != k and kk in kv:
+                        sp = sp.replace('${%s}' % k, str(kv[kk]))
+                        break
+    logger.debug(f'Template {fn} is expanded to {sp}.')
+
     return sp
         
 def write_to_file(p, fn, dct=None, ignore_type_error=False):

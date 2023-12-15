@@ -38,6 +38,7 @@ def try_pz(t, msg):
     return None, msg
 
                                     
+
 def try_ends(t, ends, msg):
     for end in ends:
         if end == '':
@@ -212,6 +213,9 @@ class FineTime(Copyable, DeepEqual, Serializable):
         if issubclass(time.__class__, int):
             self.tai = time
             return
+        elif issubclass(time.__class__, FineTime):
+            self.tai = time.tai
+            return
         elif issubclass(time.__class__, float):
             self.tai = self._float2settai(time)
             return
@@ -253,7 +257,7 @@ class FineTime(Copyable, DeepEqual, Serializable):
                     self.tai = setTai
                     return
         else:    
-            msg = ('%s must be an integer, a float, a datetime object,'
+            msg = ('%s must be an integer, a float, a datetime or FineTime object,'
                    'or a string or bytes or str/bytes of an int or float, '
                    'but its type is %s.' % (str(time), type(time).__name__))
             raise TypeError(msg)

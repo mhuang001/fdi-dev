@@ -380,6 +380,9 @@ def value2parameter(name, value, descriptor):
         from .numericparameter import NumericParameter
         us = ext.pop('unit', '')
         cs = ext.pop('typecode', '')
+        if 'description' not in im:
+            __import__("pdb").set_trace()
+
         ret = NumericParameter(value=value,
                                description=im['description'],
                                typ_=dt,

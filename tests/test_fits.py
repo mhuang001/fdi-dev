@@ -56,7 +56,28 @@ def test_fits_dataset():
     assert len(u) == len(data)+1
     assert list(u[1].data[0]) == [1, 2, 3, 4]
     assert u[1].header[getFitsKw('description')] == 'a'
+    # w/ typecode
+    ima = ArrayDataset(data=[[1, 2, 3, 4], [5, 6, 7, 8]], description='a', typecode='i')
+    imb = ArrayDataset(data=[[1, 2, 3, 4], [5, 6, 7, 8], [
+                       1, 2, 3, 4], [5, 6, 7, 8]], description='b',
+                       typecode='f')
 
+    hdul = fits.HDUList()
+    hdul.append(fits.PrimaryHDU())
+    data = [ima, imb]
+
+    u = fits_dataset(hdul, data)
+    assert list(u[1].data[0]) == [1, 2, 3, 4]
+    ENDIAN = sys.byteorder  # 'little'
+    def ms(i):
+        if i in ('big', 'network'):
+            return '>'
+        if i in ('little', 'native'):
+            return '<'
+    ENDIAN_MK = ms(ENDIAN)
+
+    assert u[1].data.dtype.str == f'{ENDIAN_MK}i2'
+    assert u[2].data.dtype.str == f'{ENDIAN_MK}f4'
 
 def test_arr_toFits():
     ima = ArrayDataset(data=[[1, 2, 3, 4], [5, 6, 7, 8]], description='a')
@@ -138,21 +159,6 @@ def test_com_fits(make_composite_prd):
     "C": "c",  # complex
     "M": "c"  # complex
 """
-tcode = {'b': bool,  # Boolean
-         'i8': np.int8,  # 8-bit signed integer
-         'i16': np.int16,  # 16-bit signed integer
-         'i32': np.int32,  # 32-bit signed integer
-         'i64': np.int64,  # 64-bit signed integer
-         'u8': np.uint8,  # 8-bit unsigned integer
-         'u16': np.uint16,  # 16-bit unsigned integer
-         'u32': np.uint32,  # 32-bit unsigned integer
-         'u64': np.uint64,  # 64-bit unsigned integer
-         'f16': np.float16,  # 16-bit floating point number
-         'f32': np.float32,  # 32-bit floating point number
-         'f64': np.float64,  # 64-bit floating point number
-         'c64': np.complex64,  # 64-bit complex number
-         'c128': np.complex128  # 128-bit complex number
-         }
 
 
 def test_toFits_metadata(make_composite_prd):

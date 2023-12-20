@@ -7,7 +7,7 @@ from ..dataset.dataset import CompositeDataset
 from ..dataset.serializable import Serializable
 from ..dataset.unstructureddataset import UnstructuredDataset
 from ..dataset.dataset import Dataset
-from ..dataset.datatypes import DataTypes
+from ..dataset.datatypes import DataTypes, typecode2np
 from ..dataset.baseproduct import BaseProduct
 from ..dataset.dateparameter import DateParameter
 from ..dataset.stringparameter import StringParameter
@@ -44,26 +44,6 @@ FITSKW_VECTOR_XYZ_INDEX = {0:'X', 1:'Y', 2:'Z'}
 """ What to use for labeling the components, x,y,z or 0,1,2. """
 
 debug = False
-typecode2np = {
-    "b": np.int8,    # signed char
-    "B": np.uint8,   # unsigned char
-    "u": str,     # string
-    "h": np.int16,   # signed short
-    "H": np.uint16,  # unsigned integer
-    "i": np.int16,   # signed integer
-    "I": np.uint16,  # unsigned integer
-    "l": np.int32,   # signed long
-    "L": np.uint32,  # unsigned long
-    "q": np.int64,   # signed long long
-    "Q": np.uint64,  # unsigned long long
-    "f": np.float32,  # float
-    "d": np.float64,   # double
-    "c": np.complex64,  # complex
-    "c128": np.complex128,  # complex 128 b
-    "t": bool,       # truth value
-    "V": np.void,       # raw bytes block of fixed length
-    "U": str
-}
 
 
 def main():
@@ -196,7 +176,14 @@ def fits_dataset(hdul, dataset_list, name_list=None, level=0):
         header = fits.Header()
         if issubclass(ima.__class__, ArrayDataset):
             try:
-                a = np.array(ima)
+                dt = ima.meta.get('numpyType', None)
+                if dt is None or not dt.value:
+                    dt = typecode2np.get(ima.meta['typecode'].value, None)
+                    
+                else:
+                    dt = dt.value
+
+                a = np.array(ima, dtype=dt)
             except ValueError as e:
                 ima.data = list(itertools.chain(*ima.data))
                 ima.meta['numpy'] = StringParameter(str(e),

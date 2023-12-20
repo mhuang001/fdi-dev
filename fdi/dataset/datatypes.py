@@ -150,6 +150,22 @@ typecode_itemsize = {'B': 1,
                      'i': 4,
                      'l': 8}
 
+np_short = {'b': bool,  # Boolean
+         'i8': np.int8,  # 8-bit signed integer
+         'i16': np.int16,  # 16-bit signed integer
+         'i32': np.int32,  # 32-bit signed integer
+         'i64': np.int64,  # 64-bit signed integer
+         'u8': np.uint8,  # 8-bit unsigned integer
+         'u16': np.uint16,  # 16-bit unsigned integer
+         'u32': np.uint32,  # 32-bit unsigned integer
+         'u64': np.uint64,  # 64-bit unsigned integer
+         'f16': np.float16,  # 16-bit floating point number
+         'f32': np.float32,  # 32-bit floating point number
+         'f64': np.float64,  # 64-bit floating point number
+         'c64': np.complex64,  # 64-bit complex number
+         'c128': np.complex128  # 128-bit complex number
+         }
+
 numpy_dtypekind_to_typecode = {
     'b': 't_',  # 'boolean',
     'i': 'i',    # integer',
@@ -164,9 +180,30 @@ numpy_dtypekind_to_typecode = {
     'V': 'V',    # fixed chunk of memory for other type ( void )',
 }
 
+typecode_to_numpy_dtypekind = dict((v, k) for k, v in numpy_dtypekind_to_typecode.items()) 
+    
+typecode2np = {
+    "b": np.int8,    # signed char
+    "B": np.uint8,   # unsigned char
+    "u": str,     # string
+    "h": np.int16,   # signed short
+    "H": np.uint16,  # unsigned integer
+    "i": np.int16,   # signed integer
+    "I": np.uint16,  # unsigned integer
+    "l": np.int32,   # signed long
+    "L": np.uint32,  # unsigned long
+    "q": np.int64,   # signed long long
+    "Q": np.uint64,  # unsigned long long
+    "f": np.float32,  # float
+    "d": np.float64,   # double
+    "c": np.complex64,  # complex
+    "c128": np.complex128,  # complex 128 b
+    "t": bool,       # truth value
+    "V": np.void,       # raw bytes block of fixed length
+    "U": str
+}
 
 def numpytype_to_typecode(x): return ctype_to_typecode[numpytype_to_ctype[x]]
-
 
 def cast(val, typ_, namespace=None):
     """Casts the input value to type specified.

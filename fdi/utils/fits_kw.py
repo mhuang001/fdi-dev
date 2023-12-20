@@ -315,7 +315,19 @@ def getFitsKw(name, ndigits=-1, extra=None, multi=False):
             return [r[:8].upper() for r in pre_translation]
         return pre_translation[:8].upper()
 
+@lru_cache(maxsize=32)
+def is_Internal_Keyword(name) :
+    """ These are maintained internally by astrofots """
 
+    if name in ['SIMPLE', 'BITPIX', 'NAXIS', 'GCOUNT', 'PCOUNT', 'GROUPS',
+                'XTENSION', 'EXTEND', 'TABLE', 'END', ''] \
+                or name.startswith("NAXIS"):
+        return True
+    if name.strip('1234567890') in ['TTYPE', 'TFORM', 'TUNIT', 'TFIELDS', 'TBCOL', 'CTYPE']:
+        return True
+
+
+    
 ##########################
 ######## NOT USED ########
 ##########################

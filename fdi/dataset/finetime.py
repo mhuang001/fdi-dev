@@ -264,6 +264,7 @@ class FineTime(Copyable, DeepEqual, Serializable):
         
         #setTai is either "..." or a string.
         if setTai is ...:
+            d = None
             # Now t has a date-time string in it.
             msg = '%s is not an integer or `datetime` %s.' % (t, self.format)
             fmt = FineTime.DEFAULT_FORMAT
@@ -271,22 +272,32 @@ class FineTime(Copyable, DeepEqual, Serializable):
                 d = datetime.datetime.strptime(t, fmt)
             except ValueError:
                 msg += '\n%s does not match %s.' % (t, fmt)
-                fmt = FineTime.DEFAULT_FORMAT_SECOND
+                w = t.replace('-','').replace(':','').replace(' ','')
+                tm = f'{w[:4]}-{w[4:6]}-{w[6:8]}T{w[8:10]}:{w[10:12]}:{w[12:]}'
                 try:
-                    d = datetime.datetime.strptime(t, fmt)
+                    d = datetime.datetime.strptime(tm, fmt)
                 except ValueError:
-                    msg += '\n%s does not match %s.' % (t, fmt)
-                    got = try_ends(t, ('', 'Z'), msg)
-                    if got[0] is None:
-                        gotit, msg = got
-                    else:
-                        gotit, fmt, d = got
+                    msg += '\n%s does not match %s.' % (tm, fmt)
+                    fmt = FineTime.DEFAULT_FORMAT_SECOND
+                    try:
+                        d = datetime.datetime.strptime(tm, fmt)
+                    except ValueError:
+                        msg += '\n%s does not match %s.' % (tm, fmt)
+                        got = try_ends(t, ('', 'Z'), msg)
+                        if got[0] is None:
+                            gotit, msg = got
+                        else:
+                            gotit, fmt, d = got
 
-                    if gotit != 2:
-                        logger.warning('Time zone %s taken for %s' %
-                                       ('?', t))
-            d1 = d.replace(tzinfo=utcobj) if d.tzinfo != utcobj else d
-            setTai = self.datetimeToFineTime(d1)
+                        if gotit != 2:
+                            logger.warning('Time zone %s taken for %s' %
+                                           ('?', t))
+            if d is not None:
+                d1 = d.replace(tzinfo=utcobj) if d.tzinfo != utcobj else d
+                setTai = self.datetimeToFineTime(d1)
+            # if d is None:
+            # pat = re.compile(r'2(ddd)(-: /|\w)*([01]?d)(-: /|\w)([0123)?d)(-: /|\w)[012]?d(-: /|\w)[0-5]?d(-: /|\w)[0-6]f[[ Z]?[+-].*'
+
         # setTai has a value
         try:
             if setTai and self.tai:

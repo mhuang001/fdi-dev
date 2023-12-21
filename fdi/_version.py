@@ -1,7 +1,8 @@
-__version_info__ = (1, 43, 0)
+__version_info__ = (1, 43, 1)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '1.41.3-3-g51a4dbd'
+__revision__ = '1.43.0-0-gdde8148'
 
+# return L1B a L1keysOBS subclass.
 # 1.43.0 add endian and numpyType to ArrayDataset
 # 1.42.1 remake file name expansion and minor issues with tofits and FineTime.
 # 1.42.0 overhaul pool server user and pool persistence. Reright FITS KW management with Namespace.

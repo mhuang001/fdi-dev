@@ -19,6 +19,7 @@ from .common import lls
 import os
 from collections.abc import Sequence
 import io
+import copy
 import itertools
 import logging
 # create logger
@@ -119,6 +120,7 @@ def toFits(data, file='', **kwds):
 
     hdul = fits.HDUList()
     hdul.append(fits.PrimaryHDU())
+
     if issubclass(data.__class__, (BaseProduct)):
         sets = list(data.values())
         names = list(data.keys())
@@ -142,8 +144,8 @@ def toFits(data, file='', **kwds):
         # when passed a dataset instead of a list, meta go to PrimaryHDU
         add_header(data.meta, hdul[0].header)
     elif issubclass(data.__class__, Sequence) and \
-            issubclass(data[0].__class__, (ArrayDataset, TableDataset, CompositeDataset)):
-        hdul = fits_dataset(hdul, data)
+            issubclass(data[0].__class__, (ArrayDataset, TableDataset, CompositeDataset, UnstructuredDataset)):
+        hdul = fits_dataset(hdul, data) #, data.zInfo['metadata'])
     else:
         raise TypeError(
             'Making FITS needs a dataset or a product, or a Sequence of them.')
@@ -163,7 +165,7 @@ def fits_dataset(hdul, dataset_list, name_list=None, level=0):
     """ Fill an HDU list with dataset data.
 
     :hdul: `list` of HDUs.
-    :dataset_list: `list` of dataset subclasses.
+    :dataset_list: `Sequence` of dataset subclasses.
     :name_list:
     """
     if name_list is None:
@@ -244,10 +246,21 @@ def add_header(meta, header, zim={}):
     """ Populate  header with keyword lines extracted from MetaData.
 
     :meta: :class: `MetaData`
-    :zim: `zInfo['metadata']` for lookingup FITS keywords.
+    :zim: `zInfo['metadata']` for lookingup FITS keywords and set the order of keywords. Default is None.
 
     """
-    for name, param in meta.items():
+    if zim:
+        mc = meta.copy()
+        lst = []
+        for i, name in enumerate(meta.keys()):
+            if name in zim:
+                lst.append(name)
+                mc.pop(name)
+        lst.extend(mc.keys())
+    else:
+        lst = list(meta)
+    for name in lst:
+        param = meta[name]
         pval = param.value
 
         if name in zim and zim[name].get('fits_keyword', None):

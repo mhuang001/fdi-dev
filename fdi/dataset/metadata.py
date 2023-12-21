@@ -987,7 +987,6 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
             else:
                 raise TypeError('Only Parameters can be saved. %s is a %s.' %
                                 (name, newParameter.__class__.__name__))
-
         super(MetaData, self).set(name, newParameter)
 
         if 'listeners' in self.__dict__:

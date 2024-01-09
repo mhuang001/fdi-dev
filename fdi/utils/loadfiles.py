@@ -8,14 +8,14 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def loadcsv(filepath, delimiter=',', header=0, return_dict=False, pad=None):
+def loadcsv(filepath, delimiter=',', header=0, return_dict=False, pad=None, set_unit=...):
     """ Loads the contents of a CSV file into a list of tuples.
 
     :header: the first header linea are taken as column headers if ```header > 0```. If no column header given (default 0), ```colN``` where N = 1, 2, 3... are returned.
 
     the second header linea are also recorded (usually units) if `header ` > 1.
     :return_dict: if ```True``` returns ```dict[colhd]=(col, unit). Default is ```False```.
-
+    :set_unit: if given a string, it will be set as the unit to all columns; if given a list of strings, they will be used to set unit for the columns as long as the list lasts. if goven `None` return with no unit. default is `...` which leaves units as read.
     :return: Default is a list of (colhd, column, unit) tuplees.
     """
     columns, units = [], []
@@ -56,6 +56,18 @@ def loadcsv(filepath, delimiter=',', header=0, return_dict=False, pad=None):
             rowcount += 1
     if colhds is None:
         return {} if return_dict else []
+    if issubclass(set_unit.__class__, str):
+        units = [set_unit] * len(units)
+    elif issubclass(set_unit.__class__, list):
+        for i, u in enumerate(set_unit):
+            if i < len(unit):
+                unit[i] = u
+                continue
+            break
+    elif set_unit is None:        
+        return dict(zip(colhds, columns)) if return_dict \
+            else list(zip(colhds, columns))
+        
     return dict(zip(colhds, zip(columns, units))) if return_dict \
         else list(zip(colhds, columns, units))
 

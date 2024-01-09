@@ -132,6 +132,8 @@ def toPng(adset, grey=False, compression=0, cspace=8, cmap=None,
         An ordered dictionary that gives (R,G,B) for a pixel value.
     default is `longrainbowl`.
     """
+    #__import__("pdb").set_trace()
+
 
     # add color legend
     if issubclass(adset.__class__, ArrayDataset):
@@ -243,6 +245,7 @@ def toPng(adset, grey=False, compression=0, cspace=8, cmap=None,
     clegend = [array.array(tcode, uv)]*color_legend_height
 
     height += color_legend_height
+    #__import__("pdb").set_trace()
 
     t1 = time.time()
     if use_pypng:

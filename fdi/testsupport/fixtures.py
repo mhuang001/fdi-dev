@@ -64,7 +64,7 @@ BG_SERVER_LOG = '/tmp/test_background_server.log'
 SVR_PATH=os.path.abspath(os.path.dirname(__file__)+'/../../httppool_app.py')
 
 POOL_SEVER_THREAD = 1
-RUN_SERVER_IN_BACKGROUND = f'python3.8 {SVR_PATH} --server=httppool_server --logstream {BG_SERVER_LOG} -d'
+RUN_SERVER_IN_BACKGROUND = f'python3 {SVR_PATH} --server=httppool_server --logstream {BG_SERVER_LOG} -d'
 """ set to '' to disable running a pool in the background as the mock. """
 
 
@@ -1042,7 +1042,7 @@ def t_package():
         try:
             #  make clean-tpkg;
             os.system(
-                '(cd tests/resources/testpackage; make install-tpkg) 2>&1| tee /tmp/testpackage.log')
+                '(cd tests/resources/testpackage; make install-tpkg PYEXE=python3) 2>&1| tee /tmp/testpackage.log')
             # 'python3.8 -c "import sys; print(sys.path)"
             # 'make  pip show testpackage;
             sys.path.insert(0, '/tmp')

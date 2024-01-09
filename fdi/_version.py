@@ -1,8 +1,9 @@
-__version_info__ = (1, 43, 2)
+__version_info__ = (1, 43, 3)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '1.43.1-0-g3d7d80d'
+__revision__ = '1.43.1-1-gfdba681'
 
-# loadfile enhance csv reading
+# change python3.8 to python3 to testsupport/fixtures.py
+# 1.43.2 loadfile enhance csv reading
 # 1.43.1 return L1B a L1keysOBS subclass.
 # 1.43.0 add endian and numpyType to ArrayDataset
 # 1.42.1 remake file name expansion and minor issues with tofits and FineTime.

@@ -1,6 +1,6 @@
 __version_info__ = (1, 43, 3)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '1.43.1-1-gfdba681'
+__revision__ = '1.43.1-2-g42caeb8'
 
 # change python3.8 to python3 to testsupport/fixtures.py
 # 1.43.2 loadfile enhance csv reading

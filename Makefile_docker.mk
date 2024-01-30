@@ -72,9 +72,9 @@ endif
 
 test_docker:
 	cid=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\
-	docker exec -it $$cid sh -c '(cd $(DOCKER_NAME); $(MAKE) test OPT="--log-level=20 --server external")'
+	docker exec -it $$cid sh -c '(cd $(DOCKER_NAME); $(MAKE) test OPT="--log-level=20 --server background")'
 
 test_server:
 	cid=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\
-	docker exec -it $$cid sh -c '(cd fdi; $(MAKE) testhttp OPT="--log-level=20 --server external")'
+	docker exec -it $$cid sh -c '(cd fdi; $(MAKE) testhttp OPT="--log-level=20 --server background")'
 

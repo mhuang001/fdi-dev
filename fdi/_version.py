@@ -1,8 +1,9 @@
-__version_info__ = (1, 43, 4)
+__version_info__ = (1, 43, 5)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '1.43.3-0-g8275275'
+__revision__ = '1.43.4-0-ge970909'
 
-# downgrade werkzeug to below 3.0.0 to avoid werkzeug.url import problem
+# update .gitlab-ci. use background setting for fdi docker testhttp.
+# 1.43.4 downgrade werkzeug to below 3.0.0 to avoid werkzeug.url import problem
 # 1.43.3 change python3.8 to python3 to testsupport/fixtures.py
 # 1.43.2 loadfile enhance csv reading
 # 1.43.1 return L1B a L1keysOBS subclass.

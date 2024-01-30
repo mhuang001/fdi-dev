@@ -57,7 +57,7 @@ setup(
         'pydot>=1.4.2',
         'importlib_resources>=5.12.0',
         'traceback-with-variables>=2.0.4',
-        'Werkzeug>=3.0.0'
+        'Werkzeug<3.0.0'
     ],
     entry_points={'console_scripts': [
         'yaml2python=fdi.dataset.yaml2python:main',
@@ -80,8 +80,8 @@ setup(
             'requests == 2.28.1',
             'urllib3 == 1.26.13',
             'Flask_HTTPAuth >= 4.1.0',
-            'Flask<2.3',
-            'Werkzeug[watchdog]>=3.0.0',
+            'Flask<=2.3.7',
+            'Werkzeug[watchdog]<3.0.0',
             'uwsgi>=2.0.20',
             'flasgger>=0.9.5',
             'aiohttp>=3.8.3',

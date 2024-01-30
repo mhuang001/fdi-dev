@@ -1,8 +1,9 @@
-__version_info__ = (1, 43, 3)
+__version_info__ = (1, 43, 4)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '1.43.1-2-g42caeb8'
+__revision__ = '1.43.3-0-g8275275'
 
-# change python3.8 to python3 to testsupport/fixtures.py
+# downgrade werkzeug to below 3.0.0 to avoid werkzeug.url import problem
+# 1.43.3 change python3.8 to python3 to testsupport/fixtures.py
 # 1.43.2 loadfile enhance csv reading
 # 1.43.1 return L1B a L1keysOBS subclass.
 # 1.43.0 add endian and numpyType to ArrayDataset

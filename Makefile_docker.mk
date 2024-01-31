@@ -72,9 +72,12 @@ endif
 
 test_docker:
 	cid=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\
-	docker exec -it $$cid sh -c '(cd $(DOCKER_NAME); $(MAKE) test OPT="--log-level=20 --server background")'
+	docker exec -it $$cid sh -c '(cd $(DOCKER_NAME); $(MAKE) test OPT="--log-level=20 --server external")'
 
 test_server:
 	cid=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\
-	docker exec -it $$cid sh -c '(cd fdi; $(MAKE) testhttp OPT="--log-level=20 --server background")'
+	$(MAKE) imlatest LATEST_NAME=$(SERVER_NAME) &&\
+	make launch_server SERVER_NAME=server_tester D='/home/fdi/httppool_server_entrypoint_uwsgi.sh no-server' &&\
+	tid=`docker ps -a|grep '^server_tester$$' | awk '{print $$1}'` &&\
+	docker exec -it $$tid sh -c '(cd fdi; $(MAKE) testhttp OPT="--log-level=20 --server external")'
 

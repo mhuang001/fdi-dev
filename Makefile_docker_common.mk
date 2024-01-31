@@ -63,12 +63,14 @@ build_server:
 	--build-arg SERVER_VERSION=$(SERVER_VERSION) \
 	--build-arg BASEURL=$(BASEURL) \
 	-f $(SFILE) \
-	$(D) --progress=plain .
+	--progress=plain \
+	$(D)  .
 	$(MAKE) imlatest LATEST_NAME=$(SERVER_NAME)
 
 # run im:latest
 launch_server:
 	SN=$(SERVER_NAME)$$(date +'%s') && \
+	echo launching server named $$SN && \
 	docker run -d -it --network=$(NETWORK) \
 	--mount source=httppool,target=$(SERVER_LOCAL_DATAPATH) \
 	--mount source=log,target=/var/log_mounted \
@@ -80,13 +82,13 @@ launch_server:
 	-e PNS_LOGGER_LEVEL=$(LOGGER_LEVEL) \
 	-e PNS_LOGGER_LEVEL_EXTRAS=$(LOGGER_LEVEL_EXTRAS) \
 	-e PNS_BASEURL=$(BASEURL) \
-	--name $$SN $(D) $(LATEST) $(LAU) ;\
+	--name $$SN $(D) $(LAU) $(LATEST) ;\
 	docker ps -n 1
 	if [ $$? -gt 0 ]; then echo *** Launch failed; false; fi
-	cid=`docker ps |grep $(LATEST) | head -n 1 |awk '{print $$1}'` ;\
+	cid=`docker ps |grep $(SERVER_NAME) | head -n 1 |awk '{print $$1}'` ;\
 	if [ -z $$cid ]; then echo NOT running ; false; fi ;\
 	sleep 2;\
-	echo docker inspect $$cid 
+	echo skip docker inspect $$cid 
 
 launch_test_server:
 	$(MAKE) imlatest LATEST_NAME=$(SERVER_NAME)

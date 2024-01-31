@@ -173,7 +173,7 @@ def test_gen_url(server, set_ids):
     logger.info('Test corrupt request url')
     with pytest.raises(ValueError) as exc:
         err_url = urn2fdiurl(
-            urn=sampleurn, poolurl=samplepoolurl, contents='pool', method='GET')
+            urn=sampleurn, poolurl=samplepoolurl, contents='pool', method ='GET')
         exc_msg = exc.value.args[0]
         assert exc_msg == 'No such method and contents composition: GET/pool'
         

@@ -13,9 +13,13 @@ echo ###### if not set, logging level use WARNING in config
 s=${PNS_LOGGER_LEVEL:=30}
 set +a
 
+
 sed -i "s/^conf\s*=\s*.*$/conf = 'production'/g" ~/.config/pnslocal.py 
 mkdir -p /var/log/uwsgi
 
+
+# Do not run server if no-server is given. Set up the above for being a client.
+# if [ $i = no-server ]; then sleep 9e99; exit 0; fi;
 
 if [ ! -d /var/log/uwsgi ]; then \
 sudo mkdir -p /var/log/uwsgi && \
@@ -32,6 +36,7 @@ date >> ~/last_entrypoint.log
 cat ~/last_entrypoint.log
 echo '>>>' $@
 for i in $@; do
+if [ $i = no-run ]; then exit 0; fi;
 if [ $i = no-run ]; then exit 0; fi;
 done
 

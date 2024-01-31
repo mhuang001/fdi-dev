@@ -77,7 +77,7 @@ test_docker:
 test_server:
 	cid=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\
 	$(MAKE) imlatest LATEST_NAME=$(SERVER_NAME) &&\
-	make launch_server SERVER_NAME=server_tester D='/home/fdi/httppool_server_entrypoint_client.sh' &&\
+	make launch_server SERVER_NAME=server_tester LAU='--entrypoint /home/fdi/httppool_server_entrypoint_client.sh' &&\
 	tid=`docker ps -a|grep 'server_tester' | awk '{print $$1}'` &&\
 	docker exec -it $$tid sh -c '(cd fdi; $(MAKE) testhttp OPT="--log-level=20 --server external")'
 

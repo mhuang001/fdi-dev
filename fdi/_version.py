@@ -1,8 +1,9 @@
-__version_info__ = (1, 44, 1)
+__version_info__ = (1, 44, 2)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '1.44.0-4-g5a7d90a'
+__revision__ = '1.44.1-0-g65da68e'
 
-#  missing
+# missing
+# 1.44.1 missing
 # 1.44.0 add httppool_server_entrypoint_client.sh to enable docker-separated server testing
 # 1.43.5 update .gitlab-ci. use background setting for fdi docker testhttp.
 # 1.43.4 downgrade werkzeug to below 3.0.0 to avoid werkzeug.url import problem

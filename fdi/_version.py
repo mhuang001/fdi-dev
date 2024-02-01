@@ -1,7 +1,8 @@
 __version_info__ = (1, 44, 2)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '1.44.1-0-g65da68e'
+__revision__ = '1.44.2-1-g8068bc6'
 
+# fix wrongpath and missing sleep entrypoint httppool_server_entrypoint_client.sh
 # 1.44.2 missing
 # 1.44.1 missing
 # 1.44.0 add httppool_server_entrypoint_client.sh to enable docker-separated server testing

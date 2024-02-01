@@ -20,3 +20,4 @@ date >> ~/last_entrypoint.log
 cat ~/last_entrypoint.log
 echo '>>>' $@
 
+sleep 9e19

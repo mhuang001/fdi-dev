@@ -37,7 +37,6 @@ cat ~/last_entrypoint.log
 echo '>>>' $@
 for i in $@; do
 if [ $i = no-run ]; then exit 0; fi;
-if [ $i = no-run ]; then exit 0; fi;
 done
 
 exec "$@"

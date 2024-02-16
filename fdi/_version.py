@@ -1,7 +1,8 @@
-__version_info__ = (1, 44, 3)
+__version_info__ = (1, 45, 0)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '1.44.2-2-g8736ec5'
+__revision__ = '1.44.3-0-g6868c9a'
 
+# switch to pypng in toPNG after comparing python local, fpnge (no compression) and fpng-py (api not working)
 # 1.44.3 fix wrong path and missing sleep entrypoint httppool_server_entrypoint_client.sh
 # 1.44.2 missing
 # 1.44.1 missing

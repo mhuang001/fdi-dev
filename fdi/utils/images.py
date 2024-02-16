@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from .common import trbk
 from fdi.dataset.mediawrapper import MediaWrapper
 from fdi.dataset.numericparameter import NumericParameter
 from fdi.dataset.arraydataset import ArrayDataset
@@ -13,6 +14,7 @@ import logging
 from collections import OrderedDict
 from pprint import pprint
 import array
+
 import time
 import io
 import statistics
@@ -20,6 +22,9 @@ import statistics
 # create logger
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
+
+use_pypng = 1
+use_fpnge = 0
 
 
 def generate_png(buf, width, height, greyscale=True, bitdepth=8, compression=9):
@@ -105,9 +110,6 @@ def longrainbowl(n=8):
                        ) for Y in range(2**n-1, -1, -1)
                       )
     return ret
-
-
-use_pypng = 0
 
 
 def toPng(adset, grey=False, compression=0, cspace=8, cmap=None,
@@ -207,6 +209,7 @@ def toPng(adset, grey=False, compression=0, cspace=8, cmap=None,
                                    bitdepth=bitdepth, compression=compression)
                     w.write(f, img)
             else:
+                # use_fpnge is True or not
                 if img[0].typecode[0] in [unsigned_tc, 'h'] and sys.byteorder == 'little':
                     for i in img:
                         i.byteswap()
@@ -235,7 +238,11 @@ def toPng(adset, grey=False, compression=0, cspace=8, cmap=None,
     scl = float(ncolor)/nuniq_vals
     # color normalization table that maps a pixel value to a color index in cmap
     cnt = dict((c, int(i*scl)) for i, c in enumerate(uniq_vals))
-
+    if use_pypng:
+        cmap2 =  dict((c, cmap[int(i*scl)]) for i, c in enumerate(uniq_vals))
+    if use_fpnge:
+        # bytes
+        cmap3 =  dict((c, bytes(cmap[int(i*scl)])) for i, c in enumerate(uniq_vals))
     wlscale = nuniq_vals/float(width)
 
 #    _r = range(-(width//2), (width//2)
@@ -248,7 +255,56 @@ def toPng(adset, grey=False, compression=0, cspace=8, cmap=None,
     #__import__("pdb").set_trace()
 
     t1 = time.time()
-    if use_pypng:
+    cng = cnt.__getitem__
+
+    if use_fpnge:
+        cmg3 = cmap3.__getitem__
+
+        r = bytearray(b'')
+        rs = r.__setitem__
+        re = r.extend
+        list(map(re, map(cmg3,
+                chain.from_iterable(
+                    chain(data, clegend))
+                         )
+                 )
+             )
+        img = memoryview(r)
+    elif 0:
+        # concatenate: all r, then all g, then all b
+        ln_ = width * height
+        ln_2 = ln_ * 2
+        r, g, b = bytearray([]), bytearray([]), bytearray([])
+        #r = bytearray(ln_ * 3)
+        #cmg2 = cmap2.__getitem__
+        rs = r.__setitem__
+        ra, ga, ba = r.append, g.append, b.append
+        n = 0
+        for i, j, k in map(cmg2, chain.from_iterable(
+                               chain(data, clegend))
+                           ):
+
+            #rs(n,i)
+            #rs(n+ln_,j)
+            #rs(n+ln_2,k)
+            ra(i)
+            ga(j)
+            ba(k)
+            n += 1
+        r.extend(g)
+        r.extend(b)
+        img = memoryview(r) #bytes(r)
+
+        print(time.time()-t1)
+        if 0:
+            print( data[0][:10])
+            print(list(cnt[x] for x in data[0][:10]))
+            print(list(cmap[cnt[x]] for x in data[0][:10]))
+            print(list(zip(*list(cmap[cnt[x]] for x in data[0][:10]))))
+            print(img[:10])
+            
+    elif use_pypng:
+        
         if 0:  # 29.0
             # def mkb(row): return bytes(map(cnt.__getitem__, row))
             img = list(
@@ -266,18 +322,25 @@ def toPng(adset, grey=False, compression=0, cspace=8, cmap=None,
                        row in chain(data, clegend))
         elif 1:  # 32.0
             img = list(
-                array.array('B', map(cnt.get, row))
-                for row in chain(data, clegend))
-        else:
+                #map(lambda row:array.array('B', map(cng, row)),
+                map(lambda row: bytes(map(cng, row)),
+                    chain(data, clegend)
+                    )
+                )
+        elif 0:
             # 39sec
             img = list(
                 array.array('B', (cnt[x] for x in row))
                 for row in chain(data, clegend))
     else:  # 39sec
+        # python
         img = list(
-            array.array('B', chain.from_iterable(cmap[cnt[x]] for x in row))
-            for row in chain(data, clegend))
-
+                map(
+                    lambda row: array.array('B', map(cng, row)),
+                    chain(data, clegend)
+                )
+            )
+                
     if 0:
         print(nuniq_vals, 'values in', len(cmap), 'colors')
         li = list(chain.from_iterable(img))
@@ -288,20 +351,39 @@ def toPng(adset, grey=False, compression=0, cspace=8, cmap=None,
         for i in img:
             i.byteswap()
 
-    if use_pypng:
-        height = len(data)
-        width = len(data[0])
-
+    if use_fpnge:
+        import fpnge
+        png_im = fpnge.fromview(
+            view=img,
+            width=width,
+            height=height,
+            channels=3,
+            bits_per_channel=8,
+            stride=width*3
+        )
+    elif 0:
+        import fpng_py as fpp
+        # not working. always "invalid parameters"
+        print(fpp.fpng_cpu_supports_sse41())
+        png_im = fpp.fpng_encode_image_to_memory(
+            #filename=png_file_name+'.png',
+            image=img,
+            w=width,
+            h=height,
+            num_chans=3,
+            #flags=fpp.CompressionFlags.NONE #x1 if compression else 0
+        )
+    elif use_pypng:
         wtr = png.Writer(width, height, palette=cmap.values(),
-                         bitdepth=cspace,
-                         compression=compression)
-
+                     bitdepth=cspace,
+                     compression=compression)
         try:
             with io.BytesIO() as iob:
                 wtr.write(iob, img)
                 png_im = iob.getvalue()
-        except Exception as e:
-            __import__("pdb").set_trace()
+        except png.ProtocolError as e:
+            logger.error(f'{png_file_name} {width}x{height} {len(data[0])} {e} {trbk(e)}')
+            return b''
 
     else:
         png_im = generate_png(img, width, height, greyscale=False,
@@ -311,7 +393,7 @@ def toPng(adset, grey=False, compression=0, cspace=8, cmap=None,
         ##bf = b''.join(x.tobytes() for x in data)
         with open(png_file_name+'.png', 'wb') as b:
             b.write(png_im)
-    if 0:
-        print('p', time.time()-t1, 'sec')
+    if 1:
+        print('png', time.time()-t1, 'sec')
 
     return png_im

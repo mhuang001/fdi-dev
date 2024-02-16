@@ -293,6 +293,7 @@ def test_Fits_Kw():
     # multi
     lst = getFitsKw('startDate', multi=True)
     assert all(r in lst for r in ('DATE-OBS', 'DATE_OBS', 'DATE-BEG', 'DATE_BEG'))
+    assert getFitsKw('creationDate', multi=True) == ['DATE']
     
 def test_fits_header_list():
     fn = 'tests/'+'resources/SD_24_0791_20170101T000324_0078972002.fits'

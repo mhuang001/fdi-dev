@@ -52,13 +52,14 @@ setup(
         'jsonschema==4.17.3',
         'xmltodict>=0.12.0',
         'jsonpath-ng>=1.5.3',
-        'pypng>=0.20220715.0',
+        'pypng @ git+https://gitlab.com/drj11/pypng@pypng-0.20231004.0',
         'networkx>=2.8.1',
         'pydot>=1.4.2',
         'importlib_resources>=5.12.0',
         'traceback-with-variables>=2.0.4',
         'Werkzeug<3.0.0'
     ],
+    scripts=['bin/png2mp4'],
     entry_points={'console_scripts': [
         'yaml2python=fdi.dataset.yaml2python:main',
         'fdi-getconfig=fdi.utils.getconfig:main',

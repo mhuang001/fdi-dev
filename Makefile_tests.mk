@@ -1,4 +1,4 @@
-PYTEST	= python3 -m pytest
+PYTEST = env -u PNS_CLOUD_USER -u PNS_CLOUD_PASS -u PNS_CLOUD_TOKEN python3 -m pytest
 TESTLOG	= /tmp/fdi-tests.log
 L	=
 SV	= background

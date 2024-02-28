@@ -26,7 +26,8 @@ from fdi.dataset.tabledataset import TableDataset
 from fdi.dataset.dataset import Dataset, CompositeDataset
 from fdi.dataset.indexed import Indexed
 from fdi.dataset.ndprint import ndprint
-from fdi.dataset.datatypes import Vector, Vector2D, Quaternion
+from fdi.dataset.datatypes import Vector, Vector2D, Vector3D
+from fdi.dataset.quaternion import Quaternion
 from fdi.dataset.invalid import INVALID
 from fdi.dataset.finetime import FineTime, FineTime1
 from fdi.dataset.history import History
@@ -578,6 +579,13 @@ def test_datatypes():
     assert v > sqrt(1+2.3**2) - 1
     assert v < sqrt(1+2.3**2) + 1
 
+
+    if 0:
+        v = Vector3D([1, 2, 3])
+        assert v.norm() == sqrt(1+4+9)
+        assert v.norm() == v.length()
+
+    
     # assignment
     v.components = [0xaa, 1, 1e2]
     assert v.components == [0xaa, 1, 1e2]

@@ -493,7 +493,7 @@ def yaml_upgrade(descriptors, ypath, shema_version, dry_run=False, verbose=False
 verbo = 9
 
 
-@functools.lru_cache
+@functools.lru_cache(maxsize=256)
 def mro_cmp(cn1, cn2):
     """ compare two classes by their MRO relative positions.
 
@@ -516,9 +516,10 @@ def mro_cmp(cn1, cn2):
     if not (cn1 and cn2 and issubclass(cn1.__class__, str) and issubclass(cn2.__class__, str)):
         raise TypeError('%s and %s must be classnames.' % (str(cn1), str(cn2)))
     if verbo:
-        print('...mro_cmp ', cn1, cn2)
+        hu = f'...mro_cmp  {cn1}, {cn2} '
     if cn1 == cn2:
         # quick result
+        print(hu, 0)
         return 0
     try:
         c1 = glb[cn1]
@@ -532,14 +533,46 @@ def mro_cmp(cn1, cn2):
         exit(-6)
 
     if c1 is None or c2 is None:
+        print(hu, None)
         return None
     res = 0 if (c1 is c2) else -1 if issubclass(c1, c2) else 1
     if verbo:
-        print('... ', c1, c2, res)
+        print(f"...mro_cmp {c1} {'is subcls of' if res==-1 else 'is' if res==0 else 'supercls of or unrelated to'} {c2}")
     return res
 
 
-def descriptor_mro_cmp(nc1, nc2, des):
+def am_i_your_pa(nca, ncb, des):
+    parents = des[nca][0].get('parents', [])
+    if len(parents) == 0 or len(parents) == 1 and parents[0] is None:
+        return None
+    if nca in parents:
+        raise ValueError(
+            nca + ' cannot be its own parent. Check the YAML file.')
+    if verbo:
+        print(f"***** parents for {nca} found: {parents}")
+    __import__("pdb").set_trace()
+
+    # grand parent?
+    for p in parents:
+        if p == ncb:
+            # This is where parent-in-des case answered.
+            # parent is subclass so nca must be ncb's subclass
+            if verbo:
+                print(f'{nca} parent is {ncb}.')
+            return -1
+        else:
+            dmc = descriptor_mro_cmp(p, ncb)
+            if dmc == -1:
+                # parent is subclass so nca must be ncb's subclass
+                if verbo:
+                    print(f'{nca} parent is subc of {ncb}. d{dmc}')
+                return -1
+    else:
+        if verbo:
+            print(f'{nca} parent is not subc of {ncb}. d{dmc}')
+        return 0
+
+def descriptor_mro_cmp(nc1, nc2):
     """ find if nc1 is a subclasss of nc1.
 
     cn1 : str
@@ -549,12 +582,13 @@ def descriptor_mro_cmp(nc1, nc2, des):
     Returns
     -------
     int
-        Returns -1 if class by the name of cn2 is a parent that of cn1 or its parent,
+        Returns -1 if class by the name of cn2 is a parent of that of cn1 or its parent,
     0 if c1 and c2 are the same class; 1 for c1 being superclasses or no relation. This is to be used by `cmp_to_key` so besides having to return a negative number if `mro(nc1)` < `mro(nc2)`, it cannot return `None` for invalid situations.
   """
-
+    global des
+    
     if verbo:
-        print('*** des_m_cmp', nc1, nc2)
+        print('*** descriptor_mro_cmp', nc1, nc2)
 
     mc = mro_cmp(nc1, nc2)
     if verbo:
@@ -566,36 +600,17 @@ def descriptor_mro_cmp(nc1, nc2, des):
         # no class definition
         # 0 for top level
 
-        parents = des[nc1][0].get('parents', [])
-        if len(parents) == 0 or len(parents) == 1 and parents[0] is None:
-            return 0
-        if nc1 in parents:
-            raise ValueError(
-                nc1 + ' cannot be its own parent. Check the YAML file.')
-        if verbo:
-            print(f"***** parents for {nc1} found: {parents}")
-        for p in parents:
-            if p == nc2:
-                # This is where parent-in-des case answered.
-                # parent is subclass so nc1 must be nc2's subclass
-                if verbo:
-                    print(f'{nc1} parent is {nc2}.')
-                return -1
-            else:
-                dmc = descriptor_mro_cmp(p, nc2, des)
-            if dmc == -1:
-                # parent is subclass so nc1 must be nc2's subclass
-                if verbo:
-                    print(f'{nc1} parent is subc of {nc2}. d{dmc}')
-                return -1
-        else:
-            if verbo:
-                print(f'{nc1} parent is not subc of {nc2}. d{dmc}')
-            return 0
+        pa = am_i_your_pa(nc1, nc2, des)
+        if pa == -1:
+            return -1
+        pa = am_i_your_pa(nc2, nc1, des)
+        if pa == -1:
+            return 1
+        return 1
     else:
         # nc1 is subclass or the same class.
         if verbo:
-            print(f'{nc1} vs {nc2} => {mc}')
+            print(f'{nc1} vs {nc2} >= {mc}')
 
         return mc
 
@@ -609,15 +624,17 @@ def dependency_sort(descriptors):
     -------
     """
     global glb
+    global des
     
     ret = []
+    des = descriptors
     # make a list of prodcts
     working_list = list(descriptors.keys())
     if verbo:
-        print('+++++', str('\n'.join(working_list)))
+        print('+++++working_list:\n', str('\n'.join(working_list)), '\n++++\n')
 
     working_list.sort(key=functools.cmp_to_key(
-        functools.partial(descriptor_mro_cmp, des=descriptors)))
+        descriptor_mro_cmp))
 
     if verbo:
         print('!!!!!', str('\n'.join(working_list)))

@@ -2,7 +2,8 @@
 
 from .metadata import Parameter
 from .quantifiable import Quantifiable
-from .datatypes import Vector, Vector2D, Vector3D, Quaternion
+from .datatypes import Vector, Vector2D, Vector3D
+from .quaternion import Quaternion
 
 from collections.abc import Sequence
 from collections import OrderedDict

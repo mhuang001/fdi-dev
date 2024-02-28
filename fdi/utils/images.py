@@ -321,12 +321,12 @@ def toPng(adset, grey=False, compression=0, cspace=8, cmap=None,
             img = list(bytes(map(cnt.__getitem__, row)) for
                        row in chain(data, clegend))
         elif 1:  # 32.0
-            img = list(
+            #img = list(
                 #map(lambda row:array.array('B', map(cng, row)),
-                map(lambda row: bytes(map(cng, row)),
+            img = map(lambda row: bytes(map(cng, row)),
                     chain(data, clegend)
                     )
-                )
+                
         elif 0:
             # 39sec
             img = list(
@@ -347,7 +347,7 @@ def toPng(adset, grey=False, compression=0, cspace=8, cmap=None,
         print('mlc90', max(li), len(li), len(set(list(li))),
               list(map(hex, li[:7])), (data[0][0]-mean)/stdev)
 
-    if issubclass(img[0].__class__, array.array) and img[0].typecode[0] in ['H', 'h'] and sys.byteorder == 'little':
+    if issubclass(data[0][0].__class__, array.array) and img[0].typecode[0] in ['H', 'h'] and sys.byteorder == 'little':
         for i in img:
             i.byteswap()
 

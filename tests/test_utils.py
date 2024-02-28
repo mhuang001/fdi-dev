@@ -4,7 +4,8 @@ from fdi.utils.leapseconds import utc_to_tai, tai_to_utc, dTAI_UTC_from_utc, _fa
 from fdi.dataset.eq import deepcmp
 from fdi.dataset.metadata import make_jsonable
 from fdi.dataset.finetime import FineTime
-from fdi.dataset.datatypes import Vector, Quaternion
+from fdi.dataset.datatypes import Vector 
+from fdi.dataset.quaternion import Quaternion
 from fdi.dataset.deserialize import Class_Look_Up, serialize_args, deserialize_args
 from fdi.pal.urn import Urn
 from fdi.pal.productref import ProductRef

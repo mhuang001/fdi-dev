@@ -20,7 +20,8 @@ from fdi.dataset.unstructureddataset import UnstructuredDataset
 from fdi.dataset.history import History
 from fdi.dataset.baseproduct import BaseProduct
 from fdi.dataset.product import Product
-from fdi.dataset.datatypes import Vector, Vector2D, Quaternion
+from fdi.dataset.datatypes import Vector, Vector2D
+from fdi.dataset.quaternion import Quaternion
 from fdi.dataset.classes import Classes
 from fdi.dataset.serializable import serialize, Serializable
 from fdi.pal.context import MapContext

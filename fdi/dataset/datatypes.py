@@ -274,6 +274,7 @@ class Vector(Quantifiable, Serializable, DeepEqual):
             self._data = [0, 0, 0]
         else:
             self.setComponents(components)
+        self._norm = None
         super().__init__(**kwds)
 
     @ property
@@ -329,6 +330,94 @@ class Vector(Quantifiable, Serializable, DeepEqual):
         # must be list to make round-trip Json
         self._data = list(components)
 
+    def cross(self, v):
+        """
+        Return the cross product of this vector by another vector, as
+        a new vector.
+
+        param v The other vector.
+        """
+        raise NotImplemented
+
+        return Vector3(self._y * v._z - self._z * v._y, self._z * v._x - self._x * v._z, self._x * v._y - self._y * v._x)
+
+
+    def norm(self):
+        """
+    # 
+    #      * Return the L2 norm of this vector.
+    #      *
+    #      * @return The L2 norm of this vector
+    #      
+
+        """
+        if self._norm is not None:
+            return self._norm
+        else:
+            self._norm = sqrt(self._x * self._x + self._y * self._y + self._z * self._z)
+        return self._norm
+
+    length = norm
+
+    def normalize(self):
+        """
+    # 
+    #      * Normalize to unit length, returning a new vector.
+    #      *
+    #      * @return The normalized vector
+    #      * @throws RuntimeException if a zero vector.
+    #      
+
+        """
+        return self.copy().mNormalize()
+
+    def mNormalize(self):
+        """
+    # 
+    #      * Normalize to unit length, in place.<p>
+    #      * 
+    #      * The normalization is skipped if the vector is already normalized.
+    #      *
+    #      * @return This vector after normalizatiion
+    #      * @throws RuntimeException if a zero vector.
+    #      
+
+        """
+        n1 = self.norm()
+        if n1 == 0:
+            raise RuntimeException("Cannot normalize zero vector")
+        #  Do nothing if it is already normalized
+        if abs(n1 - 1) > 2.5E-16:
+            #  ULP = 2.22E-16
+            norm = n1
+            self._x /= norm
+            self._y /= norm
+            self._z /= norm
+            self._data = [self._x, self._y, self._z, self._w ]
+        return self
+
+
+    def angle(self, v):
+        """
+    # 
+    #      * Return the angle in radians [0,pi], between this vector and another vector.
+    #      *
+    #      * @param v The other vector
+    #      * @return The angle in radians
+    #      * @throws RuntimeException if either vector is zero.
+    #      
+        """
+        lsq = self.norm() * v.norm()
+        a = self.dot(v) / lsq
+        #  Use cross product for small angles
+        if abs(a) < 0.99:
+            return acos(a)
+        elif a > 0:
+            return asin(self.cross(v).norm() / lsq)
+        else:
+            return PI - asin(self.cross(v).norm() / lsq)
+        
+        
     def __eq__(self, obj, verbose=False, **kwds):
         """ can compare value """
         if type(obj).__name__ in DataTypes.values():
@@ -438,22 +527,4 @@ class Vector3D(Vector):
             self.setComponents(components)
 
 
-class Quaternion(Vector):
-    """ Quaternion with 4-component data.
-    """
-
-    def __init__(self, components=None, **kwds):
-        """ invoked with no argument results in a vector of
-        [0, 0, 0, 0] components
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-        super(Quaternion, self).__init__(**kwds)
-
-        if components is None:
-            self._data = [0, 0, 0, 0]
-        else:
-            self.setComponents(components)
+    

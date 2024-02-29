@@ -550,7 +550,6 @@ def am_i_your_pa(nca, ncb, des):
             nca + ' cannot be its own parent. Check the YAML file.')
     if verbo:
         print(f"***** parents for {nca} found: {parents}")
-    __import__("pdb").set_trace()
 
     # grand parent?
     for p in parents:

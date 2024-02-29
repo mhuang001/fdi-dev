@@ -1,8 +1,9 @@
-__version_info__ = (1, 45, 1)
+__version_info__ = (1, 45, 2)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '1.45.0-0-ge96a559'
+__revision__ = '1.45.1-0-g6342684'
 
-# refactor quaternion.py
+# no png2mp4
+# 1.45.1 refactor quaternion.py
 # 1.45.0 switch to pypng in toPNG after comparing python local, fpnge (no compression) and fpng-py (api not working)rr
 # 1.44.3 fix wrong path and missing sleep entrypoint httppool_server_entrypoint_client.sh
 # 1.44.2 missing

@@ -14,7 +14,7 @@ from .datatypes import DataTypes, DataTypeNames
 # from ruamel.yaml.comments import CommentedSeq
 # from ruamel.yaml import YAML
 # import yaml
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 import os
 import sys
 import functools
@@ -490,7 +490,7 @@ def yaml_upgrade(descriptors, ypath, shema_version, dry_run=False, verbose=False
         return d
 
 
-verbo = 9
+verbo = 0
 
 
 @functools.lru_cache(maxsize=256)
@@ -512,14 +512,13 @@ def mro_cmp(cn1, cn2):
     """
 
     global glb
-    
+
+    hu = ''
     if not (cn1 and cn2 and issubclass(cn1.__class__, str) and issubclass(cn2.__class__, str)):
         raise TypeError('%s and %s must be classnames.' % (str(cn1), str(cn2)))
-    if verbo:
-        hu = f'...mro_cmp  {cn1}, {cn2} '
+
     if cn1 == cn2:
         # quick result
-        print(hu, 0)
         return 0
     try:
         c1 = glb[cn1]
@@ -533,45 +532,49 @@ def mro_cmp(cn1, cn2):
         exit(-6)
 
     if c1 is None or c2 is None:
-        print(hu, None)
         return None
-    res = 0 if (c1 is c2) else -1 if issubclass(c1, c2) else 1
+    res = 0 if (c1 is c2) else -1 if issubclass(c1, c2) else 1 if issubclass(c2, c1) else None
     if verbo:
-        print(f"...mro_cmp {c1} {'is subcls of' if res==-1 else 'is' if res==0 else 'supercls of or unrelated to'} {c2}")
+        print(f"...mro_cmp {c1} {(' <' if res==-1 else ' = ' if res==0 else ' >= ')} {c2}")
     return res
 
-
 def am_i_your_pa(nca, ncb, des):
+
+    if nca not in des:
+        return None
+        
     parents = des[nca][0].get('parents', [])
     if len(parents) == 0 or len(parents) == 1 and parents[0] is None:
         return None
     if nca in parents:
         raise ValueError(
             nca + ' cannot be its own parent. Check the YAML file.')
-    if verbo:
-        print(f"***** parents for {nca} found: {parents}")
-
+    #if verbo:
+    #    print(f"***** parents for {nca} found {ncb} ***")
+    pa_of[nca] |= set(parents)
     # grand parent?
     for p in parents:
         if p == ncb:
             # This is where parent-in-des case answered.
             # parent is subclass so nca must be ncb's subclass
             if verbo:
-                print(f'{nca} parent is {ncb}.')
+                print(f'{nca} < {ncb}. ***')
             return -1
         else:
-            dmc = descriptor_mro_cmp(p, ncb)
+            dmc = descriptor_mro_cmp(p, ncb, rent=True)
             if dmc == -1:
                 # parent is subclass so nca must be ncb's subclass
                 if verbo:
-                    print(f'{nca} parent is subc of {ncb}. d{dmc}')
+                    print(f'{nca} >> {ncb}. d{dmc} ***')
                 return -1
     else:
         if verbo:
-            print(f'{nca} parent is not subc of {ncb}. d{dmc}')
-        return 0
+            print(f'{nca} parents {parents} ARE not subc of {ncb}. d{dmc}')
+    return None
 
-def descriptor_mro_cmp(nc1, nc2):
+pa_of = None
+unrelated = None
+def descriptor_mro_cmp(nc1, nc2, rent=False):
     """ find if nc1 is a subclasss of nc1.
 
     cn1 : str
@@ -585,10 +588,34 @@ def descriptor_mro_cmp(nc1, nc2):
     0 if c1 and c2 are the same class; 1 for c1 being superclasses or no relation. This is to be used by `cmp_to_key` so besides having to return a negative number if `mro(nc1)` < `mro(nc2)`, it cannot return `None` for invalid situations.
   """
     global des
+    global pa_of
+    global unrelated
     
     if verbo:
-        print('*** descriptor_mro_cmp', nc1, nc2)
-
+        print('>>>>>>>>>>> descriptor_mro_cmp', nc1, nc2, "reentered" if rent else '')
+    #__import__("pdb").set_trace()
+    if unrelated:
+        if verbo:
+            print('##### check unrelated', unrelated)
+        pair = tuple(sorted([nc1, nc2]))
+        if pair in unrelated:
+            return None
+    if pa_of:
+        #if 'ToO_Req' in pa_of:
+        if verbo:
+            print('##### check pa_of', pa_of)
+        must_be_pa_of =  pa_of.get(nc1, 0)
+        if must_be_pa_of and nc2 in must_be_pa_of:
+            # nc2 is the parent
+            if verbo:
+                print(f"exit: {nc1} meets parent {nc2} ***")
+            return -1
+        must_be_pa_of =  pa_of.get(nc2, 0)
+        if must_be_pa_of and nc1 in must_be_pa_of:
+            if verbo:
+                print(f"exit: {nc2} meets parent {nc1}")
+                return 1
+        
     mc = mro_cmp(nc1, nc2)
     if verbo:
         print('**** mro_cmp', mc)
@@ -601,16 +628,43 @@ def descriptor_mro_cmp(nc1, nc2):
 
         pa = am_i_your_pa(nc1, nc2, des)
         if pa == -1:
+            if verbo:
+                print(f"exit: #1 {nc1} is the child  ***")
+            pa_of[nc1].add(nc2)
             return -1
+        elif pa == 1:
+            if verbo:
+                print(f"exit: #1 {nc2} is the child")
+            pa_of[nc2].add(nc1)
+            return  1
+        elif pa == 0:
+            if verbo:
+                print(f"exit: #1 {nc2} is the same as {nc1}")
+            return  0
+        
         pa = am_i_your_pa(nc2, nc1, des)
         if pa == -1:
+            if verbo:
+                print(f"exit: #2 {nc2} is the child")
+            # nc2 is the child
+            pa_of[nc2].add(nc1)
             return 1
-        return 1
+        elif pa == 1:
+            if verbo:
+                print(f"exit: #2 {nc1} is the child  ***")
+            # nc1 is the child
+            pa_of[nc1].add(nc2)
+            return -1
+        else:
+            if verbo:
+                print(f"exit: #3 no relation")
+            pair = tuple(sorted([nc2, nc1]))
+            unrelated.add(pair)
+            return None
     else:
         # nc1 is subclass or the same class.
         if verbo:
-            print(f'{nc1} vs {nc2} >= {mc}')
-
+            print(f'{nc1} vs {nc2} is {mc}')
         return mc
 
 
@@ -618,26 +672,60 @@ def dependency_sort(descriptors):
     """ sort the descriptors so that everyone's parents are to his right.
     Parameters
     ----------
-
+    descriptors : dict
+    
     Returns
     -------
     """
     global glb
     global des
+    global pa_of
+    global unrelated
     
+    pa_of = defaultdict(set)
+    unrelated = set()
     ret = []
     des = descriptors
     # make a list of prodcts
     working_list = list(descriptors.keys())
     if verbo:
         print('+++++working_list:\n', str('\n'.join(working_list)), '\n++++\n')
+        print('ToO_Req', 'ToO_MM_Req', descriptor_mro_cmp('ToO_Req', 'ToO_MM_Req'))
+        #assert descriptor_mro_cmp('ToO_Req', 'ToO_MM_Req') == -1
+        #assert descriptor_mro_cmp('ToO_MM_Req', 'ToO_Req')  == 1
+        #assert descriptor_mro_cmp('ToO_Req', 'ToO_MM_Tiles_Req') == 0
+        #print(                             ,'AAA') 
+        #assert descriptor_mro_cmp('ToO_MM_Tiles_Req', 'ToO_Req')  == 0
+        #print('Oem', 'Odm', descriptor_mro_cmp('Oem', 'Odm')  )
 
-    working_list.sort(key=functools.cmp_to_key(
-        descriptor_mro_cmp))
 
+        # sorting cannot be used as unrelated classes have unknown orders
+    #working_list.sort(key=functools.cmp_to_key(descriptor_mro_cmp)
+                      
+    lw = len(working_list)
+    sorted_list = []
+    x = 0
+
+    while lw:
+        print(f'@@@@ x={x}, {working_list[x]}, wl={working_list}, sl={sorted_list}')
+        # examin one by one
+        # must use index to loop
+        for y in range(1, lw):
+            cmp = descriptor_mro_cmp(working_list[x], working_list[y])
+            if cmp and (cmp < 0):
+                # find a case of smaller than wl[x]
+                x = y
+        sorted_list.append(working_list.pop(x))
+        x = 0
+        lw = len(working_list)
+    sorted_list.extend(working_list)
     if verbo:
+        print(f'wl={working_list}, sl={sorted_list}')
         print('!!!!!', str('\n'.join(working_list)))
-    return working_list
+    
+    pa_of = None
+    unrelated = None
+    return sorted_list
 
     while len(working_list):
         # examin one by one
@@ -767,7 +855,14 @@ def inherit_from_parents(parentNames, attrs, datasets, schema, seen):
             if not parent:
                 continue
 
-            mod_name = glb[parent].__module__
+            try:
+                mod_name = glb[parent].__module__
+            except AttributeError as e:
+                t2 = attrs['type']['default']
+                logger.error(f'Fail to load parentNames {parentNames} for {t2}')
+                __import__("pdb").set_trace()
+                pass
+
             if mod_name != 'builtins':
                 s = 'from %s import %s' % (mod_name, parent)
             if parent not in seen:
@@ -922,9 +1017,6 @@ def main():
     dry_run = args.dry_run
     debug = args.debug
 
-    if debug:
-        __import__("pdb").set_trace()
-
     # now can be used as parents
     from .classes import Classes
 
@@ -957,9 +1049,11 @@ def main():
         extension=True,
         verbose=verbose) if pc else Classes.mapping
     # make a list whose members do not depend on members behind (to the left)
+    
     sorted_list = dependency_sort(descriptors)
+   
 
-    sorted_list.reverse()
+    #sorted_list.reverse()
     skipped = []
     for nm in sorted_list:
         d, attrs, datasets, fins = descriptors[nm]
@@ -1152,6 +1246,7 @@ def main():
         except Exception as e:
             print('Unable to import ' + newp)
             raise
+
         importexclude.extend(exclude_save)
         print('Imported ' + newp)
         # Instantiate and dump metadata in other formats

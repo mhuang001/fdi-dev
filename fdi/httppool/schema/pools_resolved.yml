@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  version: 1.4.2
+  version: 1.5.0
   description: This is an API description of the HTTPPool Server for FDI (Flexible Dataset Integrator)
   title: fdi poolserver
   contact:
@@ -33,24 +33,13 @@ servers:
     description: httppool api flask-uwsgi dev version
     variables:
       host:
-        default: 123.56.102.90
-        description: 123.56.102.90 for production.
+        default: 39.107.66.77
+        description: for production.
       port:
         default: '31702'
         description: 31702 for production.
       basePath:
         default: fdi/v0.16
-  - url: 'http://{host}:{port}/{basePath}'
-    description: httppool api flask-uwsgi dev version
-    variables:
-      host:
-        default: 123.56.102.90
-        description: 123.56.102.90 for production.
-      port:
-        default: '31702'
-        description: 31702 for production.
-      basePath:
-        default: fdi-dev/v0.16
   - url: 'http://localhost:{port}/{basePath}'
     description: httppool api flask-uwsgi dev version
     variables:
@@ -62,7 +51,7 @@ servers:
         description: 9885 usually.
       basePath:
         default: fdi/v0.16
-  - url: 'http://10.0.10.114:9885/fdi/v0.16'
+  - url: 'http://123.56.102.90:{port}/fdi/v0.16'
     description: httppool api production intranet
     variables:
       port:
@@ -70,8 +59,6 @@ servers:
           - '9885'
         default: '9885'
         description: 9885 for production.
-      basePath:
-        default: fdi/v0.16
 security:
   - BasicAuth: []
 paths:
@@ -339,7 +326,7 @@ paths:
                   ├──────────────┼────────────────────┼──────┼──────────┼───────┼────────────────────┼──────┼───────────────────────────────┤
                   │ creator      │ UNKNOWN            │      │ string   │ None  │ UNKNOWN            │ B    │ Generator of this product.    │
                   ├──────────────┼────────────────────┼──────┼──────────┼───────┼────────────────────┼──────┼───────────────────────────────┤
-                  │ creationDate │ 1958-01-01T00:00:0 │      │ finetime │ None  │ 1958-01-01T00:00:0 │ %Y-% │ Creation date of this product │
+                  │ creationDate │ 2017-01-01T00:00:0 │      │ finetime │ None  │ 1958-01-01T00:00:0 │ %Y-% │ Creation date of this product │
                   │              │ 0.000000 0         │      │          │       │ 0.000000 0         │ m-%d │                               │
                   │              │                    │      │          │       │                    │ T%H: │                               │
                   │              │                    │      │          │       │                    │ %M:% │                               │
@@ -350,7 +337,7 @@ paths:
                   ├──────────────┼────────────────────┼──────┼──────────┼───────┼────────────────────┼──────┼───────────────────────────────┤
                   │ version      │ 0.8                │      │ string   │ None  │ 0.8                │ B    │ Version of product            │
                   ├──────────────┼────────────────────┼──────┼──────────┼───────┼────────────────────┼──────┼───────────────────────────────┤
-                  │ FORMATV      │ 1.6.0.11           │      │ string   │ None  │ 1.6.0.11           │ B    │ Version of product schema and │
+                  │ FORMATV      │ 1.6.0.12           │      │ string   │ None  │ 1.6.0.12           │ B    │ Version of product schema and │
                   │              │                    │      │          │       │                    │      │ revision                      │
                   ├──────────────┼────────────────────┼──────┼──────────┼───────┼────────────────────┼──────┼───────────────────────────────┤
                   │ listeners    │ <No listener>      │      │          │       │                    │      │                               │
@@ -599,10 +586,10 @@ components:
           value: sv2
           summary: from CSDB server test `test_csdb.py`.
         2. server:
-          value: 'csdb:,,123.56.102.90:31702,csdb,v1,storage,test_e2e2_vt1'
+          value: 'csdb:,,39.107.66.77:31702,csdb,v1,storage,test_e2e2_vt1'
           summary: full CSDB poolURL for test E2E 2.
         3. server:
-          value: 'csdb:,,123.56.102.90:31702,csdb,v1,storage,test_e2e2_vhf1'
+          value: 'csdb:,,39.107.66.77:31702,csdb,v1,storage,test_e2e2_vhf1'
           summary: from server test `test_httppool.py`.
         4. client:
           value: serv_test_httpclientpool

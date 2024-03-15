@@ -1,8 +1,9 @@
-__version_info__ = (1, 46, 0)
+__version_info__ = (1, 46, 1)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '1.45.2-0-g4731667'
+__revision__ = '1.46.0-0-gb30b74d'
 
-# fix yaml2python mro-order sorting
+# update pools.yml
+# 1.46.0 fix yaml2python mro-order sorting
 # 1.45.2 no png2mp4
 # 1.45.1 refactor quaternion.py
 # 1.45.0 switch to pypng in toPNG after comparing python local, fpnge (no compression) and fpng-py (api not working)rr

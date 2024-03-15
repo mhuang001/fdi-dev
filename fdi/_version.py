@@ -1,8 +1,9 @@
-__version_info__ = (1, 46, 1)
+__version_info__ = (1, 46, 2)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '1.46.0-0-gb30b74d'
+__revision__ = '1.46.1-0-gf8251ef'
 
-# update pools.yml
+# same
+# 1.46.1 update pools.yml
 # 1.46.0 fix yaml2python mro-order sorting
 # 1.45.2 no png2mp4
 # 1.45.1 refactor quaternion.py

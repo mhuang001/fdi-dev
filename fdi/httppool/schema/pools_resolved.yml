@@ -33,11 +33,11 @@ servers:
     description: httppool api flask-uwsgi dev version
     variables:
       host:
-        default: 39.107.66.77
+        default: svom-gateway-svc
         description: for production.
       port:
-        default: '31702'
-        description: 31702 for production.
+        default: '17002'
+        description: for production.
       basePath:
         default: fdi/v0.16
   - url: 'http://localhost:{port}/{basePath}'
@@ -56,9 +56,17 @@ servers:
     variables:
       port:
         enum:
-          - '9885'
-        default: '9885'
+          - '31702'
+        default: '31702'
         description: 9885 for production.
+  - url: 'http://39.107.66.77:{port}/fdi/v0.16'
+    description: httppool api production intranet
+    variables:
+      port:
+        enum:
+          - '31702'
+        default: '31702'
+        description: for production.
 security:
   - BasicAuth: []
 paths:

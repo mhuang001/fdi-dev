@@ -116,7 +116,7 @@ def verifyToken(token, client, user_urlbase=None):
 def getToken(poolurl, client, user_urlbase=None):
     """Get CSDB acces token.
 
-    ref http://123.56.102.90:31101/sources/satellite-data-pipeline/-/blob/master/csdb/csdb/csdb.py#L74
+    ref http://39.107.66.77:31101/sources/satellite-data-pipeline/-/blob/master/csdb/csdb/csdb.py#L74
     There seems no need to verify existing token. it costs less to get a new one.
 
     Parameters
@@ -140,7 +140,7 @@ def getToken(poolurl, client, user_urlbase=None):
     from ..httppool.model.user import SESSION
     from flask import session as sess
 
-    if 0:
+    if 1:
         current_token = None
         if sess and SESSION:
             # saved token
@@ -148,12 +148,17 @@ def getToken(poolurl, client, user_urlbase=None):
                 current_token = sess['tokens'].get(poolurl, '')
 
         if not current_token:
-            current_token = pcc['cloud_token']
-        trouble = verifyToken(current_token, client, user_urlbase=user_urlbase)
-        if trouble:
-            logger.info(f'Cloud token {lls(current_token, 50)} {trouble} ')
+            if f"{pcc['cloud_host']}:{pcc['cloud_port']}" == poolurl.split('/')[2]:
+                current_token = pcc['cloud_token']
+        # trouble = verifyToken(current_token, client, user_urlbase=user_urlbase)
+        # if trouble:
+        #     logger.info(f'Cloud token {lls(current_token, 50)} {trouble} ')
 
-    if True:
+
+    #print(current_token)
+    #__import__("pdb").set_trace()
+
+    if not current_token:
         current_token = ''
         #__import__("pdb").set_trace()
 
@@ -167,7 +172,7 @@ def getToken(poolurl, client, user_urlbase=None):
                 logger.debug('try again')
                 tokenMsg2 = read_from_cloud('getToken', client=client, user_urlbase=user_urlbase, token=current_token)
                 if not tokenMsg2:
-                    logger.error(f'Cannot get token from: {poolurl} at {user_urlbase} getting msg: {tokenMsg2}.')
+                    logger.error(f'Cannot get token 2nd try from: {poolurl} at {user_urlbase} getting msg: {tokenMsg2}.')
                     return None
                 token = tokenMsg2['token']
     else:

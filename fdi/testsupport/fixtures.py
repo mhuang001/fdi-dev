@@ -366,31 +366,31 @@ def checkserver(aburl, times=0):
     # initialize test data.
 
 
-@pytest.fixture(scope=MEDIUM)
-def XXXlive_or_mock( pytestconfig, request):
-    """ Tells absolute base url and common headers to clients to use.
+# @pytest.fixture(scope=MEDIUM)
+# def XXXlive_or_mock( pytestconfig, request):
+#     """ Tells absolute base url and common headers to clients to use.
 
-    Based on ``PoolManager.PlacePaths[scheme]`` where ``scheme`` 
-    is `http` or `https` and auth info from `pnsconfig` from the
-    configuration file and commandline.
-3
-    e.g. ```'http://0.0.0.0:5000/v0.7/', ('foo', 'bar')```
+#     Based on ``PoolManager.PlacePaths[scheme]`` where ``scheme`` 
+#     is `http` or `https` and auth info from `pnsconfig` from the
+#     configuration file and commandline.
+# 3
+#     e.g. ```'http://0.0.0.0:5000/v0.7/', ('foo', 'bar')```
 
-       baseurl with no trailing '/' and a string set to 'live' if the
-       server is alive, 'mock' if using Flask's testing lib.
+#        baseurl with no trailing '/' and a string set to 'live' if the
+#        server is alive, 'mock' if using Flask's testing lib.
 
-    """
+#     """
 
-    # pool url from a local client
-    aburl = 'http://' + PoolManager.PlacePaths['http']
-    # csci_url = pc['url_aliases']['csdb'].replace('csdb:', 'http:')
-    how_to_run = pytestconfig.getoption("--server")
-    logger.info(f'command line set server running: {how_to_run}')
+#     # pool url from a local client
+#     aburl = 'http://' + PoolManager.PlacePaths['http']
+#     # csci_url = pc['url_aliases']['csdb'].replace('csdb:', 'http:')
+#     how_to_run = pytestconfig.getoption("--server")
+#     logger.info(f'command line set server running: {how_to_run}')
 
-    # server_arch: http or csdb    
-    # server_arch = getattr(request, 'param', {}).get('server_arch', None)
-    #server_arch_name
-    yield from prepare_servers(how_to_run, aburl)
+#     # server_arch: http or csdb    
+#     # server_arch = getattr(request, 'param', {}).get('server_arch', None)
+#     #server_arch_name
+#     yield from prepare_servers(how_to_run, aburl)
 
 
 
@@ -591,31 +591,31 @@ def server_ro(pytestconfig, set_ids, userpass_ro, mock_app, request):
 
             yield url, live_client, auth, pool, poolurl, pstore, server_type
 
-@ pytest.fixture(scope=SHORT)
-def XXXXcsdb_server(pytestconfig, userpass, request):
-    """ CSDB Server data from r/w user, mock or alive.
+# @ pytest.fixture(scope=SHORT)
+# def XXXXcsdb_server(pytestconfig, userpass, request):
+#     """ CSDB Server data from r/w user, mock or alive.
 
-    """
+#     """
 
-    #yield from server2(pc, pytestconfig, 'csdb', new_user_read_write,    request=request
+#     #yield from server2(pc, pytestconfig, 'csdb', new_user_read_write,    request=request
              
-    url, server_type = next( server2(pytestconfig, 'csdb', request=request))
+#     url, server_type = next( server2(pytestconfig, 'csdb', request=request))
 
-    auth = HTTPBasicAuth(*userpass)
+#     auth = HTTPBasicAuth(*userpass)
   
-    # register to clean up
-    poolurl = pc['cloud_scheme'] + url[len('csdb'):] + '/storage/' + csdb_pool_id
-    pstore = ProductStorage()
-    pstore.PM.removeAll()
+#     # register to clean up
+#     poolurl = pc['cloud_scheme'] + url[len('csdb'):] + '/storage/' + csdb_pool_id
+#     pstore = ProductStorage()
+#     pstore.PM.removeAll()
 
-    logger.info('**** requests as client *****')
-    with the_session as live_client:
-        pstore.register(poolurl=poolurl, client=live_client, auth=auth)
-        # pstore.register(poolname=test_pool.poolname, poolurl=poolurl)
-        pool = pstore.getWritablePool(True)  # PublicClientPool(poolurl=url)
-        assert pool.serverDatatypes
+#     logger.info('**** requests as client *****')
+#     with the_session as live_client:
+#         pstore.register(poolurl=poolurl, client=live_client, auth=auth)
+#         # pstore.register(poolname=test_pool.poolname, poolurl=poolurl)
+#         pool = pstore.getWritablePool(True)  # PublicClientPool(poolurl=url)
+#         assert pool.serverDatatypes
 
-        yield url, live_client, auth, pool, poolurl, pstore, server_type
+#         yield url, live_client, auth, pool, poolurl, pstore, server_type
 
 @ pytest.fixture(scope='session')
 def poolless_csdb_server(pytestconfig, set_ids, userpass, request, urlcsdb):
@@ -648,7 +648,7 @@ def csdb_server(poolless_csdb_server, set_ids):
     #yield from server2(pc, pytestconfig, 'csdb', new_user_read_write,    request=request
              
     url, client, auth, pool, poolurl, pstore, server_type = poolless_csdb_server
-    
+
     csdb_pool_id, http_pool_id, PTYPES = set_ids
     
     # register to clean up
@@ -996,19 +996,19 @@ def tmp_local_remote_pools(server, client, auth, tmp_prods):
     return lst
 
 
-@ pytest.fixture(scope=SHORT)
-def XXXexisting_pools(tmp_pools):
-    """ return n existing pools.
+# @ pytest.fixture(scope=SHORT)
+# def XXXexisting_pools(tmp_pools):
+#     """ return n existing pools.
 
-    Return
-    ------
-    list
-        list of tuples containing `ProductPool`, `BaseProduct`, `ProductRef`, `str` for each pool.
+#     Return
+#     ------
+#     list
+#         list of tuples containing `ProductPool`, `BaseProduct`, `ProductRef`, `str` for each pool.
 
-"""
-    pools = [p[0] for p in tmp_pools]
-    print("get existing pools:", [p.poolname for p in pools])
-    return pools
+# """
+#     pools = [p[0] for p in tmp_pools]
+#     print("get existing pools:", [p.poolname for p in pools])
+#     return pools
 
 
 @ pytest.fixture(scope='session')

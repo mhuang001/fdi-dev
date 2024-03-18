@@ -1,6 +1,6 @@
 __version_info__ = (1, 46, 5)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '1.46.4-0-g1a4bdfc'
+__revision__ = '1.46.5-0-gb9236b2'
 
 # fix paho.mqtt to v1.6.1
 # 1.46.4 customize pools.yml and flasgger

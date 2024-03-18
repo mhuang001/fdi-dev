@@ -1,8 +1,9 @@
-__version_info__ = (1, 46, 4)
+__version_info__ = (1, 46, 5)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '1.46.3-0-ge95b4e5'
+__revision__ = '1.46.4-0-g1a4bdfc'
 
-# customize pools.yml and flasgger
+# fix paho.mqtt to v1.6.1
+# 1.46.4 customize pools.yml and flasgger
 # 1.46.3 for fxing csdb migration
 # 1.46.2 same
 # 1.46.1 update pools.yml

@@ -36,10 +36,6 @@ pnsconfig['server_local_poolpath'] = os.path.join(
     pnsconfig['api_version'])
 pnsconfig['cookie_file'] = os.path.join(
     os.path.expanduser("~"), '.config', 'cookies.txt')
-# aliases for `getConfig('poolurl:[key]')
-pnsconfig['url_aliases'] = {'http': pnsconfig['scheme'] + \
-    '://' + pnsconfig['host'] + ':' + str(pnsconfig['port']) + \
-    pnsconfig['baseurl']}
 
 # choose from pre-defined profiles. 'production' is for making docker image.
 conf = ['dev', 'production'][1]
@@ -116,6 +112,11 @@ pnsconfig['cloud_port'] = 31702
 pnsconfig['cloud_scheme'] = 'csdb'
 pnsconfig['cloud_api_version'] = 'v1'
 pnsconfig['cloud_api_base'] = '/csdb'
+
+# aliases for `getConfig('poolurl:[key]')
+pnsconfig['url_aliases'] = {'http': pnsconfig['scheme'] + \
+    '://' + pnsconfig['host'] + ':' + str(pnsconfig['port']) + \
+    pnsconfig['baseurl']}
 
 # message queue config
 pnsconfig.update(dict(

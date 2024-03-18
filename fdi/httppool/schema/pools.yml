@@ -34,45 +34,29 @@ servers:
     description: httppool api flask-uwsgi dev version
     variables:
       host:
-        default: svom-gateway-svc
-        description: for production.
-      port:
-        default: '17002'
-        description: for production.
-      basePath:
-        # no enum means it s an open value --
-        # there is an opportunity for the provider to assign
-        default: 'fdi/v0.16'
-  - url: http://localhost:{port}/{basePath}
-    description: httppool api flask-uwsgi dev version
-    variables:
+        enum:
+          - 39.107.66.77
+          - 123.56.102.90
+          - 127.0.0.1
+          - 0.0.0.0
+          - svom-gateway-svc
+        default: 39.107.66.77
+        description: 39.107.66.77 for production.
       port:
         enum:
+          - '31702'
+          - '31602'
+          - '31502'
           - '9881'
           - '9885'
-        default: '9885'
-        description: 9885 usually.
+          - '17002'
+        default: '31702'
+        description: 31702 for production.
       basePath:
         # no enum means it s an open value --
         # there is an opportunity for the provider to assign
         default: 'fdi/v0.16'
-  - url: http://123.56.102.90:{port}/fdi/v0.16
-    description: httppool api production intranet
-    variables:
-      port:
-        enum:
-          - '31702'
-        default: '31702'
-        description: 9885 for production.
-  - url: http://39.107.66.77:{port}/fdi/v0.16
-    description: httppool api production intranet
-    variables:
-      port:
-        enum:
-          - '31702'
-        default: '31702'
-        description:  for production.
-
+        
 security:
   - BasicAuth: []
 
@@ -592,14 +576,14 @@ components:
         type: "string"
       examples:
         1. server:
+          value: csdb:,,svom-gateway-svc:17002,csdb,v1,storage,test_NMS_VTSE
+          summary: full CSDB poolURL for test NMS from internal PoolServer
+        2. server:
+          value: csdb:,,39.107.66.77:31702,csdb,v1,storage,test_e2e2_vhf1
+          summary: from server test `test_httppool.py`  from external PoolServer
+        3. server:
           value: sv2
           summary: from CSDB server test `test_csdb.py`.
-        2. server:
-          value: csdb:,,39.107.66.77:31702,csdb,v1,storage,test_e2e2_vt1
-          summary: full CSDB poolURL for test E2E 2.
-        3. server:
-          value: csdb:,,39.107.66.77:31702,csdb,v1,storage,test_e2e2_vhf1
-          summary: from server test `test_httppool.py`.
         4. client:
           value: serv_test_httpclientpool
           summary: from client test `test_httpclientpool.py`.

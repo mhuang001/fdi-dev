@@ -423,9 +423,9 @@ def create_app(config_object=None, level=None, logstream=None, preload=False):
         'url_prefix': _BASEURL
     }
     swag['servers'].insert(0, {
-        'description': 'As in config file and server command line.',
-        'url': app.config['REQUEST_BASE_URL']
-    })
+        'description': 'For clients external to CSDB.',
+        'url': f"{config_object['url_aliases']['http']}"
+        })
     swagger = Swagger(app, config=swag, merge=True)
     # swagger.config['specs'][0]['route'] = _BASEURL + s1
     app.config['PC'] = config_object

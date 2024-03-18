@@ -37,7 +37,9 @@ pnsconfig['server_local_poolpath'] = os.path.join(
 pnsconfig['cookie_file'] = os.path.join(
     os.path.expanduser("~"), '.config', 'cookies.txt')
 # aliases for `getConfig('poolurl:[key]')
-pnsconfig['url_aliases'] = {}
+pnsconfig['url_aliases'] = {'http': pnsconfig['scheme'] + \
+    '://' + pnsconfig['host'] + ':' + str(pnsconfig['port']) + \
+    pnsconfig['baseurl']}
 
 # choose from pre-defined profiles. 'production' is for making docker image.
 conf = ['dev', 'production'][1]

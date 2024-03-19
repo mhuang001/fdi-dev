@@ -28,9 +28,9 @@ Config_Look_Up = {}
 """ `Lazy_Loading_ChainMap`s for getting value with a key from Configuration dictionaries in files and in OS Environment.. """
 
 
-@functools.lru_cache(8)
+@functools.lru_cache(128)
 def get_file_conf(conf_name):
-    """ figure iut config file name and returns the contents.
+    """ figure out config file name and returns the contents.
 
     :conf_name: str, 'pns' etc.
 
@@ -251,7 +251,8 @@ def cget(name, conf_name='pns', builtin=None, force=False):
         # with the name
         return '%s/%s' % (purl, name)
 
-    var = conf_class.mapping[name]
+    # return if not found in config files but in environment variable
+    var = conf_class.mapping.get(name, os.environ.get(name.upper(), ""))
     logger.debug(f'Got config for {name} : {var}.')
 
     return var

@@ -670,7 +670,7 @@ def find_all_files(datadir, verbose=False, include=None, exclude=None, not_if=No
         inc = list(str(f) for f in inc)
     else:
         pat = include  # '*' if include is None else include
-        inc = [d for d in datadir if fnmatch.fnmatch(os.path.basename(d), pat)]
+        inc = [d for d in datadir if fnmatch.fnmatch(d, pat)]
 
     # print("find", len(inc))
 

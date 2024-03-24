@@ -20,7 +20,7 @@ from http.cookiejar import MozillaCookieJar as CookieJar
 import weakref
 from weakref import WeakValueDictionary, getweakrefcount
 import getpass
-from collections import UserDict, ChainMap
+from collections import ChainMap
 import json, copy, functools
 import os
 import time
@@ -272,7 +272,8 @@ def remoteRegister(pool):
                 logger.info(_lg)
 
         restore_cookies(pool.client)
-        pool.token = publicclientpool.getToken(poolurl, pool.client, pool._user_urlbase)
+
+        pool.token = publicclientpool.getToken(poolurl, pool.client, pool._user_urlbase, verify=True)
         pool.client.headers.update({'X-AUTH-TOKEN': pool.token})
 
         pool.poolInfo = pool.getPoolInfo(update_hk=True)

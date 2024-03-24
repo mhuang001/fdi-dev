@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 
-from .datatypes  import Vector
+from .datatypes import Vector
 
 from collections.abc import Sequence
 """ generated source for module <stdin> """
@@ -73,7 +73,8 @@ from collections.abc import Sequence
      <tt>Quaternion q1 = q2.multiply(q3).mMultiply(q4).mMultiply(q5);</tt>
     
      @author  Jon Brumfitt
-"""  
+"""
+
 class Quaternion(Vector):
     """ Quaternion with 4-component data.
     """
@@ -81,9 +82,12 @@ class Quaternion(Vector):
     def __init__(self, components=None, **kwds):
         """ invoked with no argument results in a vector of
         [0, 0, 0, 0] components
+        
         Parameters
         ----------
-
+        components : list
+            The four components.
+        
         Returns
         -------
         """
@@ -109,7 +113,8 @@ class aQuaternion(Vector):
          with Java3D's Quat4d class and the conventions used in the Herschel/Planck
          ACMS.
 
-        Several forms of invocation are allowed.
+        Several forms of invocation are allowed::
+
           * Invoking with no argument results in a vector of
         [0, 0, 0, 1] components, representing a zero rotation.
           * with one argument of a Sequence 's', the result is 
@@ -191,6 +196,7 @@ class aQuaternion(Vector):
         return
         ------
         Quaternion that rotates v1 to v2
+
         throws
         ------
         RuntimeException if v1 and v2 are collinear

@@ -203,7 +203,7 @@ def upload_defintion(full_cls, urlcsdb,
                 continue
         payload = cls2jsn(f.rsplit('.', 1)[-1])
         r = add_a_dataType(f, payload, client=client, urlup=urlupload)
-        assert r.status_code == 200
+        assert r.status_code == 200, r.reason
     if check:
         # check ptypes again
         ptypes = get_all_prod_types(urllist, client)

@@ -1,8 +1,9 @@
-__version_info__ = (1, 46, 9)
+__version_info__ = (1, 46, 10)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '1.46.8-0-g6910027'
+__revision__ = '1.46.9-0-g2b6da6a'
 
-# fix watchdog-worker
+# add 'verify' option to getToken. Act when getDataInfo gets error msg. get_all_in_dir matches every file.
+# 1.46.9 fix watchdog-worker
 # 1.46.8 correct change poistion in config.py
 # 1.46.7 REAL add alias to config.py after commit in wrong window
 # 1.46.5 fix paho.mqtt to v1.6.1

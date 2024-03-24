@@ -113,8 +113,8 @@ def verifyToken(token, client, user_urlbase=None):
         return -1, tokenMsg['message']
 
 
-def getToken(poolurl, client, user_urlbase=None):
-    """Get CSDB acces token.
+def getToken(poolurl, client, user_urlbase=None, verify=False):
+    """Get CSDB access token.
 
     ref http://39.107.66.77:31101/sources/satellite-data-pipeline/-/blob/master/csdb/csdb/csdb.py#L74
     There seems no need to verify existing token. it costs less to get a new one.
@@ -150,9 +150,11 @@ def getToken(poolurl, client, user_urlbase=None):
         if not current_token:
             if f"{pcc['cloud_host']}:{pcc['cloud_port']}" == poolurl.split('/')[2]:
                 current_token = pcc['cloud_token']
-        # trouble = verifyToken(current_token, client, user_urlbase=user_urlbase)
-        # if trouble:
-        #     logger.info(f'Cloud token {lls(current_token, 50)} {trouble} ')
+        if verify:
+            trouble = verifyToken(current_token, client, user_urlbase=user_urlbase)
+            if trouble:
+                logger.info(f'Cloud token {lls(current_token, 50)} {"not" if trouble else ""} passed verification. Try getting new...')
+                current_token = ""
 
 
     #print(current_token)
@@ -160,7 +162,6 @@ def getToken(poolurl, client, user_urlbase=None):
 
     if not current_token:
         current_token = ''
-        #__import__("pdb").set_trace()
 
         tokenMsg = read_from_cloud('getToken', client=client, user_urlbase=user_urlbase, token=current_token)
         if tokenMsg:
@@ -178,13 +179,13 @@ def getToken(poolurl, client, user_urlbase=None):
     else:
         token = current_token
 
-    # if sess and SESSION:
-    #     # save token
-    #     if 'tokens' not in sess:
-    #         sess['tokens'] = {}
-    #     if sess['tokens'].get(poolurl, '') != poolurl:
-    #         sess['tokens'][poolurl] = token
-    #         sess.modified = True
+    if sess and SESSION:
+        # save token
+        if 'tokens' not in sess:
+            sess['tokens'] = {}
+        if sess['tokens'].get(poolurl, '') != poolurl:
+            sess['tokens'][poolurl] = token
+            sess.modified = True
 
     return token
 
@@ -218,7 +219,7 @@ class PublicClientPool(ManagedPool):
         self.auth = auth
         self.client = client
         #### 
-        self.token = getToken(self.poolurl, client, user_urlbase=self._user_urlbase)
+        self.token = getToken(self.poolurl, client, user_urlbase=self._user_urlbase, verify=True)
         self.poolInfo = None
         self.serverDatatypes = []
         self.CSDB_LOG = self.loggen()
@@ -248,7 +249,7 @@ class PublicClientPool(ManagedPool):
         self._poolpath, self._scheme, self._place, \
             self._poolname, self._username, self._password = \
             parse_poolurl(poolurl)
-        if self._scheme == '' or self._scheme == None:
+        if self._scheme == '' or self._scheme is None:
             self._scheme = 'csdb'
         self._cloudpoolpath = self._poolpath + '/' + self._poolname
         # used in ..pns.public_fdi_requests apis
@@ -382,9 +383,14 @@ class PublicClientPool(ManagedPool):
 
         if update_hk:
             with self._locks['r'], self._locks['w']:
-
-                res = read_from_cloud('infoPool', pools=self.poolname, getCount=0, client=self.client, token=self.token, user_urlbase=self._user_urlbase)
+                res = read_from_cloud('infoPool',
+                                      pools=self.poolname,
+                                      getCount=0,
+                                      client=self.client,
+                                      token=self.token,
+                                      user_urlbase=self._user_urlbase)
                 rdata = res
+
                 if rdata:
                     if self._poolname in rdata:
                         dpu = rdata[self._poolname].get('_urns', {})
@@ -633,10 +639,14 @@ class PublicClientPool(ManagedPool):
             res = read_from_cloud('getDataInfo', client=self.client, token=self.token, user_urlbase=self._user_urlbase, paths=paths, pool=pool, limit=limit)
             # if input is not list the output of each query is not a list
             if not nulltype:
+                if issubclass(res.__class__, dict) and res.get('code', None):
+                    msg = f"Error calling getDataInfo for {pool}."
+                    logger.error(msg)
+                    raise ServerError(msg, rsps=res, code=res['code'])
                 popped = [res.pop(i) for i in range(
                     len(res)-1, -1, -1) if res[i]['dataType'] is None]
                 if len(popped):
-                    logger.debug(f'{len(popped)} None typed res popped')
+                    logger.debug(f'{len(popped)} None typed response popped')
             if what:
                 r = get_Values_From_A_list_of_dicts(res, what, excpt=excpt)
             else:
@@ -1210,8 +1220,6 @@ class PublicClientPool(ManagedPool):
             try:
                 res = read_from_cloud('getUrn', client=self.client, token=self.token, tag=tag, user_urlbase=self._user_urlbase)
             except ServerError as e:
-                __import__("pdb").set_trace()
-
                 if e.code == 1 and e.args[0].endswith('fail'):
                     # urn doesn't exist
                     res = []

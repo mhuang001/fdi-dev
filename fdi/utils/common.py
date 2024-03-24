@@ -625,9 +625,11 @@ def find_all_files(datadir, verbose=False, include=None, exclude=None, not_if=No
 
     Parameter
     ---------
-    name : str, Path, module
-        of starting directory or a list/iterable of file name
-        strings to filter by `fnmatch.filter`. It can also be a
+    name : str, list of str, Path, module
+        If is `str` or `PAth`, 'name' is taken as the starting directory
+        and files are filtered by `Path.glob`;
+        If 'name' is a list/iterable of file name strings, the
+        strings are filtered by `fnmatch.filtered`; 'name' can also be a
         `module`, whose internal files will be returned even the
         module is a system installed package provided that
         the packaging process of these data-carrying has packed data in.
@@ -668,7 +670,7 @@ def find_all_files(datadir, verbose=False, include=None, exclude=None, not_if=No
         inc = list(str(f) for f in inc)
     else:
         pat = include  # '*' if include is None else include
-        inc = fnmatch.filter(datadir, pat)
+        inc = [d for d in datadir if fnmatch.fnmatch(os.path.basename(d), pat)]
 
     # print("find", len(inc))
 

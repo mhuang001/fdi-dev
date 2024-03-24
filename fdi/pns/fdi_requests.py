@@ -85,6 +85,26 @@ aio_session = None
 
 class ServerError(Exception):
     def __init__(self, r, *args, rsps=None, code=None, **kwds):
+        """An Exception that carries response and code that are passed to it.
+
+        Parameters
+        ----------
+        r : str
+            Error message.
+        rsps : Response
+            The Response or equivalent object to be passed.
+        code : int_info
+            Error code to be passed.
+        args: list
+            To be passed to superclass `__init__`.
+        kwds: dict
+            To be passed to superclass `__init__`.
+        
+        Returns
+        -------
+        
+        """
+
         self.response = rsps
         if code is None:
             self.code = rsps.getapis(

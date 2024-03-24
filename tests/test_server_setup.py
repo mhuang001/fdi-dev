@@ -27,7 +27,8 @@ def test_csdb_server_url(csdb_server):
 
     res = client.get(url).text
     print(res)
-    assert res.endswith('{"code":1,"msg":"Not Permission","total":0}')
+    assert res in ('{"code":1,"msg":"Not authorization","total":0}',
+                   '{"code":1,"msg":"Not Permission","total":0}')
     print(res)
 
     

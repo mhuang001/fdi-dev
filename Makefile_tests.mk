@@ -1,4 +1,6 @@
-PYTEST = env -u PNS_CLOUD_USER -u PNS_CLOUD_PASS -u PNS_CLOUD_TOKEN python3 -m pytest
+PYEXE	= python3
+PYTEST = env -u PNS_CLOUD_USER -u PNS_CLOUD_PASS -u PNS_CLOUD_TOKEN $(PYEXE) -m pytest
+PYTEST = pytest
 TESTLOG	= /tmp/fdi-tests.log
 L	=
 SV	= background
@@ -39,7 +41,7 @@ test6:
 	$(PYTEST) $(OPT) tests/serv/test_httppool.py  $(T) 
 
 test7:
-	$(PYTEST) tests/test_server_setup.py $(OPT) $(T) -k '_pool_'
+	$(PYTEST) tests/test_server_setup.py $(OPT) $(T) -k '_pool_' --log-level=DEBUG
 
 	$(PYTEST) $(OPT) tests/serv/test_httpclientpool.py -k 'not _csdb' $(T)
 

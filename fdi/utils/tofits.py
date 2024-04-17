@@ -4,7 +4,7 @@ from .fits_kw import Key_Words, getFitsKw, FitsParameterName_Look_Up
 from ..dataset.arraydataset import ArrayDataset
 from ..dataset.tabledataset import TableDataset
 from ..dataset.dataset import CompositeDataset
-from ..dataset.serializable import Serializable
+from ..dataset.serializable import Serializable, serialize
 from ..dataset.unstructureddataset import UnstructuredDataset
 from ..dataset.dataset import Dataset
 from ..dataset.datatypes import DataTypes, typecode2np
@@ -111,11 +111,12 @@ def convert_name(n):
     return name
 
 
-def toFits(data, file='', **kwds):
+def toFits(data, file='', headers_only=False, **kwds):
     """convert dataset to FITS.
 
     :data: a list of Dataset or a BaseProduct (or its subclass).
-    :file: A non-empty string for file name. `None` means return HDUList only. Default '', for only returning fits stream/BLOB. 
+    :file: A non-empty string for file name. `None` means return HDUList only. Default '', for only returning fits stream/BLOB.
+    :headers_only: Only fill the headers (metadata).
     """
 
     hdul = fits.HDUList()
@@ -126,7 +127,8 @@ def toFits(data, file='', **kwds):
         names = list(data.keys())
         sets.append(data.history)
         names.append('history')
-        hdul = fits_dataset(hdul, sets, names)
+        if not headers_only:
+            hdul = fits_dataset(hdul, sets, names)
         add_header(data.meta, hdul[0].header, data.zInfo['metadata'])
         hdul[0].header['EXTNAME'] = 'PrimaryHDU'
     elif issubclass(data.__class__, (ArrayDataset, TableDataset, CompositeDataset)):
@@ -225,7 +227,7 @@ def fits_dataset(hdul, dataset_list, name_list=None, level=0):
                 # print('dlist', dlist.__class__)
                 fits_dataset(hdul, [dlist], name_list=[name], level=level+1)
         elif issubclass(ima.__class__, UnstructuredDataset):
-            raise NotImplemented("UnstructuredDataset not yet supported")
+            raise NotImplementedError("UnstructuredDataset not yet supported")
         else:
             raise TypeError('Must be a Dataset to convert to fits.')
     if debug:
@@ -241,6 +243,14 @@ def fits_dataset(hdul, dataset_list, name_list=None, level=0):
     # print(h2)
     # return h1
 
+def fits_standard_text(c):
+    if issubclass(c.__class__, bytes):
+        r = c.decode(encoding="ascii",errors="backslashreplace")
+    elif issubclass(c.__class__, str):
+        r = c.replace('\n','\\n')
+    else:
+        r = c
+    return r
 
 def add_header(meta, header, zim={}):
     """ Populate  header with keyword lines extracted from MetaData.
@@ -249,21 +259,30 @@ def add_header(meta, header, zim={}):
     :zim: `zInfo['metadata']` for lookingup FITS keywords and set the order of keywords. Default is None.
 
     """
-    if zim:
-        mc = meta.copy()
-        lst = []
-        for i, name in enumerate(meta.keys()):
-            if name in zim:
-                lst.append(name)
-                mc.pop(name)
-        lst.extend(mc.keys())
-    else:
-        lst = list(meta)
+    # if zim:
+    #     mc = copy.copy(meta)
+    #     lst = []
+    #     for i, name in enumerate(meta.keys()):
+    #         if name in zim:
+    #             lst.append(name)
+    #             mc.pop(name)
+    #     lst.extend(mc.keys())
+    # else:
+    #     lst = list(meta)
+
+    lst = list(meta)
+    lst.extend(set(zim) - set(meta))
     for name in lst:
+
         param = meta[name]
         pval = param.value
 
-        if name in zim and zim[name].get('fits_keyword', None):
+        mk = getattr(meta[name], 'fits_keyword', None)
+        if name in meta and mk:
+            # first check if fits can be found in meta, including non-SDPs.
+            kw = mk
+            ex = ((name, kw if kw else ''),)
+        elif name in zim and zim[name].get('fits_keyword', None):
             kw = zim[name]['fits_keyword']
             ex = ((name, kw if kw else ''),)
         else:
@@ -272,7 +291,7 @@ def add_header(meta, header, zim={}):
             v = fits.card.Undefined()
             kw = getFitsKw(name, extra=ex)
             c = param.description
-            c = c.replace('\n','\\n')
+            c = fits_standard_text(c)
             header[kw] = (v, c)
         elif issubclass(param.__class__, DateParameter):
             value = pval.isoutc() if pval.tai else fits.card.Undefined()
@@ -304,9 +323,12 @@ def add_header(meta, header, zim={}):
             else:
                 v = pval
             c = param.description
-            c = c.replace('\n','\\n')
-            #c = c.decode(encoding="ascii",errors="backslashreplace") if issubclass(c.__class__, bytes) else c.encode(encoding="ascii",errors="backslashreplace")
-            header[kw] = (v, c)
+
+            #c = c.replace('\n','\\n')
+            _c = fits_standard_text(c)
+            # c.encode(encoding="ascii",errors="backslashreplace")
+            _v = fits_standard_text(v)
+            header[kw] = (_v, _c)
         elif issubclass(param.__class__, BooleanParameter):
             kw = getFitsKw(name, extra=ex)
             v = bool(pval)
@@ -321,7 +343,8 @@ def add_header(meta, header, zim={}):
 
 
 def fits_header_list(fitsobj):
-    """ Returs HDUList given fits file name or a readable object. """
+    """ Returns HDUList given fits file name or a readable object. """
+
     if issubclass(fitsobj.__class__, str):
         fitspath = fitsobj
         with fits.open(fitspath, memmap=True, lazy_load_hdus=False) as hdul:
@@ -338,8 +361,22 @@ def fits_header_list(fitsobj):
     #h['add'] = ('header', 'add a header')
     #h['test'] = ('123', 'des')
 
+def get_template(f):
+    template = ''
+    if issubclass(f.__class__, HDUList):
+        template = f[0].header['AIDTEMPL']
+    elif is_Fits(f):
+        _t = f[:2300].split(b'AIDTEMPL= ',1)
+        if len(_t) > 1:
+            template = _t[1][:80-len('AIDTEMPL= ')].split(b'/', 1)[0].strip().strip(b"'")
+            template = template.decode('ascii')
+    elif issubclass(f.__class__, BaseProduct):
+        template = f.meta.get('aIdTemplate', '')
+        if template:
+            template = template.value
+    return template
 
-def expand_template(p, fn, dct):
+def expand_template(p, fn, dct=None):    
     """
     Parameters
     ----------
@@ -362,8 +399,9 @@ def expand_template(p, fn, dct):
     """
 
     if '${' in fn:
+        lst = p if issubclass(p.__class__, HDUList) else  fits_header_list(p)
         # get a k-v dictionary  for this data
-        kv = dct if dct else fits_header_list(p)[0].header
+        kv = dct if dct else lst[0].header
 
         # expand name
         #kv = {'date-obs':'ASD', 'e-o':'4543'}
@@ -376,28 +414,37 @@ def expand_template(p, fn, dct):
             if k in kv:
                 sp = sp.replace('${%s}' % k, str(kv[k]))
             else:
-                nm = FitsParameterName_Look_Up[k]
+                try:
+                    nm = FitsParameterName_Look_Up[k]
+                except LookupError:
+                    nm = k
                 for kk in getFitsKw(nm, multi=True):
                     if kk != k and kk in kv:
                         sp = sp.replace('${%s}' % k, str(kv[kk]))
                         break
-    logger.debug(f'Template {fn} is expanded to {sp}.')
-
+        logger.debug(f'Template {fn} is expanded to {sp}.')
+    else:
+        logger.debug(f'Template {fn} is expanded.')
+        sp = fn
     return sp
         
-def write_to_file(p, fn, dct=None, ignore_type_error=False):
+def write_to_file(p, fn, dct=None, ignore_type_error=False, this_fits=None, indent=None):
     """write out fits file for the given product and try to send samp notices.
+    If product is `BaseProduct` (or `Serializable`),
 
     Parameters
     ----------
     p : Serializable, bytes, or HDUList
         The product that can be a BLOB, fits HDU list,
-        `BaseProduct` (or `Serializable`). Or else quietly pass.
+        `BaseProduct` (or `Serializable`). Or else raise `TypeError`.
     fn : str
         fits file path. it will go throug template expansion using FITS keywords name to their values. E.g. "It is $SIMPLE." becomes "It is True."
     dct : Mapping
         A dictionary for translating keys in `fn` to values. Default is `None` which uses the `PrimaryHDU.header`.
-
+    this_fits : bytes or HDUList
+        Use this if FITS representation is needed. Default is `None`.
+    indent : int
+        If to save in JSON, how much indentation is set. Default None.
     Returns
     -------
     str
@@ -411,27 +458,33 @@ def write_to_file(p, fn, dct=None, ignore_type_error=False):
         raise ValueError('Bad product file name: %s.' % str(fn))
     if not (issubclass(p.__class__, Serializable) or \
        issubclass(p.__class__, HDUList) or \
+       issubclass(p.__class__, dict) or \
        is_Fits(p)):
 
-        raise TypeError(f"{lls(p, 100)} is not FITS data.")
+        raise TypeError(f"{lls(p, 100)} is not writable data.")
 
     if issubclass(p.__class__, Serializable):
-        p = p.fits()
+        _p = this_fits if this_fits else p.fits(headers_only=True)
+        sp = expand_template(_p, fn, dct)
+    else:
+        sp = expand_template(p, fn, dct)
 
-    sp = expand_template(p, fn, dct)
+    sp = sp.replace(':', '').replace(' ', '_')
     try:
-        with open(sp.replace(':','_'), 'wb') as fitsf:
-            if is_Fits(p):
-                fitsf.write(p)
-            elif issubclass(p.__class__, HDUList):
-                p.writeto(fitsf)
-            else:
-                logger.info(f'Cannot save {p.__class} to FITS.')
-
+        if is_Fits(p):
+            with open(sp, 'wb') as prodf:
+                prodf.write(p)
+        elif issubclass(p.__class__, HDUList):
+            with open(sp, 'wb') as prodf:
+                p.writeto(prodf)
+        else:
+            with open(sp, 'w+') as prodf:
+                prodf.write(serialize(p, indent=indent))
+            # logger.info(f'Cannot save {p.__class__} to FITS.')
     except TypeError as e:
         if ignore_type_error:
             return sp
-        logger.debug('error writing FITS:'+str(e))
+        logger.debug('error writing file:'+str(e))
         raise
     logger.debug(f"{sp} ({fn})" if sp != fn else f"{sp}")
 

@@ -229,7 +229,7 @@ def cget(name, conf_name='pns', builtin=None, force=False):
 
     if not name:
         # name not given
-        logger.debug(f'Dumping config {conf_name}.')
+        logger.debug(f'Returning config {conf_name} dump.')
         return clu
 
     # check if request poolurl

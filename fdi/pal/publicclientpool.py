@@ -113,7 +113,7 @@ def verifyToken(token, client, user_urlbase=None):
         return -1, tokenMsg['message']
 
 
-def getToken(poolurl, client, user_urlbase=None, verify=False):
+def getToken(poolurl, client, user_urlbase=None, verify=False, two_tries= False):
     """Get CSDB access token.
 
     ref http://39.107.66.77:31101/sources/satellite-data-pipeline/-/blob/master/csdb/csdb/csdb.py#L74
@@ -121,12 +121,15 @@ def getToken(poolurl, client, user_urlbase=None, verify=False):
 
     Parameters
     ----------
-    user_urlbase: str If given non_None value, will be used to prepend API-logic fragment to get URL. Default `None`, using configged.
-    
+    user_urlbase: bool
+        If given non_None value, will be used to prepend API-logic fragment to get URL. Default `None`, using configged.
+    verify: bool
+        Verify token gotten from the server.
+    two_tries : If one try fails to get a token, try again. Default False.
     Returns
     -------
     str
-        Saved or newly gotten token.
+        Saved or newly gotten token. Enpty string if fails.
 
     Raises
     ------
@@ -140,21 +143,19 @@ def getToken(poolurl, client, user_urlbase=None, verify=False):
     from ..httppool.model.user import SESSION
     from flask import session as sess
 
-    if 1:
-        current_token = None
-        if sess and SESSION:
-            # saved token
-            if 'tokens' in sess and sess['tokens']:
-                current_token = sess['tokens'].get(poolurl, '')
+    current_token = ''
+    if sess and SESSION:
+        # saved token
+        current_token = sess.get('tokens', []).get(poolurl, '')
 
-        if not current_token:
-            if f"{pcc['cloud_host']}:{pcc['cloud_port']}" == poolurl.split('/')[2]:
-                current_token = pcc['cloud_token']
-        if verify:
-            trouble = verifyToken(current_token, client, user_urlbase=user_urlbase)
-            if trouble:
-                logger.info(f'Cloud token {lls(current_token, 50)} {"not" if trouble else ""} passed verification. Try getting new...')
-                current_token = ""
+    if not current_token:
+        if f"{pcc['cloud_host']}:{pcc['cloud_port']}" == poolurl.split('/')[2]:
+            current_token = pcc['cloud_token']
+    if verify:
+        trouble = verifyToken(current_token, client, user_urlbase=user_urlbase)
+        if trouble:
+            logger.info(f'Cloud token {lls(current_token, 50)} {"not" if trouble else ""} passed verification. Try getting new...')
+            current_token = ''
 
 
     #print(current_token)
@@ -170,12 +171,16 @@ def getToken(poolurl, client, user_urlbase=None, verify=False):
             # no token
             if not tokenMsg:
                 logger.error(f'Cannot get token from: {poolurl} at {user_urlbase} getting msg: {tokenMsg}.')
-                logger.debug('try again')
-                tokenMsg2 = read_from_cloud('getToken', client=client, user_urlbase=user_urlbase, token=current_token)
-                if not tokenMsg2:
-                    logger.error(f'Cannot get token 2nd try from: {poolurl} at {user_urlbase} getting msg: {tokenMsg2}.')
-                    return None
-                token = tokenMsg2['token']
+                if two_tries:
+                    logger.debug('try again')
+                    tokenMsg2 = read_from_cloud('getToken', client=client, user_urlbase=user_urlbase, token=current_token)
+                    if not tokenMsg2:
+                        logger.error(f'Cannot get token 2nd try from: {poolurl} at {user_urlbase} getting msg: {tokenMsg2}.')
+                        return ''
+                    token = tokenMsg2['token']
+                else:
+                        return ''
+                    
     else:
         token = current_token
 

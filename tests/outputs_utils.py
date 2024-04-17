@@ -56,7 +56,7 @@ out_tree = """tree out_tree
 │   │   ├── value                                      <str>
 │   │   ├── valid                                 <NoneType>
 │   │   └── typecode                                   <str>
-│   ├── creationDate                              <finetime>
+│   ├── creationDate                             <finetime1>
 │   │   ├── description                                <str>
 │   │   ├── default                               <FineTime>
 │   │   │   ├── tai                                    <int>
@@ -218,7 +218,7 @@ out_tree = """tree out_tree
 |   |   |__ value                                      <str>
 |   |   |__ valid                                 <NoneType>
 |   |   \__ typecode                                   <str>
-|   |__ creationDate                              <finetime>
+|   |__ creationDate                             <finetime1>
 |   |   |__ description                                <str>
 |   |   |__ default                               <FineTime>
 |   |   |   |__ tai                                    <int>

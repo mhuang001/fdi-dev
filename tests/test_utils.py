@@ -40,7 +40,7 @@ else:
     PY3 = False
 
 # make format output in /tmp/outputs.py
-mk_outputs = 0
+mk_outputs = 10
 output_write = 'tests/outputs_utils.py'
 
 if mk_outputs:

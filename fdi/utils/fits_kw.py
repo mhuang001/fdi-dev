@@ -205,7 +205,7 @@ Key_Words0 = MultiDict((v, k) for k, v in FITS_KEYWORDS.items(multi=True))
 EXTRA_KWDS = None
 
 def ud_loader(key, mapping, *args, **kwds):
-    """ underscore and das loader.
+    """ underscore and dash loader.
     """
     res = refloader(key, mapping, *args, **kwds)
     

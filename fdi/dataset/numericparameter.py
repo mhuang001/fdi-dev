@@ -21,7 +21,7 @@ class NumericParameter(Parameter, Quantifiable):
     def __init__(self,
                  value=None,
                  description='UNKNOWN',
-                 typ_='',
+                 typ_=None,
                  default=None,
                  unit=None,
                  valid=None,
@@ -31,6 +31,8 @@ class NumericParameter(Parameter, Quantifiable):
 
         typ_: type of the parameter value.
         """
+        if not typ_:
+            typ_ = ''
 
         # collect args-turned-local-variables.
         args = copy(locals())
@@ -40,7 +42,7 @@ class NumericParameter(Parameter, Quantifiable):
         args.update(kwds)
 
         super().__init__(
-            value=value, description=description, typ_=typ_, default=default, unit=unit, valid=valid, typecode=typecode)
+            value=value, description=description, typ_=typ_, default=default, unit=unit, valid=valid, typecode=typecode, **kwds)
         # Must overwrite the self._all_attrs set by supera()
         self._all_attrs = args
 
@@ -102,6 +104,7 @@ class BooleanParameter(Parameter):
     def __init__(self,
                  value=None,
                  description='UNKNOWN',
+                 typ_=None,
                  default=None,
                  valid=None,
                  **kwds):
@@ -109,7 +112,8 @@ class BooleanParameter(Parameter):
 
         """
 
-        typ_ = kwds.pop('typ_', 'boolean')
+        if typ_ is None:
+            typ_ = 'boolean'
         # collect args-turned-local-variables.
         args = copy(locals())
         args.pop('__class__', None)
@@ -118,7 +122,7 @@ class BooleanParameter(Parameter):
         args.update(kwds)
 
         super().__init__(
-            value=value, description=description, typ_=typ_, default=default, valid=valid)
+            value=value, description=description, typ_=typ_, default=default, valid=valid, **kwds)
         # Must overwrite the self._all_attrs set by supera()
         self._all_attrs = args
 

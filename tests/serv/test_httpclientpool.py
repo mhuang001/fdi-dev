@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from fdi.dataset.deserialize import deserialize
-
 from test_pal import backup_restore
 from serv.test_httppool import getPayload, check_response
 
@@ -10,7 +8,7 @@ from fdi.dataset.numericparameter import NumericParameter
 from fdi.dataset.stringparameter import StringParameter
 from fdi.dataset.eq import deepcmp
 
-from fdi.dataset.deserialize import serialize_args, deserialize_args, deserialize
+from fdi.dataset.deserialize import serialize_args, deserialize_args
 from fdi.dataset.testproducts import get_demo_product, get_related_product
 from fdi.pal.productstorage import ProductStorage
 from fdi.pal.productref import ProductRef

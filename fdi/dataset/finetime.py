@@ -68,7 +68,7 @@ class FineTime(Copyable, DeepEqual, Serializable):
     This has the following advantages, compared with the standard class:
 
     * It has better resolution(microseconds);
-    * ime differences are correct across leap seconds
+    * Time differences are correct across leap seconds
     * It is immutable unless its TAI is 0..
     """
 

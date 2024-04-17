@@ -20,6 +20,7 @@ class DateParameter(Parameter, Typecoded):
     def __init__(self,
                  value=None,
                  description='UNKNOWN',
+                 typ_=None,
                  default=None,
                  valid=None,
                  typecode=None,
@@ -28,9 +29,10 @@ class DateParameter(Parameter, Typecoded):
          Set up a parameter whose value is a point in TAI time.
 
         :value:
-        :typecode: time format for the underlying FineTime object
+        :typecode: time format for the underlying `FineTime` or `FineTime1` object.
         """
-
+        if typ_ is None:
+            typ_ = 'finetime'
         # collect args-turned-local-variables.
         args = copy(locals())
         args.pop('__class__', None)
@@ -44,7 +46,8 @@ class DateParameter(Parameter, Typecoded):
             typecode = FineTime.DEFAULT_FORMAT
         # this will set default then set value.
         super().__init__(
-            value=value, description=description, typ_='finetime', default=default, valid=valid, typecode=typecode)
+            value=value, description=description, typ_=typ_, default=default, valid=valid, typecode=typecode, **kwds)
+
         # Must overwrite the self._all_attrs set by supera()
         self._all_attrs = args
 

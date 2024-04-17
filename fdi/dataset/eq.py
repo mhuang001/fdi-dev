@@ -683,8 +683,8 @@ class DeepcmpEqual():
     def __xne__(self, obj):
         return not self.__eq__(obj)
 
-    def __hash__(self, **kwds):
-        return self.hash(**kwds)
+    #def __hash__(self, **kwds):
+    #    return self.hash(**kwds)
 
     __hash__ = hash
 

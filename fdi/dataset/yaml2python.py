@@ -37,10 +37,12 @@ logging.basicConfig(stream=sys.stdout,
 logging.getLogger().setLevel(logging.DEBUG)
 
 global glb
+GENERATED = 'generated'
+gmode = None
 
-shema_version = '1.6'
+shema_version = '1.11'
 """ schema version. The attribute `FORMATV` will have this schema version, hand-set version, and revision
-
+1.11: class names exposed in __init__ by ```from .generated import *```
 1.10: 'Instrument', 'VT', 'VT_PDPU' moved to svom.products.vt, 'GRM' are in svom.products.grm.'; FORMATV becomes $(schema_v}.${revision}
 1.9: remove version.
 1.8: 'Instrument', 'VT', 'VT_PDPU', 'GFT', 'GRM' are in svom.instrument'
@@ -991,6 +993,8 @@ def main():
     global logger
     # global lookup table
     global glb
+    global GENERATED
+    global gmode
     
     print('Generating Python code for product class definition..')
 
@@ -1155,7 +1159,6 @@ def main():
 
         # if upgrade, write out the yaml file
         if schema_version:
-            __import__("pdb").set_trace()
 
             yml_level = copy.copy(yaml_contents)
             # we only copy what the YAML had into the updated.
@@ -1220,7 +1223,19 @@ def main():
         else:
             with open(fout, 'w', encoding='utf-8') as f:
                 f.write(sp)
-            print('Done saving ' + fout + '\n' + '='*40)
+            print('Done saving ' + fout + '\n')
+            if gmode:
+                gmode = 'a'
+            else:
+                gmode = 'w'
+                with open(os.path.join(opath, '__init__.py'), 'a') as _init:
+                    _init.write(f'\nfrom .{GENERATED} import *\n')
+                print('Done updating __init__.py\n')
+            _g =  os.path.join(opath, GENERATED+'.py')
+            with open(_g, gmode) as g:
+                im = f"from .{modulename} import {modelName}\n"
+                g.write(im)
+            print('Done modifying ' + _g + '\n' + '='*40)
 
         # import the newly made module to test and, for class generatiom, so the following classes could use it
         importexclude.remove(modulename)

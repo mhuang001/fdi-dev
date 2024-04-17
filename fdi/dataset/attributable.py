@@ -2,7 +2,7 @@
 
 from .metadataholder import MetaDataHolder
 from .metadata import AbstractParameter, Parameter
-from .datatypes import DataTypes
+from .datatypes import DataTypes, DataTypeNames
 from .finetime import FineTime
 from .classes import Class_Look_Up
 
@@ -262,9 +262,6 @@ class Attributable(MetaDataHolder):
             super().__setattr__(name, value)
             return
 
-        # if name == 'creationDate' and str(value).startswith('16589'):
-        #    __import__('pdb').set_trace()
-
         if getattr(self, 'alwaysMeta', False):
             if issubclass(value.__class__, AbstractParameter):
                 # taken as an MDP attribute . store in meta
@@ -337,11 +334,6 @@ def value2parameter(name, value, descriptor):
 
     """
 
-    # if descriptor is None:
-    #     im = {'description': 'UNKNOWN',
-    #           'data_type': DataTypeNames[type(value).__name__],
-    #           }
-    # else:
     im = descriptor[name]  # {'dats_type':..., 'value':....}
     # in ['integer','hex','float','vector','quaternion']
 
@@ -352,11 +344,14 @@ def value2parameter(name, value, descriptor):
     ext.pop('description', '')
     dt = ext.pop('data_type', '')
 
-    if dt == 'string':
+    if not dt:
+        dt = DataTypeNames[type(value).__name__]
+    if dt == 'string' or not dt:
         from .stringparameter import StringParameter
         cs = ext.pop('typecode', 'B')
         ret = StringParameter(value=value,
                               description=im['description'],
+                              typ_=dt,
                               default=fs,
                               valid=gs,
                               typecode=cs,
@@ -366,10 +361,14 @@ def value2parameter(name, value, descriptor):
         from .dateparameter import DateParameter
         if issubclass(value.__class__, str):
             fmt = ext.pop('typecode')
-            dt = FineTime(value, format=None if fmt in ('Q', '') else fmt)
+            v = FineTime(value, format=None if fmt in ('Q', '') else fmt).tai
         else:
-            dt = value
-        ret = DateParameter(value=dt,
+            v = value
+        #dt = DataTypeNames[type(v).__name__]
+        if issubclass(fs.__class__, FineTime):
+            __import__("pdb").set_trace()
+
+        ret = DateParameter(value=v,
                             description=im['description'],
                             typ_=dt,
                             default=fs,
@@ -398,6 +397,7 @@ def value2parameter(name, value, descriptor):
         ext.pop('typecode', '')
         ret = BooleanParameter(value=value,
                                description=im['description'],
+                               typ_=dt,
                                default=fs,
                                valid=gs,
                                **ext,

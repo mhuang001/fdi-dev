@@ -504,8 +504,9 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
         self.setDefault(default)
         self.setValid(valid)
         # super() will set value so type and default need to be set first
-
-        super().__init__(value=value, description=description, typ_=typ_, **kwds)
+        super().__init__(value=value, description=description, typ_=typ_)
+        for n, v in kwds.items():
+            setattr(self, n, v)
 
     def accept(self, visitor):
         """ Adds functionality to classes of this type.

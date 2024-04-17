@@ -3,24 +3,22 @@
 
 from fdi.dataset.testproducts import get_demo_product, get_related_product
 from fdi.dataset.classes import Class_Look_Up
-from fdi.dataset.deserialize import deserialize
-from fdi.pal.poolmanager import PoolManager, PM_S_from_g
+from fdi.dataset.tabledataset import TableDataset
+from fdi.dataset.dataset import CompositeDataset
+from fdi.dataset.arraydataset import ArrayDataset, Column
+from fdi.dataset.metadata import Parameter
+from fdi.pal.poolmanager import PoolManager
 from fdi.pal.productstorage import ProductStorage
 from fdi.pns.jsonio import getJsonObj
-from fdi.pns.fdi_requests import reqst
-from fdi.pns.public_fdi_requests import read_from_cloud
 from fdi.utils.common import lls
 from fdi.pns.jsonio import auth_headers
 from fdi.httppool.model.user import User, getUsers
 from fdi.httppool.session import requests_retry_session
-from fdi.pal.publicclientpool import PublicClientPool
-from fdi.utils.getconfig import get_projectclasses
 
 from fdi.pal.poolmanager import dbg_7types
 
 
 from flask.testing import FlaskClient
-from flask import g
 import pytest
 import importlib
 from urllib.error import HTTPError
@@ -32,7 +30,6 @@ import json
 import time
 import copy
 import socket
-import getpass
 import shlex
 import signal
 import datetime
@@ -40,7 +37,7 @@ import datetime
 from subprocess import Popen, TimeoutExpired
 import logging
 import logging.config
-from urllib.error import HTTPError, URLError
+from urllib.error import URLError
 
 # from logdict import logdict
 # logging.config.dictConfig(logdict)
@@ -1056,3 +1053,131 @@ def t_package():
     yield testpackage
 
     os.system('cd tests/resources/testpackage;make clean-tpkg')
+
+@ pytest.fixture(scope=SHORT)
+def demo_TableDataset():
+
+    # http://herschel.esac.esa.int/hcss-doc-15.0/load/hcss_drm/ia/dataset/demo/TableDataset.py
+    ELECTRON_VOLTS = 'eV'
+    SECONDS = 'sec'
+    # create dummy numeric data:
+    # t=Double1d.range(100)
+    # e=2*t+100
+    t = [x * 1.0 for x in range(10)]
+    e = [2 * x + 10 for x in t]
+
+    # creating a table dataset to hold the quantified data
+    table = TableDataset(description="Example table")
+    table["Time"] = Column(data=t, unit=SECONDS)
+    table["Energy"] = Column(data=e, unit=ELECTRON_VOLTS)
+
+    # alternative Column creation:
+    c = Column()
+    c.data = t
+    c.unit = SECONDS
+    table["Time1"] = c
+
+    # alternative Column creation using Java syntax:
+    c1 = Column()
+    c1.setData(t)
+    c1.setUnit(SECONDS)
+    table.addColumn("Time2", c1)
+
+    t1 = table.copy()
+    t2 = table.copy()
+    assert table.getColumnCount() == 4
+    assert t1.getColumnCount() == 4
+    # removing a column by name:
+    t1.removeColumn("Time2")
+    assert t1.getColumnCount() == 3
+
+    # removing a column by index (removing "Time1")
+    # NOTE: indices start at 0!
+    t2.removeColumn(3)
+    assert t1 == t2
+
+    # adding meta:
+    table.meta["Foo"] = Parameter(value="Bar", description="Bla bla")
+
+    # table access:
+    print(table)  # summary
+    print(table.__class__)  # type
+    print(table.rowCount)
+    print(table.columnCount)
+
+    # meta data access:
+    print(table.meta)
+    print(table.meta["Foo"])
+
+    # column access:
+    print(table["Time"])
+    print(table["Time"].data)
+    print(table["Time"].unit)
+
+    return table
+
+@ pytest.fixture(scope=SHORT)
+def demo_CompositeDataset():
+    """ http://herschel.esac.esa.int/hcss-doc-15.0/load/hcss_drm/ia/dataset/demo/CompositeDataset.py
+    """
+    # creating a composite dataset.For this demo, we use empty datasets only.
+    c = CompositeDataset()
+    c["MyArray"] = ArrayDataset()  # adding an array
+    c["MyTable"] = TableDataset()  # adding a table
+    c["MyComposite"] = CompositeDataset()  # adding a composite as child
+
+    # alternative Java syntax:
+    c.set("MyArray", ArrayDataset())
+    c.set("MyTable", TableDataset())
+    c.set("MyComposite", CompositeDataset())
+
+    # adding two children to a "MyComposite":
+    c["MyComposite"]["Child1"] = ArrayDataset()
+    assert issubclass(c["MyComposite"]["Child1"].__class__, ArrayDataset)
+    c["MyComposite"]["Child2"] = TableDataset()
+    c["MyComposite"]["Child3"] = TableDataset()
+
+    # replace array "Child1" by a composite:
+    c["MyComposite"]["Child1"] = CompositeDataset()
+    assert issubclass(c["MyComposite"]["Child1"].__class__, CompositeDataset)
+
+    # remove3 table "Child3"
+    assert c["MyComposite"].containsKey("Child3") == True
+    c["MyComposite"].remove("Child3")
+    assert c["MyComposite"].containsKey("Child3") == False
+
+    # report the number of datasets in this composite
+    print(c.size())
+    assert c.size() == 3
+
+    # print(information about this variable ...
+    # <class 'fdi.dataset.dataset.CompositeDataset'>
+    # {meta = "MetaData[]", _sets = ['MyArray', 'MyTable', 'MyComposite']}
+    print(c.__class__)
+    print(c)
+
+    # ... print(information about child "MyComposite", and ...
+    # <class 'fdi.dataset.dataset.CompositeDataset'>
+    # {meta = "MetaData[]", _sets = ['Child1', 'Child2']}
+    print(c["MyComposite"].__class__)
+    print(c["MyComposite"])
+
+    # ... that of a nested child ...
+    # <class 'fdi.dataset.dataset.CompositeDataset'>
+    # {meta = "MetaData[]", _sets = []}
+    print(c["MyComposite"]["Child1"].__class__)
+    print(c["MyComposite"]["Child1"])
+
+    # ... or using java syntax to access Child1:
+    # {meta = "MetaData[]", _sets = []}
+    print(c.get("MyComposite").get("Child1"))
+
+    # or alternatively:
+    # <class 'fdi.dataset.dataset.CompositeDataset'>
+    # {meta = "MetaData[]", _sets = ['Child1', 'Child2']}
+    child = c["MyComposite"]
+    print(child.__class__)
+    print(child)
+
+    return c
+

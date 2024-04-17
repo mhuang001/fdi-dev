@@ -113,10 +113,11 @@ def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', us
     
         # e.g. http://10.0.0.2:8888
         with lock_r:
-            __import__("pdb").set_trace()
-
+            _t = kwds.pop('token', '')
+            if not _t:
+                _t = ''
             requestAPI = uub1 + \
-                '/user/auth/verify?token=' + kwds.pop('token', '')
+                '/user/auth/verify?token=' + _t
            # None is sucessful!
             res = reqst(client.get, requestAPI,
                         server_type=server_type, auth=client.auth, **kwds)

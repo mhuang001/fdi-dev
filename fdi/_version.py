@@ -1,8 +1,9 @@
-__version_info__ = (1, 47, 0)
+__version_info__ = (1, 47, 1)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '1.46.11-0-g78d6d00'
+__revision__ = '1.47.0-0-g6b5a77e'
 
-# v2p for int and date non-MDs y2p 1.11. shorten prod full name.
+# demo_* moved to fixture to not overwite outputs.py by test_schema
+# 1.47.0 v2p for int and date non-MDs y2p 1.11. shorten prod full name.
 # 1.46.11 common.py bug get_all_files
 # 1.46.10 add 'verify' option to getToken. Act when getDataInfo gets error msg. get_all_in_dir matches every file.
 # 1.46.9 fix watchdog-worker

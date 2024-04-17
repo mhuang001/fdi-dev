@@ -208,9 +208,9 @@ class EventSender():
         """
 
         self._listeners = ListenerSet()
-        from fdi.dataset.finetime import FineTime
-        if 'typ_' in kwds and issubclass(kwds['typ_'].__class__, FineTime):
-            __import__("pdb").set_trace()
+        #from fdi.dataset.finetime import FineTime
+        #if 'typ_' in kwds and issubclass(kwds['typ_'].__class__, FineTime):
+        #   __import__("pdb").set_trace()
 
         try:
             super().__init__(**kwds)  # EventSender

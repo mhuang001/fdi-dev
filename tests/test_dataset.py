@@ -74,7 +74,7 @@ locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
 
 # make format output in /tmp/outputs.py
-mk_outputs = 1
+mk_outputs = 0
 output_write = 'tests/outputs.py'
 
 if mk_outputs:
@@ -2159,68 +2159,6 @@ def test_TableDataset_doc():
     # print(ts)
 
 
-def demo_TableDataset():
-
-    # http://herschel.esac.esa.int/hcss-doc-15.0/load/hcss_drm/ia/dataset/demo/TableDataset.py
-    ELECTRON_VOLTS = 'eV'
-    SECONDS = 'sec'
-    # create dummy numeric data:
-    # t=Double1d.range(100)
-    # e=2*t+100
-    t = [x * 1.0 for x in range(10)]
-    e = [2 * x + 10 for x in t]
-
-    # creating a table dataset to hold the quantified data
-    table = TableDataset(description="Example table")
-    table["Time"] = Column(data=t, unit=SECONDS)
-    table["Energy"] = Column(data=e, unit=ELECTRON_VOLTS)
-
-    # alternative Column creation:
-    c = Column()
-    c.data = t
-    c.unit = SECONDS
-    table["Time1"] = c
-
-    # alternative Column creation using Java syntax:
-    c1 = Column()
-    c1.setData(t)
-    c1.setUnit(SECONDS)
-    table.addColumn("Time2", c1)
-
-    t1 = table.copy()
-    t2 = table.copy()
-    assert table.getColumnCount() == 4
-    assert t1.getColumnCount() == 4
-    # removing a column by name:
-    t1.removeColumn("Time2")
-    assert t1.getColumnCount() == 3
-
-    # removing a column by index (removing "Time1")
-    # NOTE: indices start at 0!
-    t2.removeColumn(3)
-    assert t1 == t2
-
-    # adding meta:
-    table.meta["Foo"] = Parameter(value="Bar", description="Bla bla")
-
-    # table access:
-    print(table)  # summary
-    print(table.__class__)  # type
-    print(table.rowCount)
-    print(table.columnCount)
-
-    # meta data access:
-    print(table.meta)
-    print(table.meta["Foo"])
-
-    # column access:
-    print(table["Time"])
-    print(table["Time"].data)
-    print(table["Time"].unit)
-
-    return table
-
-
 def test_CompositeDataset_init():
     # constructor
     a1 = [768, 4.4, 5.4E3]
@@ -2660,70 +2598,6 @@ def test_Indexed():
     assert v2.vLookUp([(11, 31, 51), (14, 34, 54)], return_index=False, multiple=True) == [
         tuple(1+n*10 for n in range(Nc)), tuple(4+n*10 for n in range(Nc))]
 
-
-def demo_CompositeDataset():
-    """ http://herschel.esac.esa.int/hcss-doc-15.0/load/hcss_drm/ia/dataset/demo/CompositeDataset.py
-    """
-    # creating a composite dataset.For this demo, we use empty datasets only.
-    c = CompositeDataset()
-    c["MyArray"] = ArrayDataset()  # adding an array
-    c["MyTable"] = TableDataset()  # adding a table
-    c["MyComposite"] = CompositeDataset()  # adding a composite as child
-
-    # alternative Java syntax:
-    c.set("MyArray", ArrayDataset())
-    c.set("MyTable", TableDataset())
-    c.set("MyComposite", CompositeDataset())
-
-    # adding two children to a "MyComposite":
-    c["MyComposite"]["Child1"] = ArrayDataset()
-    assert issubclass(c["MyComposite"]["Child1"].__class__, ArrayDataset)
-    c["MyComposite"]["Child2"] = TableDataset()
-    c["MyComposite"]["Child3"] = TableDataset()
-
-    # replace array "Child1" by a composite:
-    c["MyComposite"]["Child1"] = CompositeDataset()
-    assert issubclass(c["MyComposite"]["Child1"].__class__, CompositeDataset)
-
-    # remove3 table "Child3"
-    assert c["MyComposite"].containsKey("Child3") == True
-    c["MyComposite"].remove("Child3")
-    assert c["MyComposite"].containsKey("Child3") == False
-
-    # report the number of datasets in this composite
-    print(c.size())
-    assert c.size() == 3
-
-    # print(information about this variable ...
-    # <class 'fdi.dataset.dataset.CompositeDataset'>
-    # {meta = "MetaData[]", _sets = ['MyArray', 'MyTable', 'MyComposite']}
-    print(c.__class__)
-    print(c)
-
-    # ... print(information about child "MyComposite", and ...
-    # <class 'fdi.dataset.dataset.CompositeDataset'>
-    # {meta = "MetaData[]", _sets = ['Child1', 'Child2']}
-    print(c["MyComposite"].__class__)
-    print(c["MyComposite"])
-
-    # ... that of a nested child ...
-    # <class 'fdi.dataset.dataset.CompositeDataset'>
-    # {meta = "MetaData[]", _sets = []}
-    print(c["MyComposite"]["Child1"].__class__)
-    print(c["MyComposite"]["Child1"])
-
-    # ... or using java syntax to access Child1:
-    # {meta = "MetaData[]", _sets = []}
-    print(c.get("MyComposite").get("Child1"))
-
-    # or alternatively:
-    # <class 'fdi.dataset.dataset.CompositeDataset'>
-    # {meta = "MetaData[]", _sets = ['Child1', 'Child2']}
-    child = c["MyComposite"]
-    print(child.__class__)
-    print(child)
-
-    return c
 
 
 def test_FineTime():

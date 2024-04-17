@@ -1,17 +1,16 @@
 # -*- coding: utf-8 -*-
 
-from fdi.utils.jsonpath import jsonPath, flatten_compact
+from fdi.utils.jsonpath import jsonPath
 from fdi.dataset.schemas import getValidator, makeSchemaStore, validateJson
 from fdi.utils.common import lls
 import fdi.dataset.serializable
-from fdi.dataset.serializable import serialize
-from fdi.dataset.finetime import FineTime, FineTime1
-from fdi.dataset.metadata import Parameter, MetaData, make_jsonable, guess_value
+from fdi.dataset.finetime import FineTime
+from fdi.dataset.metadata import Parameter, MetaData
 from fdi.dataset.listener import ListenerSet
 from fdi.dataset.numericparameter import NumericParameter, BooleanParameter
 from fdi.dataset.stringparameter import StringParameter
 from fdi.dataset.dateparameter import DateParameter
-from fdi.dataset.listener import EventSender, EventTypes, EventType, EventTypeOf, MetaDataListener, EventListener
+from fdi.dataset.listener import MetaDataListener
 from fdi.dataset.arraydataset import ArrayDataset, Column
 from fdi.dataset.mediawrapper import MediaWrapper
 from fdi.dataset.tabledataset import TableDataset
@@ -19,25 +18,20 @@ from fdi.dataset.dataset import Dataset, CompositeDataset
 from fdi.dataset.unstructureddataset import UnstructuredDataset
 from fdi.dataset.history import History
 from fdi.dataset.baseproduct import BaseProduct
-from fdi.dataset.product import Product
-from fdi.dataset.datatypes import Vector, Vector2D
-from fdi.dataset.quaternion import Quaternion
+from fdi.dataset.datatypes import Vector
 from fdi.dataset.classes import Classes
 from fdi.dataset.serializable import serialize, Serializable
 from fdi.pal.context import MapContext
 from fdi.pal.productref import ProductRef
-from fdi.dataset.testproducts import SP, get_demo_product
-
-from test_dataset import demo_TableDataset, demo_CompositeDataset
+from fdi.dataset.testproducts import get_demo_product
 
 #from jsonschema import Draft7Validator as the_validator
 from jsonschema import Draft201909Validator as the_validator
-from jsonschema import RefResolver
-from jsonschema.exceptions import RefResolutionError #, _RefResolutionError
+
 from jsonschema import validate, ValidationError, SchemaError
 
 import pytest
-from pprint import pprint, pformat
+from pprint import pformat
 import json
 import copy
 import array
@@ -954,11 +948,11 @@ def test_MediaWrapper(schema_store):
     check_general(vtr, jsn, scn)
 
 
-def test_TableDataset(schema_store):
+def test_TableDataset(schema_store, demo_TableDataset):
     scn = 'TableDataset'
     sch = schema_store[SSP % ('dataset/', scn)]
 
-    v = demo_TableDataset()
+    v = demo_TableDataset
 
     # v.meta = MetaData(description='test TableDataset.MEtadata')
     # v.data = 987.4
@@ -975,7 +969,7 @@ def test_TableDataset(schema_store):
     check_general(vtr, jsn, scn)
 
 
-def test_CompositeDataset(schema_store):
+def test_CompositeDataset(schema_store, demo_CompositeDataset):
     scn = 'CompositeDataset'
     sch = schema_store[SSP % ('dataset/', scn)]
 
@@ -984,7 +978,7 @@ def test_CompositeDataset(schema_store):
                              data=[('col1', [1, 4.4, 5.4E3], 'eV'),
                                    ('col2', [0, 43.2, 2E3], 'cnt')
                                    ])
-    v = demo_CompositeDataset()
+    v = demo_CompositeDataset
 
     # v.meta = MetaData(description='test CompositeDataset.MEtadata')
     # v.data = 987.4
@@ -1002,13 +996,13 @@ def test_CompositeDataset(schema_store):
     check_general(vtr, jsn, scn)
 
 
-def test_UnstructuredDataset(schema_store):
+def test_UnstructuredDataset(schema_store, demo_CompositeDataset):
     scn = 'UnstructuredDataset'
     sch = schema_store[SSP % ('dataset/', scn)]
 
     v = UnstructuredDataset()
 
-    p = demo_CompositeDataset()
+    p = demo_CompositeDataset
     v.put(p.serialized(), 'json')
 
     # v.meta = MetaData(description='test UnstructuredDataset.MEtadata')

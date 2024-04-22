@@ -1,8 +1,9 @@
-__version_info__ = (1, 47, 2)
+__version_info__ = (1, 47, 3)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '1.47.1-1-g97ef435'
+__revision__ = '1.47.2-0-gfc2028c'
 
-# make FineTime understand 'B' time format.
+# fix lru_cache bug in getConfig
+# 1.47.2 make FineTime understand 'B' time format.
 # 1.47.1 demo_* moved to fixture to not overwite outputs.py by test_schema
 # 1.47.0 v2p for int and date non-MDs y2p 1.11. shorten prod full name.
 # 1.46.11 common.py bug get_all_files

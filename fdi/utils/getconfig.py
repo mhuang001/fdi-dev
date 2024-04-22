@@ -28,7 +28,8 @@ Config_Look_Up = {}
 """ `Lazy_Loading_ChainMap`s for getting value with a key from Configuration dictionaries in files and in OS Environment.. """
 
 
-@functools.lru_cache(128)
+# DO NOT USE lru_cache, or local config wil not update the map
+#@functools.lru_cache(128)
 def get_file_conf(conf_name):
     """ figure out config file name and returns the contents.
 

@@ -9,6 +9,7 @@ from ...utils.common import (logging_ERROR,
                              logging_INFO,
                              logging_DEBUG
                              )
+from ...utils.getconfig import getConfig
 from ...utils.colortext import (ctext,
                                _CYAN,
                                _GREEN,
@@ -133,8 +134,12 @@ def getUsers(pc):
     if NAMES2ROLES is None:
         NAMES2ROLES = get_names2roles_mapping(pc)
     users = {}
-    for usernames, hashed_pwd in ((pc['rw_user'], pc['rw_pass']),
-                                  (pc['ro_user'], pc['ro_pass'])):
+
+    #_pc = ((pc['rw_user'], pc['rw_pass']),
+    #       (pc['ro_user'], pc['ro_pass']))
+    _gpc = ((getConfig('rw_user'), getConfig('rw_pass')),
+           (getConfig('ro_user'), getConfig('ro_pass')))
+    for usernames, hashed_pwd in _gpc: 
         if issubclass(usernames.__class__, str):
             usernames = [usernames]
         for u in usernames:
@@ -435,7 +440,9 @@ def verify_password(username, password, check_session=True):
     logger = current_app.logger
     PM_S = PM_S_from_g(g)
     assert id(PM_S._GlobalPoolList.maps[0]) == id(pm_mod._PM_S._GlobalPoolList.maps[0])
-
+    if 0: #password:
+        __import__("pdb").set_trace()
+        
     if SES_DBG and logger.isEnabledFor(logging_DEBUG):
         logger.debug('%s =U= %s %s %s %s %s' % (
             _HIWHITE, username, '' if password is None else (len(password) * '*'),

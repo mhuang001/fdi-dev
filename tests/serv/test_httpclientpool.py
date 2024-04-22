@@ -203,19 +203,21 @@ def test_tmp_remote_storage_no_wipe(tmp_remote_storage_no_wipe, tmp_prods):
     assert len(plst) > 0
 
     # empty
-    assert pool.getCount() > 0
+    inicnt = pool.getCount()
+    assert inicnt > 0
     assert not pool.isEmpty()
     prod_lst = tmp_prods
     refs = []
     for i, p in enumerate(prod_lst):
         ts = 'saved at %d' % time.time_ns()
         refs.append(ps.save(p, tag=ts))
+    
     retrd = []
     for r in refs:
         p = r.product
         retrd.append(p)
         assert p.description.startswith('test-product-')
-    assert len(prod_lst) == len(retrd) == pool.getCount() - 1
+    assert len(prod_lst) == len(retrd) == pool.getCount() - inicnt
     
 
 # def est_CRUD_product_by_client(server, local_pools_dir, auth):

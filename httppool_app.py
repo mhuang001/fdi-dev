@@ -55,13 +55,13 @@ if __name__ == '__main__':
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     parser.add_argument('-u', '--username',
-                        default=pc['self_username'], type=str, help='user name/ID. Prints hashed password if username is "hashed"')
+                        default=pc['username'], type=str, help='user name/ID. Prints hashed password if username is "hashed"')
     parser.add_argument('-p', '--password',
-                        default=pc['self_password'], type=str, help='password')
+                        default=pc['password'], type=str, help='password')
     parser.add_argument('-i', '--host',
-                        default=pc['self_host'], type=str, help='host IP/name')
+                        default=pc['host'], type=str, help='host IP/name')
     parser.add_argument('-o', '--port',
-                        default=pc['self_port'], type=int, help='port number')
+                        default=pc['port'], type=int, help='port number')
     parser.add_argument('-t', '--threads',
                         default=10, type=int, help='max number of threads. Default=100. 1 if debug is set')
     parser.add_argument('-s', '--server', default='httppool_server',
@@ -77,10 +77,10 @@ if __name__ == '__main__':
                         default=None, type=str, help='name of logfile')
     args = parser.parse_args()
 
-    os.environ['PNS_SELF_USERNAME'] = args.username
-    os.environ['PNS_SELF_PASSWORD'] = args.password
-    os.environ['PNS_SELF_HOST'] = args.host
-    os.environ['PNS_SELF_PORT'] = str(args.port)
+    os.environ['PNS_USERNAME'] = args.username
+    os.environ['PNS_PASSWORD'] = args.password
+    os.environ['PNS_HOST'] = args.host
+    os.environ['PNS_PORT'] = str(args.port)
     servertype = args.server
     wsgi = args.wsgi
 
@@ -95,8 +95,8 @@ if __name__ == '__main__':
     print(args)
     logger.setLevel(level)
 
-    print('Check ' + pc['scheme'] + '://' + pc['self_host'] +
-          ':' + str(pc['self_port']) + pc['baseurl'] +
+    print('Check ' + pc['scheme'] + '://' + pc['host'] +
+          ':' + str(pc['port']) + pc['baseurl'] +
           '/apidocs' + ' for API documents.')
 
     pc = getconfig.getConfig()

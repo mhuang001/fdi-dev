@@ -13,7 +13,7 @@ def test_pool_server_url(server, pytestconfig, set_ids):
     url, client, auth, pool, poolurl, pstore, server_type = server
     assert '/fdi' in url
     assert server_type in ['mock', 'live']
-    assert pytestconfig.getoption('--server') in ['mock', 'background', 'external']
+    assert pytestconfig.getoption('--server') in ['mock', 'background', 'external', '']
     print(url, client, pool, server_type)
 
     res = client.get(url).text

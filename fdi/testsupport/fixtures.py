@@ -422,9 +422,14 @@ def prepare_servers(server_arch, how_to_run, aburl, csci_url, request):
                     'want to get a mocked server but get %s one. Will use mocked' % how_to_run_found)
                 yield aburl, how_to_run
             elif how_to_run == "background":
-                # we eyiher get our wish has how the server runs, o we get exception.
+                # we eiher get our wish has how the server runs, o we get exception.
                 logger.warning(
                     'want to get a background server but get %s one. Will use external' % how_to_run_found)
+                yield aburl, 'live'
+            else:
+                # we choose what we find.
+                logger.warning(
+                    'want to get a unknown type server but get %s one. Will use external' % how_to_run_found)
                 yield aburl, 'live'
         elif how_to_run_found == "mock" and how_to_run == "mock":
             yield aburl, how_to_run_found
@@ -509,8 +514,11 @@ def server(pytestconfig, set_ids, userpass, mock_app, request):
       baseurl, client, auth, pool (pool name is `http_pool_id`), poolurl, pstore, server_type
     """
     #    yield from server2(pc, pytestconfig, 'http', reuest=request)
+    try:
+        url, server_type = list(server2(pytestconfig, 'http', request=request))[0]
+    except StopIteration as si:
+        pass
 
-    url, server_type = next(server2(pytestconfig, 'http', request=request))
     csdb_pool_id, http_pool_id, PTYPES = set_ids
     
     # register to clean up
@@ -934,6 +942,7 @@ def tmp_prods(tmp_prod_types):
             a.data = [[time.time(), n], 's']
             p['the_data'] = a
             prds.append(p)
+
         logger.debug("Made products: %s" %
                      str(list((p.description, id(p)) for p in prds)))
         res = tuple(prds)

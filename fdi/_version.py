@@ -1,6 +1,6 @@
-__version_info__ = (1, 47, 1)
+__version_info__ = (1, 47, 2)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '1.47.1-0-g740545b'
+__revision__ = '1.47.1-1-g97ef435'
 
 # make FineTime understand 'B' time format.
 # 1.47.1 demo_* moved to fixture to not overwite outputs.py by test_schema

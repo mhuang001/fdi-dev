@@ -2687,6 +2687,15 @@ def test_FineTime():
         2019, 2, 19, 1, 3, 4, 556789, tzinfo=timezone.utc))
     assert v != v2
     assert abs(v2.subtract(v) - 61100000) < 0.5
+
+    # 'B' for "Beijing Time" +0800
+    v = FineTime('2024-04-18B07:23:00.123')
+    assert v.isoutc() == '2024-04-17T23:23:00.123000'
+    v = FineTime('2024-04-18B07:23:00')
+    assert v.isoutc(v.DEFAULT_FORMAT_SECOND) == '2024-04-17T23:23:00'
+    v = FineTime('2024-04-18B07:23:00.123456')
+    assert v.isoutc() == '2024-04-17T23:23:00.123456'
+
     checkjson(v)
     checkgeneral(v)
 

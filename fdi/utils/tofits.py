@@ -245,9 +245,11 @@ def fits_dataset(hdul, dataset_list, name_list=None, level=0):
 
 def fits_standard_text(c):
     if issubclass(c.__class__, bytes):
-        r = c.decode(encoding="ascii",errors="backslashreplace")
+        r = c.decode(encoding="ascii", errors="backslashreplace")
     elif issubclass(c.__class__, str):
-        r = c.replace('\n','\\n')
+        r = ascii(c)[1:-1]
+        # c.encode(encoding="ascii", errors="backslashreplace")
+        #r = c.replace('\n','\\n')
     else:
         r = c
     return r
@@ -273,7 +275,6 @@ def add_header(meta, header, zim={}):
     lst = list(meta)
     lst.extend(set(zim) - set(meta))
     for name in lst:
-
         param = meta[name]
         pval = param.value
 
@@ -323,8 +324,6 @@ def add_header(meta, header, zim={}):
             else:
                 v = pval
             c = param.description
-
-            #c = c.replace('\n','\\n')
             _c = fits_standard_text(c)
             # c.encode(encoding="ascii",errors="backslashreplace")
             _v = fits_standard_text(v)

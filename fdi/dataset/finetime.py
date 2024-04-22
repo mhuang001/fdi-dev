@@ -18,12 +18,16 @@ logger = logging.getLogger(__name__)
 utcobj = datetime.timezone.utc
 
 def try_pz(t, msg):
+    """
+    Try several seprators at T and " " in e.g. "1234-12-23T12:34:56 UTC".
+    """
+    tz = None
     for end in ('', '%Z', '%z'):
         for _f in (FineTime.DEFAULT_FORMAT,
                    FineTime.DEFAULT_FORMAT_SECOND):
             for sept in ('T', ' '):
                 for sepz in ('', ' '):
-                    if sept != 'T':                
+                    if sept != 'T':
                         _f = _f.replace('T', sept, 1)
                     fmt = f"{_f}{sepz}{end}"
                     try:
@@ -34,7 +38,8 @@ def try_pz(t, msg):
                         msg += '\n%s does not match %s.' % (t, fmt)
     if end:
         logger.warning('Time zone %s assumed for %s' %
-                   (t.rsplit(' ')[1], t))
+                   (t.rsplit(' ')[-1], t))
+
     return None, msg
 
                                     
@@ -243,9 +248,17 @@ class FineTime(Copyable, DeepEqual, Serializable):
                     pass
 
             # int works as tai but it would work better as something else
+            if not issubclass(t.__class__, str):
+                raise TypeError(str(t)+' is not a string.')
             try:
-                # the most often case
-                d = datetime.datetime.strptime(t, fmt)
+                try:
+                    # the most often case
+                    d = datetime.datetime.fromisoformat(t)
+                    # Beijing Time
+                    if len(t) > 10 and t[10] == 'B':
+                        d -= datetime.timedelta(hours=8)
+                except ValueError:
+                        d = datetime.datetime.strptime(t, fmt)
                 d1 = d.replace(tzinfo=utcobj)
                 self.tai = self.datetimeToFineTime(d1)
                 # possible result of int(time) setTai is overidden
@@ -268,6 +281,7 @@ class FineTime(Copyable, DeepEqual, Serializable):
             # Now t has a date-time string in it.
             msg = '%s is not an integer or `datetime` %s.' % (t, self.format)
             fmt = FineTime.DEFAULT_FORMAT
+                            
             try:
                 d = datetime.datetime.strptime(t, fmt)
             except ValueError:

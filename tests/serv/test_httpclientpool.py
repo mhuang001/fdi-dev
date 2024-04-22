@@ -24,12 +24,9 @@ from flask_httpauth import HTTPBasicAuth
 # from requests.auth import HTTPBasicAuth
 from requests.exceptions import ConnectionError
 import pytest
-import os
-import json
 import time
 import urllib
 import copy
-import time
 
 
 def setuplogging():

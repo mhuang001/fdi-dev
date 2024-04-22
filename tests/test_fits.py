@@ -55,6 +55,7 @@ def test_fits_dataset():
     assert issubclass(u.__class__, fits.HDUList)
     assert len(u) == len(data)+1
     assert list(u[1].data[0]) == [1, 2, 3, 4]
+
     assert u[1].header[getFitsKw('description')] == 'a'
     # w/ typecode
     ima = ArrayDataset(data=[[1, 2, 3, 4], [5, 6, 7, 8]], description='a', typecode='i')

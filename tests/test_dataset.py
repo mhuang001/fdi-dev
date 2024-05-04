@@ -60,7 +60,7 @@ import functools
 import time
 import locale
 import array
-from math import sqrt
+from math import sqrt, pi, cos
 from datetime import timezone
 import pytest
 
@@ -559,17 +559,50 @@ def test_MqttRelay_mqtt(mocksndrlsnr):
     w.mq.disconnect()
 
 
-def test_datatypes():
+def test_Vector():
     # constructor
     v = Vector()
     assert len(v) == 3
     assert v.getComponents() == [0, 0, 0]
-    v = Vector([1, 2.3, 4.5])
-    assert v.getComponents() == [1, 2.3, 4.5]
+    v = Vector([1, 2.3, 4.5, 6.7, 8.9])
+    assert v.getComponents() == [1, 2.3, 4.5, 6.7, 8.9]
+    # properties
     v.components = [4, 5, 6]
-    assert v.components == [4, 5, 6]
+    
     checkjson(v)
 
+    # properties
+    v = Vector3D([4, 5, 6])
+    assert v.components == [4, 5, 6]
+    assert v.x == 4
+    assert v.y == 5
+    assert v.z == 6
+    
+    # ops
+    v1 = Vector((0, 0, 1))
+    v2 = Vector((3, 4, 5))
+
+    assert v1.normalize() == v1
+    assert v2.normalize() != v2
+    # not the same variable
+    assert v1.normalize()._data is not v1._data
+    assert v1.normalize() is not v1
+    assert v2.normalize()._data[0] is not v2._data[0]
+    assert v2.normalize() is not v2
+    # diff value,too
+    v2c = v2.copy()
+    assert v2.mNormalize() != v2c
+    # the same variable
+    assert v2.mNormalize()._data is v2._data
+    
+    # MATH
+    v1 = Vector((0, 0, 1))
+    v2 = Vector((3, 4, 5))
+    assert v1.dot(v2) == v2.dot(v1) == 5
+    # norm1  norm2 * sin(45 deg)
+    assert v1.cross(v2).norm() == v2.norm() / sqrt(2)
+    assert v1.norm() == 1
+    
     v = Vector2D()
     assert len(v) == 2
     assert v.getComponents() == [0, 0]
@@ -592,15 +625,245 @@ def test_datatypes():
 
     checkjson(v)
 
-    # Quaternion
+
+from timeit import timeit
+from operator import mul
+def test_Quaternion():
+
+    # properties
+    v = Quaternion([4, 5, 6, 7])
+    assert list(v.components) == [4, 5, 6, 7]
+    assert v.x == 4
+    assert v.y == 5
+    assert v.z == 6
+    assert v.w == 7
+
+    positionals = Quaternion(4, 5, 6, 7)
+    assert v == positionals
+    
+    print('dot() sun(map(mul))',
+          timeit('sum(map(mul, sd, qd))', number=1000000, setup='sd=[1.0,2.1,3.2,4.3]; qd=[3.3,2.2,4.1,1.0]; from operator import mul'))
+    print('dot() sun(map(lambda))',
+          timeit('sum(map(lambda s,q:s*q, sd, qd))', number=1000000, setup='sd=[1.0,2.1,3.2,4.3]; qd=[3.3,2.2,4.1,1.0]; from operator import mul'))
+    print('dot() tuple sd[0]*qd[0]+',
+          timeit('sd[0]*qd[0]+sd[1]*qd[1]+sd[2]*qd[2]+sd[3]*qd[3]', number=1000000, setup='sd=(1.0,2.1,3.2,4.3); qd=(3.3,2.2,4.1,1.0); from operator import mul'))
+    print('dot() namedtuple sd[0]*qd[0]+',
+          timeit('sd[0]*qd[0]+sd[1]*qd[1]+sd[2]*qd[2]+sd[3]*qd[3]', number=1000000, setup='from collections import namedtuple; T=namedtuple("T",["x","y","z","w"]);sd=T(1.0,2.1,3.2,4.3); qd=T(3.3,2.2,4.1,1.0); '))
+    print('dot() sd.x*qd.x+',
+          timeit('sd.x*qd.x+sd.y*qd.y+sd.z*qd.z+sd.w*qd.w', number=1000000, setup='from collections import namedtuple; T=namedtuple("T",["x","y","z","w"]);sd=T(1.0,2.1,3.2,4.3); qd=T(3.3,2.2,4.1,1.0); '))
+    
+    print('dot() tuple.__getitem()*',
+          timeit('sd.__getitem__(0)*qd.__getitem__(0)+sd.__getitem__(1)*qd.__getitem__(1)+sd.__getitem__(2)*qd.__getitem__(2)+sd.__getitem__(3)*qd.__getitem__(3)', number=1000000, setup='sd=(1.0,2.1,3.2,4.3); qd=(3.3,2.2,4.1,1.0); from operator import mul'))
+
+    print('dot() Quaternion.x*',
+          timeit('sd.getX()*qd.getX()+sd.getY()*qd.getY()+sd.getZ()*qd.getZ()+sd.getW()*qd.getW()', number=1000000, setup='from fdi.dataset.quaternion import Quaternion; sd=Quaternion(1.0,2.1,3.2,4.3); qd=Quaternion(3.3,2.2,4.1,1.0); '))
+
+    print('dot() quaternion.getX()', timeit('sd.getX()*qd.getX()+sd.getY()*qd.getY()+sd.getZ()*qd.getZ()+sd.getW()*qd.getW()', number=1000000, setup='from fdi.dataset.quaternion import Quaternion; sd=Quaternion(1.0,2.1,3.2,4.3); qd=Quaternion(3.3,2.2,4.1,1.0); '))
+    
+    # constructor
+
+    v = Quaternion()
+    assert v == Quaternion([0, 0, 0, 1])
+    
     v = Quaternion([-1, 1, 2.3, 4.5])
-    assert v.getComponents() == [-1, 1, 2.3, 4.5]
+    assert list(v.getComponents()) == [-1, 1, 2.3, 4.5]
+
+    v1 = Quaternion(v)
+    assert v1 == v
+    # is a copy of v
+    assert v1 is not v
+    
     # equal
     a1 = -1
     v2 = Quaternion([a1, 1+0, 1-a1+0.3, 4.5])
     assert v == v2
+
+    v = Vector([1, 2.3, 4.5, 6.7, 8.9])
+    assert v.getComponents() == [1, 2.3, 4.5, 6.7, 8.9]
+    v.components = [4, 5, 6]
+    assert v.components == [4, 5, 6]
     checkjson(v)
 
+    # ops
+    v1 = Quaternion((0, 0, 0, 1))
+    v2 = Quaternion((3, 4, 5, 6))
+
+    assert v1.normalize() == v1
+    assert v2.normalize() != v2
+    # not the same variable
+    assert v1.normalize()._data is not v1._data
+    assert v1.normalize() is not v1
+    assert v2.normalize()._data[0] is not v2._data[0]
+    assert v2.normalize() is not v2
+    # diff value,too
+    v2c = v2.copy()
+    assert v2.mNormalize() != v2c
+    # the same variable
+    assert v2.mNormalize()._data is v2._data
+
+    # attributes
+    inv = v2.conjugate().mMultiply_0(1 / v2.normSquared())
+    assert (v2 * inv).epsilonEquals(inv * v2)
+    assert (v2 * inv).epsilonEquals(v1)
+    
+    # MATH
+    v1 = Quaternion((0, 0, 0, 1))
+    v2 = Quaternion((3, 4, 5, 6))
+    u = Vector3D((3, 4, 5))
+    
+    assert v1.dot(v2) == v2.dot(v1) == 6
+    # norm1  norm2 * sin(45 deg)
+    assert v2.norm() == sqrt(86)
+    assert v1.norm() == 1
+    
+    # MATH
+    v1 = Quaternion(0, 0, 1, 0)
+    v2 = Vector((3, 4, 5))
+    # norm1  norm2 * sin(45 deg)
+    #assert v1.cross(v2).norm() == v2.norm() / sqrt(2)
+
+    x = Quaternion(2, 3, 4, 1)
+    y = Quaternion(6, 7, 8, 5)
+    v = x * y
+    x *= y
+    
+    assert v == Quaternion(12, 30, 24, -60)
+    assert v == x
+    z = Quaternion(1,1,1,1);
+    x *= z
+    assert x == Quaternion(-42,-18,-54, -126)
+
+    rad = 180/pi
+    sq2 = sqrt(2)
+    # rotate 45 deg around x axis
+    v = Quaternion([1, 0, 0], 45/rad)
+    assert v.rotateVector(Vector3D((0, 1, 0))).epsilonEquals(
+        Vector3D((0, 1/sqrt(2), 1/sqrt(2))))
+
+    # Euler angle. inrinsic, active rotate [2,0,0]
+    yaw, pitch = 45 / rad, 60 / rad
+    vec = Vector3D([2,0,0])
+    r_z = Quaternion([0,0,1], yaw)
+    rz_ed = r_z.rotateVector(vec)
+    assert rz_ed.epsilonEquals(Vector3D( [sq2, sq2, 0]))
+    r_y = Quaternion([0,1,0], pitch)
+    ry_ed = r_y.rotateVector(vec)
+
+    assert ry_ed.epsilonEquals(Vector3D( [1, 0, -sqrt(3)]))
+
+    # extrinsic. rotate vector using quaternion in origianl (world) frame
+    # steps: z then y. quaternion y then z
+    r_yz = r_y * r_z
+    r_yz_ed = r_yz.rotateVector(vec)
+    rzy_ed_stepped = r_y.rotateVector(rz_ed)
+    assert r_yz_ed == rzy_ed_stepped
+    # rigt-hand around y axis
+    assert rzy_ed_stepped.epsilonEquals(Vector3D([sq2/2, sq2, -sq2*sqrt(3)/2]))
+
+    # intringsic
+    ## 
+    r_zy = r_z * r_y
+    r_zy_ed = r_zy.rotateVector(vec)
+    ryz_ed_stepped = r_z.rotateVector(ry_ed)
+    assert ryz_ed_stepped == r_zy_ed 
+    assert r_zy_ed.epsilonEquals(Vector3D([sq2/2, sq2/2, -2*sqrt(3)/2]))
+    
+    checkjson(v)
+    true, false, null = True, False, None
+
+    feedback = """
+    <TIMING_POINTING>
+      <TC_PROGRAMMING_MODE>TTAG</TC_PROGRAMMING_MODE>
+      <OBS_TIME_WINDOW>
+        <START_DATE>2024-05-02T13:27:57Z</START_DATE>
+        <END_DATE>2024-05-02T14:01:49Z</END_DATE>
+        <OBS_GSP_ID_START>1707</OBS_GSP_ID_START>
+        <OBS_GSP_ID_END>1708</OBS_GSP_ID_END>
+        <POINTING_DURATION_IN_ORBITS unit="orbit">1</POINTING_DURATION_IN_ORBITS>
+         <POINTING_DURATION_IN_SECONDS unit="sec">2032.0</POINTING_DURATION_IN_SECONDS>
+       </OBS_TIME_WINDOW>
+       <PAYLOAD_POINTING>
+         <RIGHT_ASCENSION unit="deg">200.589646441823</RIGHT_ASCENSION>
+         <DECLINATION unit="deg">-9.244732804769649</DECLINATION>
+       </PAYLOAD_POINTING>
+       <SATELLITE_POINTING>
+         <QUATERNION>
+           <QC>-0.10098183602695253</QC>
+           <Q1>-0.166795399304631</Q1>
+           <Q2>0.5480628256020631</Q2>
+           <Q3>0.813393571868205</Q3>
+         </QUATERNION>
+         <ATTITUDE_ANGLES>
+           <ANG_Z_J2000_RGRF unit="deg">222.49537896257206</ANG_Z_J2000_RGRF>
+           <ANG_X_J2000_RGRF unit="deg">-59.08104298696741</ANG_X_J2000_RGRF>
+           <ANG_Y_J2000_RGRF unit="deg">311.9695098369438</ANG_Y_J2000_RGRF>
+         </ATTITUDE_ANGLES>
+        </SATELLITE_POINTING>
+      </TIMING_POINTING>
+    """
+    
+    ep = {"upload": ["urn:test:ep.products.vhf.sat_dev:0"],
+          "uploader": "", "validate": false, "baseurl": "",
+          "fmtv": "0.7.2", "url": [], "orb_mode": "GPS_Pos",
+          "sc_time": 136821123, "utc": "2024-05-02T13:52:03",
+          "r": 6965444.0, "xyz": [6908402.0, -169360.7, 873332.5],
+          "v": [621.712, 6658.309, -3540.611],
+          "Qc": 0.1009841, "Q1_3": [0.1667859, -0.5480588, -0.813398],
+          "slewing": "No", "station": "0x1E",
+          "stn_name": "MTQ1, Martinique", "stn_range": 1452271.0,
+          "stn_elev": 18.01, "stn_azim": 232.14, "delay": 14.4}
+    xyz = ep['xyz']
+    c4 = ep['Q1_3']
+    c4.append(ep['Qc'])
+    q = Quaternion(*c4).normalize()
+    print('q',q)
+    q_att = list(map(lambda x:x*rad, q.toAttitude()))
+    print('q_att', q_att)
+    assert  abs(q_att[0] - 200.589646441823) < 1e-3
+    assert  abs(q_att[1] - (-9.24473280476964)) < 1e-3
+    
+    rot = q.rotateVector(Vector3D(xyz))
+
+    qv = Quaternion(*(ep['v']+[0]))
+    vatt = qv.toAttitude()
+    print('v  ==', vatt[0]*rad, vatt[1]*rad, vatt[2]*rad)
+    
+    qxyz = Quaternion(xyz[0], xyz[1], xyz[2], 0)
+
+    att = qxyz.toAttitude()
+    print('xyz==', att[0]*rad, att[1]*rad, att[2]*rad)
+
+    rotq = q.rotate(qxyz)
+    rotq1 = q.multiply(qxyz).multiply(q.conjugate())
+    print('rot \t  ', rot)
+    print('rotq \t', rotq)
+    print('rotq1\t', rotq1)
+
+    angz = 222.49537896257206 / rad
+    angx = -59.08104298696741 / rad
+    angy = 311.9695098369438 / rad
+    rota = Quaternion([0,0,1], angz) * \
+        Quaternion([1,0,0], angx) * \
+        Quaternion([0,1,0], angy)
+    qa = Quaternion(cos(angx), cos(angy), cos(angz), 0)
+    print(" rot.norm", rot.normalize())
+    print("  qv.norm", qv.normalize())
+    print("  qa.norm", qa.normalize())
+    print("   qa att", list(map(lambda x:x*rad, qa.toAttitude())))
+    print("rota.norm", rota.normalize())
+    print(" rota att", list(map(lambda x:x*rad, rota.toAttitude())))
+    
+    assert rotq.epsilonEquals( rotq1 )
+    assert Vector3D(rotq._data[:4]).epsilonEquals(rot)
+
+    xyz2 = [6914209.0, -102772.5, 837877.0]
+    v2 = [540.0977, 6659.916, -3550.751]
+    q2 = Quaternion([0.1667694, -0.5480528, -0.8134049,  0.1009877]).normalize()
+    
+    rot2 = q2.rotateVector(Vector3D(xyz2))
+    print('rot2', rot2._data[0], rot2._data[1], rot2._data[2])
+    rotv2 = q2.rotateVector(Vector3D(v2))
+    print("rotv2.norm", rotv2.normalize())
 
 def test_Parameter_init():
     # python  keeps an array of integer objects for all integers
@@ -833,7 +1096,7 @@ def test_Parameter_features():
     assert issubclass(v.value.__class__, list)
     v = NumericParameter(typ_='vector')
     v.value = [1, 2, 3]
-    assert v.value == Vector([1, 2, 3])
+    assert list(v.value._data) == list(Vector([1, 2, 3])._data)
     # ok for NumericParameter w/o explicite type
     v = NumericParameter()
     # with pytest.raises(TypeError):
@@ -1411,7 +1674,8 @@ def test_Dataset():
             clsn = 'out_Dataset'
             f.write('%s = """%s"""\n' % (clsn, ts))
     else:
-        assert ts == out_Dataset
+        from itertools import zip_longest
+        assert ts == out_Dataset, ''.join(t if t==o else f'|{t}{o}' for t,o in zip_longest(ts,out_Dataset,fillvalue='*'))
 
 
 class fa(array.array):

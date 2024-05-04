@@ -1,14 +1,19 @@
 # -*- coding: utf-8 -*-
 
 from .serializable import Serializable
+from .copyable import Copyable
 from .eq import DeepEqual
 from .classes import Classes
 from .quantifiable import Quantifiable
 
 from functools import lru_cache
+from collections import namedtuple
 from collections import OrderedDict
+from collections.abc import Iterable
+from operator import mul
 import builtins
-from math import sqrt
+import sys
+from math import sqrt, asin, acos, pi
 import array
 import logging
 # create logger
@@ -250,8 +255,51 @@ def cast(val, typ_, namespace=None):
     else:
         return Classes.mapping[t](val) if namespace is None else namespace[t](val)
 
+"""
+   An inertial attitude represented by body-referenced (+Z)(-Y)(-X) Euler angles.<p>
+ 
+   The inertial attitude of a body can be represented by a triple (RA,DEC,POS) which
+   defines Euler angles relative to the Equatorial reference frame. The body is
+   rotated first through RA (right ascension) about the body +Z axis, followed DEC
+   (declination) about the body -Y axis and finally POS (position angle) about the
+   body -X axis.
+ 
+   Hence, right ascension increases clockwise about the Z axis, declination increases
+   anticlockwise about the Y axis and position angle increases anticlockwise about 
+   the X axis. The position angle is the angle between the body X-Z plane and the
+   plane defined by the body X axis and reference frame Z axis (North).
+ 
+   This representation of attitude is especially useful for spacecraft with an
+   astronomical telescope pointing along the X axis. The coordinates (RA,DEC)
+   describe the pointing direction of the telescope, whilst POS describes the
+   rotation of the telescope about the line of sight. The Attitude class extends
+   Direction, since it is simply a Direction with an associated orientation.
+ 
+   The position angle and right ascension are discontinuous at the poles (i.e.
+   declination of +/-90 degrees). This requires care when performing calculations,
+   as rounding errors could flip the attitude by 180 degrees. Consequently, it
+   is generally preferred to represent attitudes as quaternions for performing
+   calculations, since these do not suffer from singularities.
 
-class Vector(Quantifiable, Serializable, DeepEqual):
+   In the limit, the sum RA+POS (mod 360) is constant at the North pole and the
+   difference RA-POS (mod 360) is constant at the South pole. Hence, the three-axis
+   attitude is well-defined on the whole celestial sphere by the triple (RA,DEC,POS),
+   although there is a many-to-one mapping of this triple onto attitudes at the poles.
+   The Attitude class provides a method to round (RA,DEC,POS) triples to a given
+   precision for output (e.g. printing), as a single atomic operation that avoids
+   problems with singularities. At the poles, many-to-one mapping of attitudes
+   onto (RA,DEC,POS) triples is avoided by (arbitrarily) choosing RA=0.
+ 
+   @author  Jon Brumfitt
+"""
+
+Attitude = namedtuple('Attitude', ['alpha', 'delta', 'phi'],
+                      defaults=(0, 0, 0),
+                      module=sys.modules['fdi.dataset.datatypes'])
+
+Number = (float, int)
+
+class Vector(Quantifiable, Serializable, DeepEqual, Iterable, Copyable):
     """ N dimensional vector.
 
     If description, type etc meta data is needed, use a Parameter.
@@ -324,11 +372,23 @@ class Vector(Quantifiable, Serializable, DeepEqual):
         -------
 
         """
-        # for c in components:
-        #     if not isinstance(c, Number):
-        #         raise TypeError('Components must all be numbers.')
+        for c in components:
+            if not isinstance(c, Number):
+                raise TypeError('Components must all be numbers.')
         # must be list to make round-trip Json
         self._data = list(components)
+        
+    def dot(self, v):
+        """
+        Return the dot product of this vector by another vector, as
+        a new vector.
+
+        param v The other vector.
+        """
+        sd = self._data
+        qd = v._data
+        return sum(map(mul, sd, qd))
+                   #+ sd.x * qd.x + sd.y * qd.y + sd.z * qd.z
 
     def cross(self, v):
         """
@@ -337,75 +397,90 @@ class Vector(Quantifiable, Serializable, DeepEqual):
 
         param v The other vector.
         """
-        raise NotImplemented
+        if len(v) != 3:
+            raise NotImplementedError('cross operation only suppported in 3D.')
 
-        return Vector3(self._y * v._z - self._z * v._y, self._z * v._x - self._x * v._z, self._x * v._y - self._y * v._x)
+        sd = self._data
+        qd = v._data
+        return Vector3D((sd[1] * qd[2] - sd[2] * qd[1], sd[2] * qd[0] - sd[0] * qd[2], sd[0] * qd[1] - sd[1] * qd[0]))
 
 
     def norm(self):
         """
-    # 
-    #      * Return the L2 norm of this vector.
-    #      *
-    #      * @return The L2 norm of this vector
-    #      
+    
+      * Return the L2 norm of this immutable vector.
+      *
+      * @return The L2 norm of this vector
+      
 
         """
         if self._norm is not None:
             return self._norm
         else:
-            self._norm = sqrt(self._x * self._x + self._y * self._y + self._z * self._z)
+            sd = self._data
+            self._norm = sqrt(sum(map(lambda u:u*u, sd)))
         return self._norm
 
     length = norm
 
     def normalize(self):
         """
-    # 
-    #      * Normalize to unit length, returning a new vector.
-    #      *
-    #      * @return The normalized vector
-    #      * @throws RuntimeException if a zero vector.
-    #      
+ 
+        Normalize to unit length, returning a new vector.
+      
+        
+        RETURNS
+        -------
+        This vector after normalizatiion
+
+        THROWS
+        ------
+        ValueError if a zero vector.
 
         """
         return self.copy().mNormalize()
 
     def mNormalize(self):
         """
-    # 
-    #      * Normalize to unit length, in place.<p>
-    #      * 
-    #      * The normalization is skipped if the vector is already normalized.
-    #      *
-    #      * @return This vector after normalizatiion
-    #      * @throws RuntimeException if a zero vector.
-    #      
+ 
+        Normalize to unit length, in place.
+        
+        The normalization is skipped if the vector is already normalized.
+        This version modifies each component in place.
+        
+        RETURNS
+        -------
+        This vector after normalizatiion
+
+        THROWS
+        ------
+        ValueError if a zero vector.
+      
 
         """
         n1 = self.norm()
         if n1 == 0:
-            raise RuntimeException("Cannot normalize zero vector")
+            raise ValueError("Cannot normalize zero vector")
         #  Do nothing if it is already normalized
         if abs(n1 - 1) > 2.5E-16:
             #  ULP = 2.22E-16
             norm = n1
-            self._x /= norm
-            self._y /= norm
-            self._z /= norm
-            self._data = [self._x, self._y, self._z, self._w ]
+            sd = self._data
+            for i in range(len(sd)):
+                sd[i] /= norm
+        self._norm = 1
         return self
 
 
     def angle(self, v):
         """
-    # 
-    #      * Return the angle in radians [0,pi], between this vector and another vector.
-    #      *
-    #      * @param v The other vector
-    #      * @return The angle in radians
-    #      * @throws RuntimeException if either vector is zero.
-    #      
+     
+          Return the angle in radians [0,pi], between this vector and another vector.
+          
+          @param v The other vector
+          @return The angle in radians
+          @throws ValueError if either vector is zero.
+          
         """
         lsq = self.norm() * v.norm()
         a = self.dot(v) / lsq
@@ -415,41 +490,87 @@ class Vector(Quantifiable, Serializable, DeepEqual):
         elif a > 0:
             return asin(self.cross(v).norm() / lsq)
         else:
-            return PI - asin(self.cross(v).norm() / lsq)
+            return pi - asin(self.cross(v).norm() / lsq)
         
+    def epsilonEquals(self, q, epsilon=None, fraction=1e-10):
+        """
+        Returns true if this quaternion is approximately equal to another.<p>
+        The criterion is that the L-infinte distance between the two quaternions
+        u and v is less than or equal to epsilon.
+
+        If epsilon and fraction are both unspecified, fraction takes 1e-10 as the limit of fractional difference of `u` and `v` average; if epsilon is not specified and fraction is None, epsilon takes 1e-12; if both are specified, `epsilon` takes priority.
+        PARAMETERS
+        ----------
+        q : Quaternion
+            The other quaternion
+        epsilon : float
+            The maximum difference
+        fraction : float
+            The maximum relative differece. Ignored if `epsilon` is  given. 
+
+        RETURNS
+        -------
+        bool
+
+        true if the quaternions are approximately equal
+        """
+        if epsilon is None and fraction is None:
+            epsilon = 1E-12
+        sd = self._data
+        qd = q._data
+
+        if epsilon is None:
+            return max(map(lambda s,q: 0 if (abs(s)+abs(q)) <= 1e-12 else abs((s-q)/(abs(s)+abs(q))), sd, qd)) <= fraction/2
+        else:
+            return max(map(lambda s,q: abs(s-q), sd, qd)) <= epsilon
         
     def __eq__(self, obj, verbose=False, **kwds):
         """ can compare value """
-        if type(obj).__name__ in DataTypes.values():
-            return sqrt(sum(x*x for x in self._data)) == obj
+        t = type(obj)
+        if not issubclass(t, self.__class__):
+            return False
+        if t.__name__ in DataTypes.values():
+            return all(s==o for s,o in zip(self._data, obj._data))
         else:
             return super(Vector, self).__eq__(obj)
 
     def __lt__(self, obj):
-        """ can compare value """
+        """ can compare value
+
+            Compares the `norm()` result with `obj`.
+        """
         if type(obj).__name__ in DataTypes.values():
-            return sqrt(sum(x*x for x in self._data)) < obj
+            return self.norm() < obj
         else:
             return super(Vector, self).__lt__(obj)
 
     def __gt__(self, obj):
-        """ can compare value """
+        """ can compare value.
+
+        Compares the `norm()` result with `obj`.
+        """
         if type(obj).__name__ in DataTypes.values():
-            return sqrt(sum(x*x for x in self._data)) > obj
+            return self.norm() > obj
         else:
             return super(Vector, self).__gt__(obj)
 
     def __le__(self, obj):
-        """ can compare value """
+        """ can compare value
+
+            Compares the `norm()` result with `obj`.
+        """
         if type(obj).__name__ in DataTypes.values():
-            return sqrt(sum(x*x for x in self._data)) <= obj
+            return self.norm() <= obj
         else:
             return super(Vector, self).__le__(obj)
 
     def __ge__(self, obj):
-        """ can compare value """
+        """ can compare value
+
+            Compares the `norm()` result with `obj`.
+        """
         if type(obj).__name__ in DataTypes.values():
-            return sqrt(sum(x*x for x in self._data)) >= obj
+            return self.norm() >= obj
         else:
             return super(Vector, self).__ge__(obj)
 
@@ -463,6 +584,11 @@ class Vector(Quantifiable, Serializable, DeepEqual):
 
         """
         return len(self._data)
+
+    def __iter__(self, *args, **kwargs):
+        """ returns an iterator
+        """
+        return self._data.__iter__(*args, **kwargs)
 
     def toString(self, level=0, **kwds):
         return self.__repr__()
@@ -507,6 +633,111 @@ class Vector2D(Vector):
             self.setComponents(components)
 
 
+    @ property
+    def x(self):
+        """ for property getter
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+        return self.getX()
+
+    @ x.setter
+    def x(self, x):
+        """ for property setter
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
+        self.setX(x)
+
+    def getX(self):
+        """ Returns the actual x
+        of this vector.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
+        return self._data[0]
+
+    def setX(self, x):
+        """ Replaces the current x of this vector.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
+        if not isinstance(x, Number):
+            raise TypeError('X must be a number.')
+
+        self.setX(x)
+
+    @ property
+    def y(self):
+        """ for property getter
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+        return self.getY()
+
+    @ y.setter
+    def y(self, y):
+        """ for property setter
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
+        self.setY(y)
+
+    def getY(self):
+        """ Returns the actual y that is allowed for the y
+        of this vector.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
+        return self._data[1]
+
+    def setY(self, y):
+        """ Replaces the current y of this vector.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
+        if not isinstance(y, Number):
+            raise TypeError('Y must be a number.')
+
+        self._data[1] = y
+
+
 class Vector3D(Vector):
     """ Vector with 3-component data"""
 
@@ -527,4 +758,192 @@ class Vector3D(Vector):
             self.setComponents(components)
 
 
+    def mNormalize(self):
+        """
+         Normalize to unit length, in place.
+        
+        The normalization is skipped if the vector is already normalized.
+        This version changes compnents in position.
+        
+        RETURNS
+        -------
+        Vector3D
+            This vector after normalizatiion
+
+        THROWS
+        ------
+        ValueError if a zero vector.
+      
+
+        """
+        n1 = self.norm()
+        if n1 == 0:
+            raise ValueError("Cannot normalize zero vector")
+        #  Do nothing if it is already normalized
+        if abs(n1 - 1) > 2.5E-16:
+            #  ULP = 2.22E-16
+            norm = n1
+            sd = self._data
+            sd[0] /= norm
+            sd[1] /= norm
+            sd[2] /= norm
+        self._norm = 1
+        return self
+
+    @ property
+    def x(self):
+        """ for property getter
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+        return self.getX()
+
+    @ x.setter
+    def x(self, x):
+        """ for property setter
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
+        self.setX(x)
+
+    def getX(self):
+        """ Returns the actual x that is allowed for the x
+        of this vector.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
+        return self._data[0]
+
+    def setX(self, x):
+        """ Replaces the current x of this vector.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
+        if not isinstance(x, Number):
+            raise TypeError('X must be a number.')
+
+        self.setX(x)
+
+    @ property
+    def y(self):
+        """ for property getter
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+        return self.getY()
+
+    @ y.setter
+    def y(self, y):
+        """ for property setter
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
+        self.setY(y)
+
+    def getY(self):
+        """ Returns the actual y
+        of this vector.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
+        return self._data[1]
+
+    def setY(self, y):
+        """ Replaces the current y of this vector.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
+        if not isinstance(y, Number):
+            raise TypeError('Y must be a number.')
+
+        self._data[1] = y
+
     
+    @ property
+    def z(self):
+        """ for propertz getter
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+        return self.getZ()
+
+    @ z.setter
+    def z(self, z):
+        """ for property setter
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
+        self.setZ(z)
+
+    def getZ(self):
+        """ Returns the actual z
+        of this vector.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
+        return self._data[2]
+
+    def setZ(self, z):
+        """ Replaces the current z of this vector.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
+        if not isinstance(z, Number):
+            raise TypeError('Z must be a number.')
+
+        self._data[2] = z
+

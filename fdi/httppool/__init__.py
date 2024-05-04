@@ -311,7 +311,7 @@ def init_poolmanager(app, g, pc, preload):
     # the httppool that is local to the server
     scheme = 'server'
 
-    # this is something like SERVER_LOCAL_POOLPATH, /.../v0.16
+    # this is something like SERVER_LOCAL_POOLPATH, /.../v0.17
     # os.path.join(_basepath, pc['api_version'])
     full_base_local_poolpath = PM_S.PlacePaths[scheme]
 
@@ -322,7 +322,7 @@ def init_poolmanager(app, g, pc, preload):
 
     app.config['POOLSCHEME'] = scheme
 
-    # e.g. "/tmp/data/v0.16"
+    # e.g. "/tmp/data/v0.17"
     app.config['FULL_BASE_LOCAL_POOLPATH'] = full_base_local_poolpath
     app.config['POOLURL_BASE'] = scheme + \
         '://' + full_base_local_poolpath + '/'
@@ -419,7 +419,7 @@ def create_app(config_object=None, level=None, logstream=None, preload=False):
         'title': 'FDI %s HTTPpool Server' % __revision__,
         'universion': 3,
         'openapi': '3.0.4',
-        'specs_route': '/apidocs/',
+        'specs_route': '/swagger/',
         'url_prefix': _BASEURL
     }
     swag['servers'].insert(0, {
@@ -501,7 +501,7 @@ if 1:
 
         if logger.getEffectiveLevel() < logging.WARNING: 
             a = lls(request.view_args,50)
-            # remove leading e.g. /fdi/v0.16
+            # remove leading e.g. /fdi/v0.17
             s = request.path.split(_BASEURL)
             p = s[0] if len(s) == 1 else s[1] if s[0] == '' else request.path
             method = request.method

@@ -55,7 +55,7 @@ servers:
       basePath:
         # no enum means it s an open value --
         # there is an opportunity for the provider to assign
-        default: 'fdi/v0.16'
+        default: 'fdi/v0.17'
         
 security:
   - BasicAuth: []
@@ -498,7 +498,7 @@ paths:
           2:
             value: fdi.dataset.product.Product/0/results/Time_Energy_Pos/Energy/data
             summary: |
-              Sample product from server test pool. e.g.  http://localhost:9885/fdi/v0.16/serv_test_httppool/
+              Sample product from server test pool. e.g.  http://localhost:9885/fdi/v0.17/serv_test_httppool/
           3:
             value: fdi.pal.context.Context
             summary: A Context.

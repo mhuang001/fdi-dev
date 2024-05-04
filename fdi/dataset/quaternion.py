@@ -1,10 +1,16 @@
 #!/usr/bin/env python
 
 
-from .datatypes import Vector
+from .datatypes import Vector, Attitude, Vector3D
 
+from collections import namedtuple
 from collections.abc import Sequence
-""" generated source for module <stdin> """
+
+import sys
+from math import pi, sin as _sin, cos as _cos, atan2 as _atan2, asin as _asin, \
+    sqrt as _sqrt
+
+Number = (float, int)
 
 # def bsr(value, bits):
 #     """ bsr(value, bits) -> value shifted right by bits
@@ -41,20 +47,20 @@ from collections.abc import Sequence
      it under the terms of the GNU Lesser General Public License as
      published by the Free Software Foundation, either version 3 of
      the License, or (at your option) any later version.
-    
+
      HCSS is distributed in the hope that it will be useful,
      but WITHOUT ANY WARRANTY; without even the implied warranty of
      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
      GNU Lesser General Public License for more details.
-    
+
      You should have received a copy of the GNU Lesser General
      Public License along with HCSS.
      If not, see <http://www.gnu.org/licenses/>.
-  
+
      package: herschel.share.fltdyn.math
 
      A quaternion w + ix + jy + kz.<p>
-     
+
      Quaternions provide an efficient way to represent and manipulate rotations
      including spacecraft attitudes. They do not suffer from the singularity
      problems of Euler angles (e.g. the Attitude class).<p>
@@ -75,13 +81,19 @@ from collections.abc import Sequence
      @author  Jon Brumfitt
 """
 
-class Quaternion(Vector):
+"""
+`Quat is a `namedtuple` with four components named 'x', 'y', 'z', and'w' for the three vector components and scalar compnent of a quaternion, with a default value of (0, 0, 0, 0).
+"""
+Quat = namedtuple('Quat', ['x', 'y', 'z', 'w'], defaults=[0, 0, 0, 0],
+                  module=sys.modules['fdi.dataset.quaternion'])
+
+class xQuaternion(Vector):
     """ Quaternion with 4-component data.
     """
 
     def __init__(self, components=None, **kwds):
         """ invoked with no argument results in a vector of
-        [0, 0, 0, 0] components
+        (0, 0, 0, 0) components
         
         Parameters
         ----------
@@ -94,20 +106,39 @@ class Quaternion(Vector):
         super(Quaternion, self).__init__(**kwds)
 
         if components is None:
-            self._data = [0, 0, 0, 0]
+            self._data = Quat(x=0, y=0, z=0, w=0)
         else:
             self.setComponents(components)
 
-class aQuaternion(Vector):
+class Quaternion(Vector):
     """ Quaternion with 4-component data.
          
 
     """
+
+    def setComponents(self, components):
+        """ Replaces the current components of this quaternion.
+
+        Parameters
+        ----------
+        components : list, None
+            A sequence of numbers to be set as the contents of this quaternion.
+        Returns
+        -------
+
+        """
+
+        self._data = Quat() if components is None else Quat(*components)
+
+    _data = Quat()
+    _unit = None
+    _typecode = None
+    
     def __init__(self, components=None,
                  angle=None, z=None, w=None, **kwds):
         """ Create a quatnion instance.
 
-         
+        
          Note that some math libraries specify quaternion arguments in the order
          XYZW while others use WXYZ. This library uses XYZW, which is consistent
          with Java3D's Quat4d class and the conventions used in the Herschel/Planck
@@ -120,9 +151,8 @@ class aQuaternion(Vector):
           * with one argument of a Sequence 's', the result is 
         ```x=s[0], y=s[1], z=s[2], w=s[3]```. Particularly if
         's' is also a Quaternion, a copy of 's' is created.
-          * with four arguments each of which is a `float`, the argument will be taken as `x`, `y`, `z`, `w`.
-          * 
-        [0, 0, 0, 1] components
+          * with four arguments each of which is a `float` or `int`, the argument will be taken as `x`, `y`, `z`, `w`.
+          * if component is a `Seuquence` and float angle components, a `rotation` quaternion is made
 
 
         Parameters
@@ -134,55 +164,136 @@ class aQuaternion(Vector):
         -------
         """
 
-        super(Quaternion, self).__init__(**kwds)
-
         cc = components.__class__
+        if issubclass(cc, Vector):
+            components = components._data
+            cc = components.__class__
+            
         if components is None:
             if angle is None:
-                self._x = 0
-                self._y = 0
-                self._z = 0
-                self._w = 1
-                self._data = [0, 0, 0, 1]
+                super(Quaternion, self).__init__(components, **kwds)
+                self.setComponents((0, 0, 0, 1))
             else:
                 raise TypeError(f'When the first component given to Quaternion initialization is `None`, the rest three all should be `None`.')
         elif issubclass(cc, Quaternion):
-            if issubclass(angle.__class__, float):
+            super(Quaternion, self).__init__(components, **kwds)
+            if issubclass(angle.__class__, Number):
                 """
                 Create a unit Quaternion corresponding to a rotation of 'angle' about 'axis'.
                 The axis vector need not be normalized.
                 """
+
                 axis = components
 
                 # Normalizing the vector ensures the quaternion is normalized.
                 v = axis.normalize()
-                sinA = sin(angle / 2)
-                cosA = cos(angle / 2)
-                self._x = v.getX() * sinA
-                self._y = v.getY() * sinA
-                self._z = v.getZ() * sinA
-                self._w = cosA
-                self._data = [self._x, self._y, self._z, self._w]
+                sd = v._data
+                sinA = _sin(angle / 2)
+                cosA = _cos(angle / 2)
+                self.setComponents((sd[0]*sinA,
+                                    sd[1]*sinA,
+                                    sd[2]*sinA,
+                                    cosA))
 
             elif angle is None:
                 # Create a copy of another Quaternion.
-                self._x, self._y, self._z, self._w = tuple(components[:4])
-                self.setComponents(components[:4])
+                self.setComponents(components)
         elif issubclass(cc, Sequence):
-                self._x, self._y, self._z, self._w = tuple(components[:4])
-                self.setComponents(components[:4])
-        elif issubclass(cc, (float)):
-            if issubclass(angle.__class__, float) and \
-               issubclass(z.__class__, float) and \
-               issubclass(w.__class__, float):
+            if angle is None:
+                super(Quaternion, self).__init__(components, **kwds)
+                self.setComponents(components)
+            elif issubclass(angle.__class__, Number):
+                if len(components) == 3:
+                    super(Quaternion, self).__init__(components, **kwds)
+                    # rotation
+                    self.mRotate(components, angle)
+                else:
+                    raise TypeError('When angle is a number, the first arguement must be a vector with 3 components.')
+            else:
+                raise TypeError('When component is a Sequence, angle should be a Number or None.')
+        elif issubclass(cc, Number):
+            if issubclass(angle.__class__, Number) and \
+               issubclass(z.__class__, Number) and \
+               issubclass(w.__class__, Number):
                 # input is x, y, z, w
-                self._data = [components, angle , z, w]
-                self._x, self._y, self._z, self._w = (components, angle , z, w)
+                _c = (components, angle, z, w)
+                super(Quaternion, self).__init__(_c, **kwds)
+                self.setComponents(_c)
             else:
                 raise TypeError(f'When the first component given to Quaternion initialization is float ({components}), the rest three all should be floats.')
         else:
             raise TypeError(f'Invalid parameters for making a Quaternion: {components} {angle}, z = {z}, w = {w}.')
 
+    def mNormalize(self):
+        """
+ 
+        Normalize to unit length, in place.
+        
+        The normalization is skipped if the vector is already normalized.
+        This version changes `_data` container, because it is immutable.
+        Still is in place w.r.t this Quaternion.
+        
+        RETURNS
+        -------
+        This vector after normalizatiion
+
+        THROWS
+        ------
+        ValueError if a zero vector.
+      
+
+        """
+        n1 = self.norm()
+        if n1 == 0:
+            raise ValueError("Cannot normalize zero vector")
+        #  Do nothing if it is already normalized
+        if abs(n1 - 1) > 2.5E-16:
+            #  ULP = 2.22E-16
+            norm = n1
+            sd = self._data
+            newd = Quat(sd[0]/norm, sd[1]/norm, sd[2]/norm, sd[3]/norm)
+            self._data = newd
+        self._norm = 1
+        return self
+
+    def mRotate(self, axis, angle):
+        """Set the current quaternion to be the rotation of a given angle around a given axis.
+
+        Parameters
+        ----------
+        axis : Vector3D, Vector
+            The axis to rotate around.
+        angle : float, int
+            The angle to rotate by.
+
+        Returns
+        -------
+        None
+            None
+
+        Examples
+        --------
+        FIXME: Add docs.
+
+        """
+        if not issubclass(axis.__class__, Vector):
+            axis = Vector(axis)
+        na = axis.normalize()
+
+        sinA = _sin(angle / 2)
+        cosA = _cos(angle / 2)
+
+        sd = self._data
+        qd = na._data
+        _x = qd[0] * sinA
+        _y = qd[1] * sinA
+        _z = qd[2] * sinA
+        _w = cosA
+        self._data = Quat(_x, _y, _z, _w)
+        self._norm = None
+        return self
+    
+    
     @staticmethod
     def rotation(v1, v2):
         """Create the Quaternion that gives the shortest rotation from v1 to v2.
@@ -199,7 +310,7 @@ class aQuaternion(Vector):
 
         throws
         ------
-        RuntimeException if v1 and v2 are collinear
+        ValueError if v1 and v2 are collinear
         """
         return Quaternion(v1.cross(v2), v1.angle(v2))
 
@@ -216,7 +327,7 @@ class aQuaternion(Vector):
         Quaternion representing the rotation
         """
 
-        return Quaternion(sin(angle / 2), 0, 0, cos(angle / 2))
+        return Quaternion(_sin(angle / 2), 0, 0, _cos(angle / 2))
 
     @staticmethod
     def yRotation(angle):
@@ -231,7 +342,7 @@ class aQuaternion(Vector):
         Quaternion representing the rotation
         """
 
-        return Quaternion(0, sin(angle / 2), 0, cos(angle / 2))
+        return Quaternion(0, _sin(angle / 2), 0, _cos(angle / 2))
 
     @staticmethod
     def zRotation(angle):
@@ -245,7 +356,19 @@ class aQuaternion(Vector):
         ------
         Quaternion representing the rotation
         """
-        return Quaternion(0, 0, sin(angle / 2), cos(angle / 2))
+        return Quaternion(0, 0, _sin(angle / 2), _cos(angle / 2))
+
+    def cross(self, v):
+        """
+        Return the cross product of this quaternion by another quaternion, as
+        a new quaternion.
+
+        param v The other vector.
+        """
+
+        sd = self._data
+        qd = v._data
+        return Vector3D((sd[1] * qd[2] - sd[2] * qd[1], sd[2] * qd[0] - sd[0] * qd[2], sd[0] * qd[1] - sd[1] * qd[0]))
 
     def set(self, q):
         """
@@ -256,13 +379,10 @@ class aQuaternion(Vector):
         q The quaternion
         """
         
-        self._x = q._x
-        self._y = q._y
-        self._z = q._z
-        self._w = q._w
+        self.setComponents(q._data)
 
  
-    def toMatrix3(self):
+    def XtoMatrix3(self):
         """
         Return the rotation matrix that corresponds to this Quaternion.<p>
 
@@ -279,17 +399,22 @@ class aQuaternion(Vector):
  
     def toAttitude(self):
         """
-             Convert this Quaternion to an equivalent Attitude.<p>
-             The quaternion does not have to be normalized.
-             return an Attitude equivalent to this Quaternion
+        Convert this Quaternion to an equivalent Attitude.
+        
+        The quaternion does not have to be normalized.
+
+        RETURN
+        ------
+        Attitude
+            an Attitude equivalent to this Quaternion
         """
       
-        """ generated source for method toAttitude """
-        xx = self._x * self._x
-        yy = self._y * self._y
-        zz = self._z * self._z
-        ww = self._w * self._w
-        d = self._x * self._z - self._y * self._w
+        sd = self._data
+        xx = sd.x * sd.x
+        yy = sd.y * sd.y
+        zz = sd.z * sd.z
+        ww = sd.w * sd.w
+        d  = sd.x * sd.z - sd.y * sd.w
         uu = xx + yy + zz + ww
         xa = 0
         ya = 0
@@ -303,100 +428,286 @@ class aQuaternion(Vector):
         threshold = 1E-13
         #  DEC=89.999974 degrees (0.09 arcsec)
         limit = 0.5 * (1 - threshold)
+        sd = self._data
         if abs(d) > limit * uu:
             #  Close to a pole
-            za = -atan2(2 * (self._x * self._y - self._z * self._w), yy + ww - xx - zz)
+            za = -_atan2(2 * (sd.x * sd.y - sd.z * sd.w), yy + ww - xx - zz)
             if d >= 0:
-                ya = PI / 2
+                ya = pi / 2
             else:
-                ya = -PI / 2
+                ya = -pi / 2
         else:
-            xa = -atan2(2 * (self._y * self._z + self._x * self._w), zz + ww - xx - yy)
-            ya = asin(2 * d / uu)
-            za = atan2(2 * (self._x * self._y + self._z * self._w), xx + ww - yy - zz)
+            xa = -_atan2(2 * (sd.y * sd.z + sd.x * sd.w), zz + ww - xx - yy)
+            ya = _asin(2 * d / uu)
+            za = _atan2(2 * (sd.x * sd.y + sd.z * sd.w), xx + ww - yy - zz)
+            if za < 0:
+                za += (pi + pi)
         return Attitude(za, ya, xa)
 
- 
+
+    @ property
+    def x(self):
+        """ for property getter
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+        return self.getX()
+
+    @ x.setter
+    def Xx(self, x):
+        """ for property setter
+
+        Parameters
+        ----------
+        x : int, float
+        The first component of the quaternion part of the Quaternion.
+
+        Returns
+        -------
+
+        """
+        self.setX(x)
+
     def getX(self):
-        """
-             Return the X component of the quaternion.
-             return The X component
-        """
-        return self._x
+        """ Returns the actual x that is allowed for the x
+        of this quaternion.
 
- 
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
+        return self._data[0]
+
+    def XsetX(self, x):
+        """ Replaces the current x of this quaternion.
+
+        Parameters
+        ----------
+        x : int, float
+        The first component of the quaternion part of the Quaternion.
+
+        Returns
+        -------
+
+        """
+        if not isinstance(x, Number):
+            raise TypeError('X must be a number.')
+
+        self.setX(x)
+
+    @ property
+    def y(self):
+        """ for property getter
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+        return self.getY()
+
+    @ y.setter
+    def Xy(self, y):
+        """ for property setter
+
+        Parameters
+        ----------
+        y : int, float
+        The second component of the quaternion part of the Quaternion.
+
+        Returns
+        -------
+
+        """
+        self.setY(y)
+
     def getY(self):
-        """
-             Return the Y component of the quaternion.
-             return The Y component
-        """
-        return self._y
+        """ Returns the actual y
+        of this quaternion.
 
- 
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
+        return self._data[1]
+
+    def XsetY(self, y):
+        """ Replaces the current y of this quaternion.
+
+        Parameters
+        ----------
+        y : int, float
+        The second component of the quaternion part of the Quaternion.
+
+        Returns
+        -------
+
+        """
+        if not isinstance(y, Number):
+            raise TypeError('Y must be a number.')
+
+        self._data[1] = y
+
+    
+    @ property
+    def z(self):
+        """ for property getter
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+        return self.getZ()
+
+    @ z.setter
+    def Xz(self, z):
+        """ for property setter
+
+        Parameters
+        ----------
+        z : int, float
+        The third component of the quaternion part of the Quaternion.
+
+        Returns
+        -------
+
+        """
+        self.setZ(z)
+
     def getZ(self):
-        """
-             Return the Z component of the quaternion.
-             return The Z component
-        """
-        return self._z
+        """ Returns the actual z
+        of this quaternion.
 
- 
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
+        return self._data[2]
+
+    def XsetZ(self, z):
+        """ Replaces the current z of this quaternion.
+
+        Parameters
+        ----------
+        z : int, float
+        The third component of the quaternion part of the Quaternion.
+
+        Returns
+        -------
+
+        """
+        if not isinstance(z, Number):
+            raise TypeError('Z must be a number.')
+
+        self._data[2] = z
+
+    @ property
+    def w(self):
+        """ for property getter
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+        return self.getW()
+
+    @ w.setter
+    def Xw(self, w):
+        """ for property setter
+
+        Parameters
+        ----------
+        w : int, float
+        The third component of the quaternion part of the Quaternion.
+
+        Returns
+        -------
+
+        """
+        self.setW(w)
+
     def getW(self):
-        """
-             Return the W (scalar) component of the quaternion.
-             return The W component
-        """
-        return self._w
+        """ Returns the actual w
+        of this quaternion.
 
- 
-    def mNormalize(self):
-        """
-        Normalize this quaternion.<p>
-             
-        The normalization is skipped if the Quaternion is already normalized.
-        return This quaternion after normalization
-        """
-   
-        n2 = normSquared()
-        if n2 == 0:
-            raise RuntimeException("Cannot normalize zero quaternion")
-        #  Do nothing if it is already normalized
-        if abs(n2 - 1) > 5E-16:
-            #  ULP = 2.22E-16
-            norm = sqrt(n2)
-            self._w /= norm
-            self._x /= norm
-            self._y /= norm
-            self._z /= norm
-        return self
+        Parameters
+        ----------
 
+        Returns
+        -------
+
+        """
+        return self._data[3]
+
+    def XsetW(self, w):
+        """ Replaces the current w of this quaternion.
+
+        Parameters
+        ----------
+        w : int, float
+        The third component of the quaternion part of the Quaternion.
+
+        Returns
+        -------
+
+        """
+        if not isinstance(w, Number):
+            raise TypeError('W must be a number.')
+
+        self._data[3] = w
  
     def normalize(self):
         """
-             Normalize this quaternion, returning a new object.
-             return A new normalized quaternion
+        Normalize this quaternion, returning a new object.
+
+        RETURNS
+        -------
+        Quaternion
+            A new normalized quaternion
         """
+
         return self.copy().mNormalize()
 
  
     def mNormalizeSign(self):
         """
-             Normalize the signs to ensure scalar component is non-negative.<p>
-             Negating all four components of a quaternion, effectively adds
-             PI to the rotation angle. This is equivalent to a rotation of
-             (2*PI - angle) in the opposite direction. However, when using 
-             quaternions to represent attitudes this is irrelevant and it
-             is convenient to normalize the quaternion so that the scalar
-             component is non-negative. 
-             return This quaternion after normalization
+        Normalize the signs to ensure scalar component is non-negative.
+        
+        Negating all four components of a quaternion, effectively adds
+        PI to the rotation angle. This is equivalent to a rotation of
+        (2*PI - angle) in the opposite direction. However, when using 
+        quaternions to represent attitudes this is irrelevant and it
+        is convenient to normalize the quaternion so that the scalar
+        component is non-negative. 
+
+        RETURNS
+        -------
+        Quaternion
+            This quaternion after normalization
         """
       
-        """ generated source for method mNormalizeSign """
-        if self._w < 0:
-            self._x = -self._x
-            self._y = -self._y
-            self._z = -self._z
-            self._w = -self._w
+        sd = self._data
+        if sd.w < 0:
+            sd = self._data
+            _x = -sd.x
+            _y = -sd.y
+            _z = -sd.z
+            _w = -sd.w
+            self._data = Quat(_x, _y, _z, _w)
         return self
 
  
@@ -405,15 +716,14 @@ class aQuaternion(Vector):
         Normalize the signs to ensure scalar component is non-negative,
              returning a new object.
 
-             return A new quaternion with normalized signs
-             see #mNormalizeSign
+        return A new quaternion with normalized signs.
+        See `mNormalizeSign`
         """
-        """ generated source for method normalizeSign """
-        return copy().mNormalizeSign()
+        return self.copy().mNormalizeSign()
 
  
         """
-             Return the magnitude (norm) of this quaternion.<p>
+        Return the magnitude (norm) of this quaternion.<p>
              This is 1 if the quaternion is normalized.
              return Magnitude of this quaternion
              deprecated Use norm method
@@ -431,38 +741,53 @@ class aQuaternion(Vector):
         """
          
        
-        return sqrt(self._w * self._w + self._x * self._x + self._y * self._y + self._z * self._z)
+        sd = self._data
+        return _sqrt(sd[0] * sd[0] + sd[1] * sd[1] + sd[2] * sd[2] + sd[3] * sd[3])
 
  
     def normSquared(self):
         """
-             Return the square of the L2 norm of this quaternion.
-             return Squarer of the L2 norm of this quaternion
+        Return the square of the L2 norm of this quaternion.
+
+        RETURN
+        ------
+        float
+            Squarer of the L2 norm of this quaternion
         """
       
-
-        return self._w * self._w + self._x * self._x + self._y * self._y + self._z * self._z
+        sd = self._data
+        return sd[0] * sd[0] + sd[1] * sd[1] + sd[2] * sd[2] + sd[3] * sd[3]
 
  
     def mMultiply(self, q):
         """
-             Multiply this quaternion by another one, in place.<p>
-             This is the Grassman product, which corresponds to composition
-             of two rotations. If A and B are active rotations, A.B is
-             rotation A followed by rotation B.
-        parameters
+        Multiply this quaternion by another one, in place.<p>
+        This is the Grassman product, which corresponds to composition
+        of two rotations. If A and B are active rotations, A.B is
+        rotation A followed by rotation B.
+
+        PARAMETERS
         ----------
-        q The other quaternion
-        return This quaternion after multication by other quaternion
+        q : Quaternion
+            The other quaternion
+
+        RETURNS
+        -------
+        Quaternion
+            This quaternion after multication by other quaternion
         """
-      
-        x = self._w * q._x + self._x * q._w + self._y * q._z - self._z * q._y
-        y = self._w * q._y + self._y * q._w + self._z * q._x - self._x * q._z
-        z = self._w * q._z + self._z * q._w + self._x * q._y - self._y * q._x
-        self._w = self._w * q._w - self._x * q._x - self._y * q._y - self._z * q._z
-        self._x = x
-        self._y = y
-        self._z = z
+        
+        sd = self._data
+        qd = q._data
+        
+        _x = sd.w * qd.x + sd.x * qd.w + sd.y * qd.z - sd.z * qd.y
+        _y = sd.w * qd.y + sd.y * qd.w + sd.z * qd.x - sd.x * qd.z
+        _z = sd.w * qd.z + sd.z * qd.w + sd.x * qd.y - sd.y * qd.x
+        _w = sd.w * qd.w - sd.x * qd.x - sd.y * qd.y - sd.z * qd.z
+
+        self._data = Quat(_x, _y, _z, _w)
+        self._norm = None
+        
         return self
 
  
@@ -476,53 +801,60 @@ class aQuaternion(Vector):
         """
         
     def multiply(self, q):
-        """ generated source for method multiply """
-        return copy().mMultiply(q)
 
- 
+        return self.copy().mMultiply(q)
+
+    __mul__ = multiply
+    __imul__ = mMultiply
+    
     def mConjugate(self):
         """
-             Conjugate this quaternion in place.
-             @return This quaternion after conjugation
+        Conjugate this quaternion in place.
+        @return This quaternion after conjugation
       
         """
-        self._x = -self._x
-        self._y = -self._y
-        self._z = -self._z
+        sd = self._data
+        _x = -sd.x
+        _y = -sd.y
+        _z = -sd.z
+        _w = sd.w
+        self._data = Quat(_x, _y, _z, _w)
+        self._norm = None
         return self
 
  
     def conjugate(self):
         """
-             Conjugate this quaternion, returning a new object.
-             @return The conjugate
+        Conjugate this quaternion, returning a new object.
+        @return The conjugate
         """
       
-        return copy().mConjugate()
+        return self.copy().mConjugate()
 
  
     def mConjugateWith(self, a):
         """
-             Conjugate this quaternion with unit quaternion <tt>a</tt>, in place.<p>
+        Conjugate this quaternion with unit quaternion <tt>a</tt>, in place.<p>
 
-             This quaternion <tt>b</tt>, becomes a.b.a*.<p>
+        This quaternion <tt>b</tt>, becomes a.b.a*.<p>
              
-             This method is deprecated and replaced by <tt>rotate(Quaternion)</tt>.
-             Note that the new method computes B.A.Binv instead of A.B.A*, with the
-             roles of A and B interchanged. The use of inverse avoids the need to
-             normalize the quaternion.
-             @parameters
+        This method is deprecated and replaced by <tt>rotate(Quaternion)</tt>.
+        Note that the new method computes B.A.Binv instead of A.B.A*, with the
+        roles of A and B interchanged. The use of inverse avoids the need to
+        normalize the quaternion.
+
+        parameters
         ----------
         a The other quaternion A
              @return This quaternion after conjugation with A
              @deprecated Use qb.rotate(qa) instead of qa.copy().mConjugateWith(qb.normalize())
         """
-      
-        
-        w = a._w
-        x = a._x
-        y = a._y
-        z = a._z
+        sd = self._data      
+        qd = a._data
+        w = qd.w
+        x = qd.x
+        y = qd.y
+        z = qd.z
         w2 = w * w
         x2 = x * x
         y2 = y * y
@@ -533,59 +865,69 @@ class aQuaternion(Vector):
         xz = x * z
         yz = y * z
         wx = w * x
-        xr = 2 * ((xy - wz) * self._y + (wy + xz) * self._z) + (w2 + x2 - y2 - z2) * self._x
-        yr = 2 * ((xy + wz) * self._x + (yz - wx) * self._z) + (w2 - x2 + y2 - z2) * self._y
-        self._z = 2 * ((xz - wy) * self._x + (yz + wx) * self._y) + (w2 - x2 - y2 + z2) * self._z
-        self._w *= (w2 + x2 + y2 + z2)
-        self._x = xr
-        self._y = yr
+        xr = 2 * ((xy - wz) * sd.y + (wy + xz) * sd.z) + (w2 + x2 - y2 - z2) * sd.x
+        yr = 2 * ((xy + wz) * sd.x + (yz - wx) * sd.z) + (w2 - x2 + y2 - z2) * sd.y
+        sd.z = 2 * ((xz - wy) * sd.x + (yz + wx) * sd.y) + (w2 - x2 - y2 + z2) * sd.z
+        sd.w *= (w2 + x2 + y2 + z2)
+        sd.x = xr
+        sd.y = yr
         return self
 
  
     def rotate(self, p):
         """
-             Rotate the rotation P with this Quaternion Q, returning Q.P.Qinv.<p>
+        Rotate the rotation P with this Quaternion Q, returning Q.P.Qinv.
+        If this quaternion Q represents the rotation of frame B with respect to 
+        frame A, then <tt>Q.rotate(P)</tt> transforms the rotation P from frame A
+        to frame B. Also, <tt>Q.conjugate().rotate(P)</tt>transforms P from frame B
+        to frame A.
              
-             If this quaternion Q represents the rotation of frame B with respect to 
-             frame A, then <tt>Q.rotate(P)</tt> transforms the rotation P from frame A
-             to frame B. Also, <tt>Q.conjugate().rotate(P)</tt>transforms P from frame B
-             to frame A.<p>
+        <tt>Q.rotate(P) == Q.multiply(P).multiply(Q.conjugate())</tt>
              
-             <tt>Q.rotate(P) == Q.multiply(P).multiply(P.conjugate())</tt><p>
-             
-        @parameters
+        PARAMETERS
         ----------
-        p Quaternion to be rotated
-             @return Rotated quaternion
-             @throws RuntimeException if this quaternion is zero
+        p : Quaternion
+            to be rotated
+        
+        RETURNS
+        -------
+        Quaternion
+            Rotated quaternion
+
+        THROWS
+        ------
+        ValueError if this quaternion is zero
         """
       
+        if not issubclass(p.__class__, Quaternion):
+            raise TypeError('A quaternion is needed for rotate.')
         
-        m2 = self._w * self._w + self._x * self._x + self._y * self._y + self._z * self._z
-        if m2 == 0:
-            raise RuntimeException("Zero quaternion")
-        vx = p.getX()
-        vy = p.getY()
-        vz = p.getZ()
-        ax = self._y * vz - self._z * vy
-        ay = self._z * vx - self._x * vz
-        az = self._x * vy - self._y * vx
-        rx = 2 / m2 * (self._w * ax + self._y * az - self._z * ay) + vx
-        ry = 2 / m2 * (self._w * ay + self._z * ax - self._x * az) + vy
-        rz = 2 / m2 * (self._w * az + self._x * ay - self._y * ax) + vz
-        return Quaternion(rx, ry, rz, p.getW())
+        sd = self.normalize()._data
+        qd = p._data
+
+        vx = qd[0]
+        vy = qd[1]
+        vz = qd[2]
+        ax = sd.y * vz - sd.z * vy
+        ay = sd.z * vx - sd.x * vz
+        az = sd.x * vy - sd.y * vx
+        rx = 2 * (sd.w * ax + sd.y * az - sd.z * ay) + vx
+        ry = 2 * (sd.w * ay + sd.z * ax - sd.x * az) + vy
+        rz = 2 * (sd.w * az + sd.x * ay - sd.y * ax) + vz
+        return Quaternion(rx, ry, rz, qd[3])
 
  
         """
              Return the dot product of this quaternion with another.
              @parameters
-    def dot(self, q):
         ----------
 q The other quaternion
              @return The dot product
         """
-        """ generated source for method dot """
-        return self._w * q._w + self._x * q._x + self._y * q._y + self._z * q._z
+    def dot(self, q):
+        sd = self._data
+        qd = q._data
+        return sd.w * qd.w + sd.x * qd.x + sd.y * qd.y + sd.z * qd.z
 
  
     def toAxisAngle(self):
@@ -595,41 +937,49 @@ q The other quaternion
              @return The rotation expressed as an AxisAngle
         """
       
-        """ generated source for method toAxisAngle """
-        a = angle()
+        a = self.angle()
+        sd = self._data
         if a == 0:
-            return AxisAngle(Vector3(1, 0, 0), 0)
+            return self.AxisAngle(Vector3D(1, 0, 0), 0)
         else:
-            v = Vector3(self._x, self._y, self._z)
-            return AxisAngle(v.normalize(), a)
+            v = Vector3D(sd.x, sd.y, sd.z)
+            return self.AxisAngle(v.normalize(), a)
 
  
     def axis(self):
         """
-             Return the unit vector of the rotation axis.<p>
-             If the angle is zero, the axis vector is set to (1,0,0).
-             @return The normalized axis vector
+        Return the unit vector of the rotation axis.<p>
+
+        If the angle is zero, the axis vector is set to (1,0,0).
+
+        RETURNS
+        -------
+        The normalized axis vector
         """
       
-        """ generated source for method axis """
-        a = angle()
+        sd = self._data
+        a = self.angle()
         if a == 0:
-            return Vector3(1, 0, 0)
+            return Vector3D((1, 0, 0))
         else:
-            return Vector3(self._x, self._y, self._z).mNormalize()
+            return Vector3D(sd[:3]).mNormalize()
 
  
     def angle(self):
         """
-             Return the rotation angle (radians) about the axis vector.<p>
-             The result is in the range 0 to 2*PI.
-             The quaternion need not be normalized.
-             @return The rotation angle in radians
+        Return the rotation angle (radians) about the axis vector.
+
+        The result is in the range 0 to 2*PI.
+        The quaternion need not be normalized.
+        
+        RETURNS
+        -------
+        
+        The rotation angle in radians
         """
-      
-        """ generated source for method angle """
-        r = sqrt(self._x * self._x + self._y * self._y + self._z * self._z)
-        return 2 * atan2(r, self._w)
+        sd = self._data
+        r = _sqrt(sd.x * sd.x + sd.y * sd.y + sd.z * sd.z)
+        return 2 * _atan2(r, sd.w)
 
  
     def equals(self, obj):
@@ -643,11 +993,12 @@ q The other quaternion
         @return true if the objects are equal
         """
       
-        """ generated source for method equals """
         if not (isinstance(obj, (Quaternion, ))):
             return False
-        q = obj
-        return (Double.doubleToLongBits(self._x) == Double.doubleToLongBits(q._x)) and (Double.doubleToLongBits(self._y) == Double.doubleToLongBits(q._y)) and (Double.doubleToLongBits(self._z) == Double.doubleToLongBits(q._z)) and (Double.doubleToLongBits(self._w) == Double.doubleToLongBits(q._w))
+        sd = self._data
+        qd = obj._data
+
+        return ((sd[0]) == (qd[0])) and ((sd[1]) == (qd[1])) and ((sd[2]) == (qd[2])) and ((sd[3]) == (qd[3]))
 
  
     # def hashCode(self):
@@ -656,47 +1007,71 @@ q The other quaternion
     #          @return The hash code
     #     """
       
-    #     """ generated source for method hashCode """
     #     result = 17
-    #     f = Double.doubleToLongBits(self._x)
+    #     f = Double.doubleToLongBits(sd.x)
     #     result = 37 * result + int((f ^ (bsr(f, 32))))
-    #     f = Double.doubleToLongBits(self._y)
+    #     f = Double.doubleToLongBits(sd.y)
     #     result = 37 * result + int((f ^ (bsr(f, 32))))
-    #     f = Double.doubleToLongBits(self._z)
+    #     f = Double.doubleToLongBits(sd.z)
     #     result = 37 * result + int((f ^ (bsr(f, 32))))
-    #     f = Double.doubleToLongBits(self._w)
+    #     f = Double.doubleToLongBits(sd.w)
     #     result = 37 * result + int((f ^ (bsr(f, 32))))
     #     return result
 
  
-    def epsilonEquals(self, q, epsilon):
+    def epsilonEquals(self, q, epsilon=None, fraction=1e-10):
         """
-             Returns true if this quaternion is approximately equal to another.<p>
-             The criterion is that the L-infinte distance between the two quaternions
-             u and v is less than or equal to epsilon.
-        @parameters
-        ----------
-        q The other quaternion
-        @parameters
-        ----------
-        epsilon The maximum difference
-        @return true if the quaternions are approximately equal
-        """
-      
-        """ generated source for method epsilonEquals """
-        dx = abs(self._x - q._x)
-        dy = abs(self._y - q._y)
-        dz = abs(self._z - q._z)
-        dw = abs(self._w - q._w)
-        return max(dx, max(dy, max(dz, dw))) <= epsilon
+        Returns true if this quaternion is approximately equal to another.
+        The criterion is that the L-infinte distance between the two quaternions
+        u and v is less than or equal to epsilon.
 
+        If epsilon and fraction are both unspecified, fraction takes 1e-10 as the limit of fractional difference of `u` and `v` average; if epsilon is not specified and fraction is None, epsilon takes 1e-12; if both are specified, `epsilon` takes priority.
+        PARAMETERS
+        ----------
+        q : Quaternion
+            The other quaternion
+        epsilon : float
+            The maximum difference
+        fraction : float
+            The maximum relative differece. Ignored if `epsilon` is  given. 
+
+        RETURNS
+        -------
+        bool
+
+        true if the quaternions are approximately equal
+        """
+        if epsilon is None and fraction is None:
+            epsilon = 1E-12
+            
+        sd = self._data
+        qd = q._data
+        if epsilon is None:
+            try:
+                s = abs(sd.x) + abs(qd.x)
+                dx = 0 if (s) <= 1e-12 else abs((sd.x - qd.x)/s)
+                s = abs(sd.y) + abs(qd.y)
+                dy = 0 if (s) <= 1e-12 else abs((sd.y - qd.y)/s)
+                s = abs(sd.z) + abs(qd.z)
+                dz = 0 if (s) <= 1e-12 else abs((sd.z - qd.z)/s)
+                s = abs(sd.w) + abs(qd.w)
+                dw = 0 if (s) <= 1e-12 else abs((sd.w - qd.w)/s)
+            except ZeroDivisionError:
+                return False
+            return max(dx, dy, dz, dw) <= fraction/2
+        else:
+            dx = abs(sd.x - qd.x)
+            dy = abs(sd.y - qd.y)
+            dz = abs(sd.z - qd.z)
+            dw = abs(sd.w - qd.w)
+            return max(dx, dy, dz, dw) <= epsilon
  
-    def copy(self):
+    def Xcopy(self):
         """
              Return a copy of this quaternion.
              @return A copy of this quaternion
         """      
-        """ generated source for method copy """
+
         return Quaternion(self)
 
  
@@ -705,14 +1080,14 @@ q The other quaternion
              Return a clone of this object.
              @return A clone of this quaternion
         """      
-        """ generated source for method clone """
+
         try:
             return super(Quaternion, self).clone()
         except CloneNotSupportedException as e:
             raise Error("Assertion failed")
 
  
-    def __str__(self):
+    def XXX__str__(self):
         """
              Return a string representation of the quaternion.<p>
              The exact details of the representation are unspecified
@@ -720,115 +1095,138 @@ q The other quaternion
              @return String representation of this object
         """
       
-        """ generated source for method toString """
-        return "[" + self._x + ", " + self._y + ", " + self._z + ", " + self._w + "]"
+        return "[" + sd.x + ", " + sd.y + ", " + sd.z + ", " + sd.w + "]"
 
  
     def rotateVector(self, v):
         """
-             Rotate a vector.<p>
-             This returns <tt>Q.[0,V].Qinv</tt>, where <tt>[0,V]</tt> is a quaternion
-             with scalar part 0 and vector part V.<p>
+        Rotate a vector.
+
+        This returns <tt>Q.[0,V].Qinv</tt>, where <tt>[0,V]</tt> is a quaternion
+        with scalar part 0 and vector part V.
              
-             If the quaternion Q represents the rotation of frame B with respect to 
-             frame A, then <tt>Q.rotateVector(v)</tt> is an active rotation of a vector
-             in frame A or a passive transformation of a vector from frame B to frame A.
-             @parameters
+        If the quaternion Q represents the rotation of frame B with respect to 
+        frame A, then <tt>Q.rotateVector(v)</tt> is an active rotation of a vector
+        in frame A or a passive transformation of a vector from frame B to frame A.
+
+        PARAMETERS
         ----------
-        v The vector to be rotated
-        @return The rotated vector
+        v : Vector3D
+            The vector to be rotated
+        
+        RETURNS
+        -------
+        Vecter3D
+            The rotated vector.
         """
       
-        """ generated source for method rotateVector """
-        m2 = self._w * self._w + self._x * self._x + self._y * self._y + self._z * self._z
-        if m2 == 0:
-            raise RuntimeException("Zero quaternion")
-        vx = v.getX()
-        vy = v.getY()
-        vz = v.getZ()
-        ax = self._y * vz - self._z * vy
-        ay = self._z * vx - self._x * vz
-        az = self._x * vy - self._y * vx
-        rx = 2 * (self._w * ax + self._y * az - self._z * ay) / m2 + vx
-        ry = 2 * (self._w * ay + self._z * ax - self._x * az) / m2 + vy
-        rz = 2 * (self._w * az + self._x * ay - self._y * ax) / m2 + vz
-        return Vector3(rx, ry, rz)
+        sd = self.normalize()._data
+        qd = v._data
+
+        vx = qd[0]
+        vy = qd[1]
+        vz = qd[2]
+        ax = sd.y * vz - sd.z * vy
+        ay = sd.z * vx - sd.x * vz
+        az = sd.x * vy - sd.y * vx
+        rx = 2 * (sd.w * ax + sd.y * az - sd.z * ay) + vx
+        ry = 2 * (sd.w * ay + sd.z * ax - sd.x * az) + vy
+        rz = 2 * (sd.w * az + sd.x * ay - sd.y * ax) + vz
+        return Vector3D((rx, ry, rz))
 
  
     def rotateAxes(self, v):
         """
-             Inverse rotation of a vector.<p>
-             This returns <tt>Qinv.[0,V].Q</tt>, where [0,V] is a Quaternion 
-             with scalar part 0 and vector part V. It is equivalent to 
-             <tt>Q.inverse().rotateVector(v)</tt><p>
+        Inverse rotation of a vector.
+        
+        This returns <tt>Qinv.[0,V].Q</tt>, where [0,V] is a Quaternion 
+        with scalar part 0 and vector part V. It is equivalent to 
+            <tt>Q.inverse().rotateVector(v)</tt><p>
              
-             If the quaternion Q represents the rotation of frame B with respect to 
-             frame A, then <tt>Q.rotateAxes(v)</tt> is passive transformation of 
-             a vector from frame A to frame B or an active rotation of a vector in 
-             frame B.
-             @parameters
+        If the quaternion Q represents the rotation of frame B with respect to 
+        frame A, then <tt>Q.rotateAxes(v)</tt> is passive transformation of 
+        a vector from frame A to frame B or an active rotation of a vector in 
+        frame B.
+
+        PARAMETERS
         ----------
-v The vector to be transformed
-             @return The transformed vector
+        v : Vector3D
+            The vector to be transformed
+
+        RETURNS
+        -------
+        Vector3D
+             The transformed vector.
         """
       
-        """ generated source for method rotateAxes """
         return self.conjugate().rotateVector(v)
 
     def rotateI(self):
         """ 
-             Return the I vector rotated by this quaternion.<p>
+        Return the I vector rotated by this quaternion.
+        
+        This is the X axis in the rotated frame.
+        It is equivalent to rotateVector(new Vector3D(1,0,0)).
              
-             This is the X axis in the rotated frame.
-             It is equivalent to rotateVector(new Vector3(1,0,0)).
-             
-             @return I vector rotated by this quaternion.
+        RETURNS
+        -------
+        Vector3D
+            I vector rotated by this quaternion.
         """      
 
-        m2 = self._w * self._w + self._x * self._x + self._y * self._y + self._z * self._z
+        sd = self._data
+        m2 = sd.w * sd.w + sd.x * sd.x + sd.y * sd.y + sd.z * sd.z
         if m2 == 0:
-            raise RuntimeException("Zero quaternion")
-        rx = -2 * (self._y * self._y + self._z * self._z) / m2 + 1
-        ry = 2 * (self._w * self._z + self._x * self._y) / m2
-        rz = 2 * (self._x * self._z - self._w * self._y) / m2
-        return Vector3(rx, ry, rz)
+            raise ValueError("Zero quaternion")
+        rx = -2 * (sd.y * sd.y + sd.z * sd.z) / m2 + 1
+        ry = 2 * (sd.w * sd.z + sd.x * sd.y) / m2
+        rz = 2 * (sd.x * sd.z - sd.w * sd.y) / m2
+        return Vector3D(rx, ry, rz)
 
     def rotateJ(self):
         """
-             Return the J vector rotated by this quaternion.<p>
+        Return the J vector rotated by this quaternion.<p>
              
-             This is the Y axis in the rotated frame.
-             It is equivalent to rotateVector(new Vector3(1,0,0)).
+        This is the Y axis in the rotated frame.
+        It is equivalent to rotateVector(new Vector3D(1,0,0)).
              
-             @return J vector rotated by this quaternion.
+        RETURNS
+        -------
+        Vector3D
+            J vector rotated by this quaternion.
         """      
 
-        m2 = self._w * self._w + self._x * self._x + self._y * self._y + self._z * self._z
+        sd = self._data
+        m2 = sd.w * sd.w + sd.x * sd.x + sd.y * sd.y + sd.z * sd.z
         if m2 == 0:
-            raise RuntimeException("Zero quaternion")
-        rx = 2 * (self._y * self._x - self._w * self._z) / m2
-        ry = -2 * (self._z * self._z + self._x * self._x) / m2 + 1
-        rz = 2 * (self._w * self._x + self._y * self._z) / m2
-        return Vector3(rx, ry, rz)
+            raise ValueError("Zero quaternion")
+        rx = 2 * (sd.y * sd.x - sd.w * sd.z) / m2
+        ry = -2 * (sd.z * sd.z + sd.x * sd.x) / m2 + 1
+        rz = 2 * (sd.w * sd.x + sd.y * sd.z) / m2
+        return Vector3D(rx, ry, rz)
 
  
     def rotateK(self):
         """
         Return the K vector rotated by this quaternion.<p>
              
-             This is the Z axis in the rotated frame.
-             It is equivalent to rotateVector(new Vector3(0,0,1)).
+        This is the Z axis in the rotated frame.
+        It is equivalent to rotateVector(new Vector3D(0,0,1)).
              
-             @return K vector rotated by this quaternion.
+        RETURNS
+        -------
+        Vector3D
+            K vector rotated by this quaternion.
         """      
-        """ generated source for method rotateK """
-        m2 = self._w * self._w + self._x * self._x + self._y * self._y + self._z * self._z
+
+        sd = self._data
+        m2 = sd.w * sd.w + sd.x * sd.x + sd.y * sd.y + sd.z * sd.z
         if m2 == 0:
-            raise RuntimeException("Zero quaternion")
-        rx = 2 * (self._w * self._y + self._z * self._x) / m2
-        ry = 2 * (self._z * self._y - self._w * self._x) / m2
-        rz = -2 * (self._x * self._x + self._y * self._y) / m2 + 1
-        return Vector3(rx, ry, rz)
+            raise ValueError("Zero quaternion")
+        rx = 2 * (sd.w * sd.y + sd.z * sd.x) / m2
+        ry = 2 * (sd.z * sd.y - sd.w * sd.x) / m2
+        rz = -2 * (sd.x * sd.x + sd.y * sd.y) / m2 + 1
+        return Vector3D(rx, ry, rz)
 
  
     def isNormalized(self, epsilon):
@@ -836,13 +1234,15 @@ v The vector to be transformed
              Test whether the quaternion is normalized.<p>
              The quaternion is considered normalized if the square of its
              norm does not differ from one by more than 2*epsilon.
-             @parameters
+
+        parameters
         ----------
-        epsilon Allowed tolerance
+        epsilon : float
+             Allowed tolerance
         """
       
-        """ generated source for method isNormalized """
-        sq = self._w * self._w + self._x * self._x + self._y * self._y + self._z * self._z
+        sd = self._data
+        sq = sd.w * sd.w + sd.x * sd.x + sd.y * sd.y + sd.z * sd.z
         return abs(sq - 1) <= epsilon * 2
 
     def mPower(self, t):
@@ -854,18 +1254,20 @@ v The vector to be transformed
              @parameters
         ----------
         t The exponent
-             @return The resulting quaternion
+             RETURNS The resulting quaternion
         """
       
-        """ generated source for method mPower """
         theta = t * self.angle() / 2
         v = self.axis()
-        s = sin(theta)
-        self._w = cos(theta)
-        self._x = v.getX() * s
-        self._y = v.getY() * s
-        self._z = v.getZ() * s
+        s = _sin(theta)
+        sd.w = _cos(theta)
+        sd.x = v.getX() * s
+        sd.y = v.getY() * s
+        sd.z = v.getZ() * s
         return self
+
+    __ipow__ = mPower
+
 
     def sqrt(self):
         """
@@ -874,13 +1276,12 @@ v The vector to be transformed
         This method is faster than <tt>mPower(0.5)</tt>.
         It returns the positive sqrt for [0,0,0,1] and throws an exception for [0,0,0,-1].
              
-        @throws RuntimeException if this quaternion normalized is [0,0,0,-1].
+        @throws ValueError if this quaternion normalized is [0,0,0,-1].
 
         """         
       
-        """ generated source for method sqrt """
         q = self.normalize()
-        q._w += 1
+        q._data.w += 1
         return q.normalize()
 
     
@@ -889,17 +1290,18 @@ v The vector to be transformed
              Spherical Linear Interpolation (SLERP) between two quaternions.<p>
              Equivalent to <tt>slerp(q, alpha, true)</tt>
 
-             @parameters
-        ----------
-q The other quaternion
-             @parameters
-        ----------
-alpha The interpolation factor
-             @return The interpolated quaternion
+             parameters
+             ----------
+             q : Quaternion
+                 The other quaternion
+             alpha: float
+                 The interpolation factor
+             return
+             ------
+               The interpolated quaternion
         """
       
-        """ generated source for method slerp """
-        return self.slerp(q, alpha, True)
+        return self.slerp_0(q, alpha, True)
 
  
     def slerp_0(self, q, alpha, shortest):
@@ -923,10 +1325,9 @@ alpha The interpolation factor
              @parameters
         ----------
 shortest Return the shortest rotation
-             @return The interpolated quaternion
+             RETURNS The interpolated quaternion
         """
       
-        """ generated source for method slerp_0 """
         qb = q.copy()
         #  If angle (in 4D) > 90 degrees, invert one of the quaternions,
         #  to give an acute angle, to rotate in the shortest direction.
@@ -935,42 +1336,57 @@ shortest Return the shortest rotation
         return self.multiply(self.conjugate().mMultiply(qb).mPower(alpha))
 
     def lerp(self, q, alpha):
-        """ generated source for method lerp """
+
+        sd = self._data
         qb = q.copy()
+        qd = qb.data
         if self.dot(qb) < 0:
             qb.mMultiply(-1)
         beta = 1 - alpha
-        x = self._x * beta + qb._x * alpha
-        y = self._y * beta + qb._y * alpha
-        z = self._z * beta + qb._z * alpha
-        w = self._w * beta + qb._w * alpha
+        x = sd.x * beta + qd.x * alpha
+        y = sd.y * beta + qd.y * alpha
+        z = sd.z * beta + qd.z * alpha
+        w = sd.w * beta + qd.w * alpha
         return Quaternion(x, y, z, w)
 
 
     def mMultiply_0(self, k):
-        """ generated source for method mMultiply_0 """
-        self._x *= k
-        self._y *= k
-        self._z *= k
-        self._w *= k
+
+        sd = self._data
+        _x = sd[0] * k
+        _y = sd[1] * k
+        _z = sd[2] * k
+        _w = sd[3] * k
+        self._data = Quat(_x, _y, _z, _w)
+        self._norm = None
         return self
 
     def mAdd(self, q):
-        """ generated source for method mAdd """
-        self._x += q._x
-        self._y += q._y
-        self._z += q._z
-        self._w += q._w
+
+        sd = self._data
+        qd = q._data
+        _x = sd[0] + qd.x
+        _y = sd[1] + qd.y
+        _z = sd[2] + qd.z
+        _w = sd[3] + qd.w
+        self._data = Quat(_x, _y, _z, _w)
+        self._norm = None
         return self
+    
+    __iadd__ = mAdd
 
     def mSubtract(self, q):
-        """ generated source for method mSubtract """
-        self._x -= q._x
-        self._y -= q._y
-        self._z -= q._z
-        self._w -= q._w
+
+        sd = self._data
+        qd = q._data
+        _x = sd[0] - qd.x
+        _y = sd[1] - qd.y
+        _z = sd[2] - qd.z
+        _y = sd[3] - qd.w
+        self._data = Quat(_x, _y, _z, _w)
+        self._norm = None
         return self
 
-
+    __isub__ = mSubtract
 
 

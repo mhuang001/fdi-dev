@@ -5,7 +5,7 @@ TESTLOG	= /tmp/fdi-tests.log
 L	=
 SV	= background
 # --server can be 'mock' (default, ,background' (spawned) and 'external' real one given by config file.
-OPT	= -v  --log-level=$(L) --server=$(SV)
+OPT	= -v  --log-level=$(L) --server=$(SV) -r P
 OPT1	= -v --log-level=$(L) --server=external
 T	= 
 test: test1 test2 test5 test13 test14 test10

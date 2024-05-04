@@ -24,8 +24,8 @@ pnsconfig['ses_dbg'] = 0
 
 # base url for webserver.
 pnsconfig['scheme'] = 'http'
-pnsconfig['api_version'] = 'v0.16'  # vx.yy
-pnsconfig['baseurl'] = '/fdi/v0.16'  # fdi/vx.yy
+pnsconfig['api_version'] = 'v0.17'  # vx.yy
+pnsconfig['baseurl'] = '/fdi/v0.17'  # fdi/vx.yy
 
 # For server. If needed for test_pal so this should point to a locally
 # writeable dir. If needed to change for a server, do it with
@@ -82,7 +82,7 @@ elif conf == 'production':
     # For server. needed for test_pal so this should point to a locally
     # writeable dir. If needed to change for a server, do it with
     # an environment var.
-    pnsconfig['baseurl'] = '/fdi/v0.16'
+    pnsconfig['baseurl'] = '/fdi/v0.17'
 
     pnsconfig['self_host'] = '0.0.0.0'
     pnsconfig['self_port'] = 9876

@@ -715,7 +715,9 @@ class PublicClientPool(ManagedPool):
             the output list when input `prd` is a list.
         check_type : list
             To Check if the remote (CSDB) server has the type of the
-            products that are to be saved.
+
+
+        products that are to be saved.
         **kwds :
 
         Returns

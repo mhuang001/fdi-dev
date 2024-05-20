@@ -489,8 +489,10 @@ def fullname(obj):
 
     https://stackoverflow.com/a/2020083/13472124
     """
+    from svom.products.projectclasses import Class_Module_Map
+
     t = type(obj) if not isinstance(obj, type) else obj
-    module = t.__module__
+    module = Class_Module_Map.get(t.__name__, t.__module__)
     if module is None or module == bldins:
         return t.__name__  # Avoid reporting __builtin__
     else:

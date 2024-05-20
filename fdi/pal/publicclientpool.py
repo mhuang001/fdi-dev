@@ -146,7 +146,7 @@ def getToken(poolurl, client, user_urlbase=None, verify=False, two_tries= False)
     current_token = ''
     if sess and SESSION:
         # saved token
-        current_token = sess.get('tokens', []).get(poolurl, '')
+        current_token = sess.get('tokens', {}).get(poolurl, '')
 
     if not current_token:
         if f"{pcc['cloud_host']}:{pcc['cloud_port']}" == poolurl.split('/')[2]:

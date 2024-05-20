@@ -11,6 +11,7 @@ from math import pi, sin as _sin, cos as _cos, atan2 as _atan2, asin as _asin, \
     sqrt as _sqrt
 
 Number = (float, int)
+RAD = 180 / pi
 
 # def bsr(value, bits):
 #     """ bsr(value, bits) -> value shifted right by bits
@@ -397,12 +398,16 @@ class Quaternion(Vector):
         return m
 
  
-    def toAttitude(self):
+    def toAttitude(self, deg=False):
         """
         Convert this Quaternion to an equivalent Attitude.
         
         The quaternion does not have to be normalized.
 
+        Parameters
+        ----------
+        deg:   bool
+            Output in degrees instead of radians.
         RETURN
         ------
         Attitude
@@ -442,7 +447,8 @@ class Quaternion(Vector):
             za = _atan2(2 * (sd.x * sd.y + sd.z * sd.w), xx + ww - yy - zz)
             if za < 0:
                 za += (pi + pi)
-        return Attitude(za, ya, xa)
+                
+        return Attitude(za*RAD, ya*RAD, xa*RAD) if deg else Attitude(za, ya, xa)
 
 
     @ property
@@ -819,7 +825,6 @@ class Quaternion(Vector):
         _z = -sd.z
         _w = sd.w
         self._data = Quat(_x, _y, _z, _w)
-        self._norm = None
         return self
 
  
@@ -1181,7 +1186,7 @@ q The other quaternion
         rx = -2 * (sd.y * sd.y + sd.z * sd.z) / m2 + 1
         ry = 2 * (sd.w * sd.z + sd.x * sd.y) / m2
         rz = 2 * (sd.x * sd.z - sd.w * sd.y) / m2
-        return Vector3D(rx, ry, rz)
+        return Vector3D((rx, ry, rz))
 
     def rotateJ(self):
         """
@@ -1203,7 +1208,7 @@ q The other quaternion
         rx = 2 * (sd.y * sd.x - sd.w * sd.z) / m2
         ry = -2 * (sd.z * sd.z + sd.x * sd.x) / m2 + 1
         rz = 2 * (sd.w * sd.x + sd.y * sd.z) / m2
-        return Vector3D(rx, ry, rz)
+        return Vector3D((rx, ry, rz))
 
  
     def rotateK(self):
@@ -1226,7 +1231,7 @@ q The other quaternion
         rx = 2 * (sd.w * sd.y + sd.z * sd.x) / m2
         ry = 2 * (sd.z * sd.y - sd.w * sd.x) / m2
         rz = -2 * (sd.x * sd.x + sd.y * sd.y) / m2 + 1
-        return Vector3D(rx, ry, rz)
+        return Vector3D((rx, ry, rz))
 
  
     def isNormalized(self, epsilon):

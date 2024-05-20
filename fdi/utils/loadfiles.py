@@ -1,12 +1,71 @@
 # -*- coding: utf-8 -*-
 
+from .common import trbk
 from fdi.dataset.mediawrapper import MediaWrapper
 
+import mmap
 import os.path as op
 import logging
 # create logger
 logger = logging.getLogger(__name__)
 
+
+def get_mmap(filename, start=None, end=None, access=mmap.ACCESS_READ, close=False, alternative=None, error_msg=None):
+        """Read a file as mmap and return the buffer as a string.
+
+        Parameters
+        ----------
+        filename : str
+            name of the file.
+        start : int
+            offset of the start. If set `None` read the whole file.
+        end : int
+            offset of the end, in bytes.
+        access :
+            access for mmap. default is `mmap.ACCESS_READ`
+        close : bool
+            whether to close the time before returning.
+        alternative : file object
+            use a normal file if passing an open file object inplace of mmap. Pass None otherwise (default).
+        error_msg : str
+            How would you tell about the error if file cannot be
+            read. Default is ``Error in HK reading``.
+
+        Returns
+        -------
+        tuple
+            The buffer decoded to ascii and file_object (could be None)
+
+        Raises
+        ------
+        KeyError
+
+        """
+        
+        if error_msg is None:
+            error_msg = "Error in HK reading."
+        fp = op.abspath(filename)
+        try:
+            if alternative is None:
+                file_obj = open(fp, mode="r+", encoding="utf-8")
+                mmap_obj = mmap.mmap(
+                    file_obj.fileno(), length=0, access=mmap.ACCESS_READ)
+                fo = mmap_obj
+            else:
+                fo = alternative
+            if start is None:
+                js = fo.read()
+            else:
+                fo.seek(start)
+                js = fo.read(end - start)
+        except Exception as e:
+            msg = '%s file: %s. exc: %s trbk: %s.' % (error_msg,
+                fp, str(e), trbk(e))
+            logging.error(msg)
+            raise KeyError(msg)
+        if close:
+            fo.close()
+        return js.decode('ascii'), fo
 
 def loadcsv(filepath, delimiter=',', header=0, return_dict=False, pad=None, set_unit=...):
     """ Loads the contents of a CSV file into a list of tuples.

@@ -1,8 +1,9 @@
-__version_info__ = (2, 0, 1)
+__version_info__ = (2, 0, 2)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '2.0.0-0-g4634d3a'
+__revision__ = '2.0.1-0-gf6b3ac5'
 
-# improve and validate quaternion; yaml2python add try: - except to imports; publicpool bug
+# de-svom in common::fullname
+# 2.0.1 improve and validate quaternion; yaml2python add try: - except to imports; publicpool bug
 # 2.0.0 Implement Quaternion with features, unified with Vector.
 # 1.47.3 fix lru_cache bug in getConfig
 # 1.47.2 make FineTime understand 'B' time format.

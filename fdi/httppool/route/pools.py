@@ -112,7 +112,7 @@ def get_pools_url():
     for rank in (0, 1, 2):
         m = dict((f"({symbols[rank]} "
                   f"{po.__class__.__name__.replace('Pool','')}) {n}",
-                  f"{burl}/{n}") \
+                  urljoin(burl,n)) \
                  for n, po in maps[rank].items())
         res.update(m)
 

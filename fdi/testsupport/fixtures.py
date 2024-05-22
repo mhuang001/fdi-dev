@@ -142,8 +142,8 @@ def set_ids(pytestconfig):
 
     cmd = pytestconfig.getoption("--id")
     if cmd == 0:
-        csdb_pool_id = 'sv2'  # 'test_csdb_fdi2'
-        http_pool_id = 'test_pool_1'
+        csdb_pool_id = 'test_fdi_demo_classes'
+        http_pool_id = 'test_fdi_demo_classes_fdi'
         PTYPES = ('DemoProduct', 'TB', 'TP', 'TC', 'TM', 'SP', 'TCC')
     else:
         __import__("pdb").set_trace()

@@ -1,8 +1,10 @@
-__version_info__ = (2, 0, 3)
+__version_info__ = (2, 0, 4)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '2.0.2-0-g277fcf4'
+__revision__ = '2.0.3-0-g0ceb289'
 
-# namespace::load
+
+# paho-mqtt upgrade to 2.1.0
+# 2.0.3 namespace::load
 # 2.0.2 de-svom in common::fullname
 # 2.0.1 improve and validate quaternion; yaml2python add try: - except to imports; publicpool bug
 # 2.0.0 Implement Quaternion with features, unified with Vector.

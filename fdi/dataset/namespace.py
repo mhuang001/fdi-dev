@@ -410,3 +410,12 @@ class Lazy_Loading_ChainMap(ChainMap):
         self.clear()
         self.initial.update(self.sources)
         return self
+
+    def load(self, *args, **kwds):
+        """ To be implemented by classes.
+
+        Pass custom fuction to the `load` parameter of `__init__`
+        """
+
+        raise(NotImplementedError)
+        

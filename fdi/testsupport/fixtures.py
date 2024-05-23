@@ -1050,7 +1050,7 @@ def t_package():
             #__import__("pdb").set_trace()
             #  make clean-tpkg;
             os.system(
-                '(pip uninstall testpackage -y; cd tests/resources/testpackage; make install-tpkg PYEXE=python3) 2>&1| tee /tmp/testpackage.log')
+                '(pip uninstall testpackage -y; cd tests/resources/testpackage; make install-tpkg PYEXE=python3 && echo Done) 2>&1| tee /tmp/testpackage.log')
             # 'python3.8 -c "import sys; print(sys.path)"
             # 'make  pip show testpackage;
             sys.path.insert(0, '/tmp')

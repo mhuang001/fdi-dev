@@ -112,7 +112,7 @@ class LocalPool(ManagedPool):
                 fo.seek(start)
                 js = fo.read(end - start)
         except Exception as e:
-            msg = 'Error in HK reading. file: %s. exc: %s trbk: %s.' % (
+            msg = 'Error in localpool HK reading. file: %s. exc: %s trbk: %s.' % (
                 fp, str(e), trbk(e))
             logging.error(msg)
             raise KeyError(msg)

@@ -8,6 +8,7 @@ from functools import lru_cache
 import time
 import json
 from fdi.pns.fdi_requests import reqst, ServerError
+from fdi.pns.public_fdi_requests import upload_defintion, add_a_dataType, get_all_product_types_on_server, cls2jsn
 from fdi.pns.public_fdi_requests import read_from_cloud, load_from_cloud
 from fdi.pal.publicclientpool import PublicClientPool
 from fdi.pal.urn import parse_poolurl
@@ -77,31 +78,7 @@ def pytest_configure(config):
 # low level and not as complete as the later part.
 
 
-def get_all_prod_types(urllist, client):
-    x = client.get(urllist)
-    o, code = getPayload(x)
-    types = o['data'] if issubclass(o.__class__, dict) else x.text
-    return types
-
-
-def add_a_dataType(full_name, jsn, client, urlup):
-    """ not using client fixture. returns csdb ['data'] result. """
-    hdr = {"accept": "*/*"}
-    fdata = {"file": (full_name, jsn)}
-    data = {"metaPath": "/metadata", "productType": full_name}
-    x = reqst(client.post, apis=urlup, files=fdata,
-              data=data, headers=hdr)
-    return x
-
-
 asci = False
-
-
-@lru_cache(maxsize=8)
-def cls2jsn(clsn):
-    obj = Class_Look_Up[clsn]()
-    # return json.dumps(obj.zInfo, ensure_ascii=asci, indent=2)
-    return obj.serialized(indent=2)
 
 
 def XXXest_delete_pool(csdb_server):
@@ -177,42 +154,6 @@ def pool_exists(poolname, urlc, client, create_clean=False):
     return o['code'] == 0
 
 
-def upload_defintion(full_cls, urlcsdb,
-                     client=None, check=True, skip=False):
-    """ Client level implementation to upload the definition of given class.
-
-    """
-    urlupload = urlcsdb + '/datatype/upload'
-    urldelete = urlcsdb + '/datatype/'
-    urllist = urlcsdb + '/datatype/list'
-
-    if isinstance(full_cls, list):
-        alist = True
-        fs = full_cls
-    else:
-        alist = False
-        fs = [full_cls]
-
-    # upload
-    for f in fs:
-        if skip:
-            # check type exists
-            x = client.get(urllist + '?substring=' + f)
-            o, code = getPayload(x)
-            if f in o['data']:  # must not "in o['data']" as TC will fall throught due to TCC
-                continue
-        payload = cls2jsn(f.rsplit('.', 1)[-1])
-        r = add_a_dataType(f, payload, client=client, urlup=urlupload)
-        assert r.status_code == 200, r.reason
-    if check:
-        # check ptypes again
-        ptypes = get_all_prod_types(urllist, client)
-        # print(types)
-        for f in fs:
-            assert f in ptypes
-    return fs if alist else fs[0]
-
-
 USE_SV_MODULE_NAME = False
 Tx = 'TP' + '_0X'  # + str(datetime.now())
 
@@ -230,14 +171,19 @@ def test_upload_def_Tx(csdb_server):
 
 
 def test_upload_All_prod_defn(csdb_server):
-    """ upload all  product  definition """
+    """ upload all  product  definition.
+
+    Also see share/test/test_pool.py::test_csdb_upload_all_types for a version using fixtures and publicclientpool API..
+    """
     urlcsdb, client, auth, test_pool, poolurl, pstore, server_type = csdb_server
 
     full_names = get_All_Products('Full_Class_Names')
-    # full_names = ['fdi.dataset.products.Product']
+    # full_names = ['fdi.dataset.products.Product',
+    #              'svom.products.svomproduct.SVOMMapContext']
 
-    upload_defintion(full_names, urlcsdb,
-                     client=client)
+    namespace = Class_Look_Up
+    #from svom.products.projectclasses import Class_Look_Up as namespace
+    upload_defintion(full_names, urlcsdb, client=client, namespace=namespace)
 
 
 def upload_prod_data(prd, cls_full_name,
@@ -408,7 +354,7 @@ def test_upload_data_Tx(csdb_server, csdb_token, prod_to_upload, set_ids):
     cls_full_name = prod_to_upload
     
     logger.debug(f'Upload {cls_full_name} data. Datatype %s found in type list.' % (
-        '' if cls_full_name in get_all_prod_types(urlcsdb+ '/datatype/list', client=client) else 'not'))
+        '' if cls_full_name in get_all_product_types_on_server(urlcsdb+ '/datatype/list', client=client) else 'not'))
     urlupdata = urlcsdb + f'/storage/upload?path=/{pool}/{cls_full_name}'
     urn_in_pool_before = get_all_in_pool(poolname=pool,
                                          what='urn',
@@ -641,7 +587,7 @@ def delete_defintion(clsn, full_name, client=None, poolname=None, urlc=None, del
     # delDataTypeData failed, usually due to no exisiting products
     res = delete_datatype(urlc, full_name, client=client)
     # gone
-    types = get_all_prod_types(urllist, client)
+    types = get_all_product_types_on_server(urllist, client)
     assert full_name not in types, ''
 
 # @del_datatype
@@ -676,14 +622,14 @@ def test_del_def_Tx(csdb_server):
         delete_defintion(cls, cls_full_name,
                          client=client, poolname=pname, urlc=urlc, deldatt=True)
     # add type
-    jsn = cls2jsn(cls)
+    jsn = cls2jsn(cls, Class_Look_Up)
     x = add_a_dataType(cls_full_name, jsn=jsn,
                        client=client, urlup=urlupload)
-    clz = get_all_prod_types(urllist, client)
+    clz = get_all_product_types_on_server(urllist, client)
     assert cls_full_name in clz
     delete_defintion(cls, cls_full_name,
                      client=client, poolname=pname, urlc=urlc, deldatt=True)
-    clz = get_all_prod_types(urllist, client)
+    clz = get_all_product_types_on_server(urllist, client)
     assert cls_full_name not in clz
     #####
     if dbg_7types:
@@ -796,7 +742,7 @@ def add_a_prod_in_another_pool(poolname2, urlc, cls_full_name, client, nulltype=
     cls = cls_full_name.rsplit('.', 1)[1]
     prd = Classes.mapping[cls]()
     pool_exists(poolname2, urlc, client,  create_clean=True)
-    jsn = cls2jsn(cls)
+    jsn = cls2jsn(cls, Class_Look_Up)
     add_a_dataType(cls_full_name, jsn, client, urlc+'/datatype/upload')
     upload_prod_data(prd,
                      cls_full_name=cls_full_name,
@@ -1083,7 +1029,7 @@ def csdb_upload_7types(csdb_server, tmp_prod_types):
 
     urlcsdb, client, auth, test_pool, poolurl, pstore, server_type = csdb_server
 
-    # get_all_prod_types(urlcsdb+'/datatype/list', ftest_pool.client)
+    # get_all_product_types_on_server(urlcsdb+'/datatype/list', ftest_pool.client)
     # 7 products
     prd_types, seri = tmp_prod_types
 
@@ -1109,7 +1055,7 @@ def test_upload_7types(csdb_server, tmp_prod_types,
                        csdb_upload_7types
                        ):
     urlcsdb, client, auth, test_pool, poolurl, pstore, server_type = csdb_server
-    alltypes = get_all_prod_types(urlcsdb + '/datatype/list', client)
+    alltypes = get_all_product_types_on_server(urlcsdb + '/datatype/list', client)
     clz, seri = tmp_prod_types
     prd_types = [Class_Module_Map[c.__name__] + '.' + c.__name__ for c in clz]
 
@@ -1420,7 +1366,7 @@ def test_cmp_wipe1(csdb_server, csdb_uploaded_n):
 
     for clazz, cld in info[pname]['_classes'].items():
         # all datatypes
-        # types = get_all_prod_types(urllist, client)
+        # types = get_all_product_types_on_server(urllist, client)
         # assert clazz in types
         path = f'/{pname}/{clazz}'
         res = read_from_cloud('delDataTypeData', token=test_pool.token,

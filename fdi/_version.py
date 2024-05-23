@@ -1,9 +1,10 @@
-__version_info__ = (2, 0, 4)
+__version_info__ = (2, 0, 5)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '2.0.3-0-g0ceb289'
+__revision__ = '2.0.4-0-g72cc045'
 
 
-# paho-mqtt upgrade to 2.1.0
+# refactor iupload csdt prof defn code to main repo. get bin output ready in `toPng`
+# 2.0.4 paho-mqtt upgrade to 2.1.0
 # 2.0.3 namespace::load
 # 2.0.2 de-svom in common::fullname
 # 2.0.1 improve and validate quaternion; yaml2python add try: - except to imports; publicpool bug

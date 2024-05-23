@@ -926,8 +926,6 @@ class PublicClientPool(ManagedPool):
     def uploadDatatype(self, resourcetype, indent=2,
                        metaPath='/metadata',
                        ensure_ascii=True,
-
-
                        picked=None,
                        asyn=False):
         """  Submit data product definition in JSON.

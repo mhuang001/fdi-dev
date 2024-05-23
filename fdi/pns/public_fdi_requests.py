@@ -2,6 +2,7 @@
 import threading
 from ..dataset.serializable import serialize
 from ..dataset.deserialize import deserialize
+from ..dataset.classes import Class_Look_Up
 from ..utils.getconfig import getConfig
 from ..utils.common import trbk, lls
 from ..pal import webapi
@@ -267,13 +268,13 @@ def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', us
                 jsn = cached_json_dumps(cls_full_name,
                                         ensure_ascii=ea,
                                         indent=ind,
-                                    des=True
-                                    )
+                                        des=True
+                                        )
             fdata = {"file": (cls_full_name, jsn)}
             data = {"metaPath": kwds.pop('metaPath',
                                          "/product_keywords"),
                     "productType": cls_full_name}
-            #   __import__("pdb").set_trace()
+
             res = reqst(client.post, requestAPI,
                         files=fdata, data=data, headers=header, server_type=server_type, auth=client.auth, **kwds)
     elif requestName == 'defineProductTypes':
@@ -664,3 +665,78 @@ def get_service_method(method):
     if service not in webapi.PublicServices:
         return 'home', None
     return service, serviceName
+
+def cls2jsn(clsn, namespace):
+    obj = namespace[clsn]()
+    # return json.dumps(obj.zInfo, ensure_ascii=asci, indent=2)
+    return obj.serialized(indent=2)
+
+def add_a_dataType(full_name, jsn, client, urlup):
+    """ not using client fixture. returns csdb ['data'] result. """
+    hdr = {"accept": "*/*"}
+    fdata = {"file": (full_name, jsn)}
+    data = {"metaPath": "/metadata", "productType": full_name}
+    x = reqst(client.post, apis=urlup, files=fdata,
+              data=data, headers=hdr)
+    return x
+
+
+def get_all_product_types_on_server(urllist, client):
+    x = client.get(urllist)
+
+    if x.status_code != 200:
+        raise RuntimeError( 'Unsuccessful response %d.' % aResponse.status_code)
+
+    a = x.text
+    o, code = deserialize(a, int_key=True),  x.status_code
+
+    types = o['data'] if issubclass(o.__class__, dict) else a
+    return types
+
+
+def upload_defintion(full_cls, urlcsdb,
+                     client=None, check=True, skip=False, namespace=None):
+    """ Client level implementation to upload the definition of given class.
+    Not using fixture. ref tests/serv/test_csdb.py `test_upload_All_prod_defn` as an example.
+    
+    Parameters
+    ----------
+    skip :    bool
+         If set `full_cls` will be skipped if exists on the server.
+    """
+    urlupload = urlcsdb + '/datatype/upload'
+    urldelete = urlcsdb + '/datatype/'
+    urllist = urlcsdb + '/datatype/list'
+
+    if namespace is None:
+        namespace = Class_Look_Up
+    
+    if isinstance(full_cls, list):
+        alist = True
+        fs = full_cls
+    else:
+        alist = False
+        fs = [full_cls]
+
+    # upload
+    for f in fs:
+        if skip:
+            # check type exists
+            x = client.get(urllist + '?substring=' + f)
+            o, code = getPayload(x)
+            if f in o['data']:  # must not "in o['data']" as TC will fall throught due to TCC
+                continue
+        payload = cls2jsn(f.rsplit('.', 1)[-1], namespace)
+        r = add_a_dataType(f, payload, client=client, urlup=urlupload)
+        assert r.status_code == 200, r.reason
+        logger.info(f'uploaded definition of {f}')
+    if check:
+        # check ptypes again
+        ptypes = get_all_product_types_on_server(urllist, client)
+        # print(ptypes)
+        for f in fs:
+            assert f in ptypes
+        logger.info(f'Checked existence of all {len(fs)}')
+    return fs if alist else fs[0]
+
+

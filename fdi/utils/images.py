@@ -221,7 +221,7 @@ def toPng(adset, grey=False, compression=0, cspace=8, cmap=None,
             if return_bin:
                 bf = b''.join(x.tobytes() for x in data)
                 return bf
-            # with open(fnm+'.bin', 'wb') as b:
+            # with open(fnm+'.bin', 'wb') as pb:
             #        pb.write(bf)
             return generate_png(img, width, height, greyscale=grey,
                                 bitdepth=bitdepth, compression=compression)
@@ -389,8 +389,12 @@ def toPng(adset, grey=False, compression=0, cspace=8, cmap=None,
         png_im = generate_png(img, width, height, greyscale=False,
                               bitdepth=8, compression=compression)
     if png_file_name:
-        # if output PNG, output BIN, too.
-        ##bf = b''.join(x.tobytes() for x in data)
+        #if output PNG, output BIN, too.
+
+        #bf = b''.join(x.tobytes() for x in data)
+        #with open(png_file_name+'.bin', 'wb') as b:
+        #    b.write(bf)
+
         with open(png_file_name+'.png', 'wb') as b:
             b.write(png_im)
     if 1:

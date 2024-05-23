@@ -254,6 +254,98 @@ def fits_standard_text(c):
         r = c
     return r
 
+def set_parameter_to_header(param, header, name, ex, ignore_error=False, debug=debug):
+    """Set the value of a `Parameter` to the FITS header.
+
+    Parameters
+    ----------
+    param : Parameter
+        A `Parameter` or its subclass. If a string is given, set to the header.
+    header : `HDU` header
+        The header of an HDU of a FITS.
+    name : str
+        name of the parameter.
+    ex : dict
+        A list of key-vals to be sent to `getFitsKw`.
+    ignore_error : bool
+        If set, exceptions will not be raised. Skip this parameter.
+    debug : bool
+        prints more debugging info.
+
+    Returns
+    -------
+    HDU header
+        give back the (usually) modified header.
+
+    Raises
+    ------
+    ValueError
+
+    Examples
+    --------
+         If None is given, `ValueError` is thrown. 
+
+
+    """
+    
+    if param is None:
+        if ignore_error:
+            return header
+        raise ValueError(f'Cannot get value from None param {param}.')
+
+    pval = getattr(param, 'value', None)
+
+    if pval is None:
+        v = fits.card.Undefined()
+        kw = getFitsKw(name, extra=ex)
+        c = 'null value'
+        c = fits_standard_text(c)
+        header[kw] = (v, c)
+    elif issubclass(param.__class__, DateParameter):
+        value = pval.isoutc() if pval.tai else fits.card.Undefined()
+        kw = getFitsKw(name, extra=ex)
+        header[kw] = (value, param.description)
+    elif issubclass(param.__class__, NumericParameter):
+        if issubclass(pval.__class__, (Sequence, list)):
+            for i, com in enumerate(pval):
+                kw = getFitsKw(name, ndigits=1, extra=ex)[:7]+str(i)
+                header[kw] = (com, param.description+str(i))
+                if debug:
+                    print(kw, com)
+        elif issubclass(pval.__class__, (Vector)):
+            for i, com in enumerate(pval.components):
+                kw = getFitsKw(name, ndigits=1, extra=ex)
+                if len(pval.components) < 4:
+                    ind = FITSKW_VECTOR_XYZ_INDEX[i]
+                else:
+                    ind = str(i)
+                kw = kw[:7] + ind
+                header[kw] = (com, param.description+ind)
+        else:
+            kw = getFitsKw(name, extra=ex)
+            header[kw] = (pval, param.description)
+    elif issubclass(param.__class__, StringParameter):
+        kw = getFitsKw(name, extra=ex)
+        if pval == 'UNKNOWN':
+            v = fits.card.Undefined()
+        else:
+            v = pval
+        c = param.description
+        _c = fits_standard_text(c)
+        # c.encode(encoding="ascii",errors="backslashreplace")
+        _v = fits_standard_text(v)
+        header[kw] = (_v, _c)
+    elif issubclass(param.__class__, BooleanParameter):
+        kw = getFitsKw(name, extra=ex)
+        v = bool(pval)
+        header[kw] = (v, param.description)
+    else:
+        kw = getFitsKw(name, extra=ex)
+        v = fits.card.Undefined()
+        des = getattr(param, 'description', 'Parameter "%s" of unknown type' % str(pval))
+        header[kw] = (v, des)
+    return header
+    
 def add_header(meta, header, zim={}):
     """ Populate  header with keyword lines extracted from MetaData.
 
@@ -272,70 +364,22 @@ def add_header(meta, header, zim={}):
     # else:
     #     lst = list(meta)
 
-    lst = list(meta)
-    lst.extend(set(zim) - set(meta))
+    lst = list()
+    lst.extend(set(zim) | set(meta))
     for name in lst:
-        param = meta[name]
-        pval = param.value
-
-        mk = getattr(meta[name], 'fits_keyword', None)
-        if name in meta and mk:
+        if name in meta:
             # first check if fits can be found in meta, including non-SDPs.
-            kw = mk
-            ex = ((name, kw if kw else ''),)
-        elif name in zim and zim[name].get('fits_keyword', None):
-            kw = zim[name]['fits_keyword']
-            ex = ((name, kw if kw else ''),)
+            param = meta[name]
+            kw = getattr(param, 'fits_keyword', None)
+            ex = ((name, kw),) if kw else None
+            header = set_parameter_to_header(param, header, name, ex, ignore_error=False, debug=debug)
+        elif name in zim:
+            __import__("pdb").set_trace()
+            kw = zim[name].get('fits_keyword', None)
+            ex = ((name, kw),) if kw else None
         else:
-            ex = ()
-        if pval is None:
-            v = fits.card.Undefined()
-            kw = getFitsKw(name, extra=ex)
-            c = param.description
-            c = fits_standard_text(c)
-            header[kw] = (v, c)
-        elif issubclass(param.__class__, DateParameter):
-            value = pval.isoutc() if pval.tai else fits.card.Undefined()
-            kw = getFitsKw(name, extra=ex)
-            header[kw] = (value, param.description)
-        elif issubclass(param.__class__, NumericParameter):
-            if issubclass(pval.__class__, (Sequence, list)):
-                for i, com in enumerate(pval):
-                    kw = getFitsKw(name, ndigits=1, extra=ex)[:7]+str(i)
-                    header[kw] = (com, param.description+str(i))
-                    if debug:
-                        print(kw, com)
-            elif issubclass(pval.__class__, (Vector)):
-                for i, com in enumerate(pval.components):
-                    kw = getFitsKw(name, ndigits=1, extra=ex)
-                    if len(pval.components) < 4:
-                        ind = FITSKW_VECTOR_XYZ_INDEX[i]
-                    else:
-                        ind = str(i)
-                    kw = kw[:7] + ind
-                    header[kw] = (com, param.description+ind)
-            else:
-                kw = getFitsKw(name, extra=ex)
-                header[kw] = (pval, param.description)
-        elif issubclass(param.__class__, StringParameter):
-            kw = getFitsKw(name, extra=ex)
-            if pval == 'UNKNOWN':
-                v = fits.card.Undefined()
-            else:
-                v = pval
-            c = param.description
-            _c = fits_standard_text(c)
-            # c.encode(encoding="ascii",errors="backslashreplace")
-            _v = fits_standard_text(v)
-            header[kw] = (_v, _c)
-        elif issubclass(param.__class__, BooleanParameter):
-            kw = getFitsKw(name, extra=ex)
-            v = bool(pval)
-            header[kw] = (v, param.description)
-        else:
-            kw = getFitsKw(name, extra=ex)
-            v = fits.card.Undefined()
-            header[kw] = (v, '%s of unknown type' % str(pval))
+            raise KeyError(f"{name} was not found in meta or zim when generating FITS.")
+
     if debug:
         print('*** add_header ', header)
     return header

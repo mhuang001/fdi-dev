@@ -84,11 +84,16 @@ def pytest_addoption(parser):
         default=0,
         type=int,
         help=\
-        "0 for http test_pool_1 /csdb sv2 / fdi types;"
-        "1 for http test_pool_1 /csdb sv2 / fsc types;"
-        "2 for http test_pool_1 /csdb test_sdb_vt / fsc types;"
-        "3 for http test_pool_1 /csdb test_e2e2_vt / all fsc _vt types;"
-        "4 for http test_pool_4 /csdb test_e2e2_sdb / all fsc types;"
+        "0 for csdb_pool_id = 'test_fdi_demo_classes' ;"
+        "http_pool_id = 'test_fdi_demo_classes_fdi' "
+        "1 for csdb_pool_id = 'test_all_csc_type_1' ; "
+        "http_pool_id = 'test_all_csc_type_1_fdi' ; "
+        "2 csdb_pool_id = 'test_sdb_type_vt_2' ; "
+        "http_pool_id = 'test_sdb_type_vt_2_fdi' "
+        "3 for csdb_pool_id = 'test_sdb_type_all_4' ; "
+        "http_pool_id = 'test_sdb_type_all_4_fdi'"
+        "4 for csdb_pool_id = 'test_all_types_5' ; "
+        "http_pool_id = 'test_all_types_5_fdi' "
         ,
         choices=(0, 1, 2, 3, 4)
     )
@@ -146,8 +151,6 @@ def set_ids(pytestconfig):
         http_pool_id = 'test_fdi_demo_classes_fdi'
         PTYPES = ('DemoProduct', 'TB', 'TP', 'TC', 'TM', 'SP', 'TCC')
     else:
-        __import__("pdb").set_trace()
-        
         csdb_pool_id = http_pool_id = PTYPES = None
     return csdb_pool_id, http_pool_id, PTYPES
         
@@ -511,7 +514,7 @@ def server(pytestconfig, set_ids, userpass, mock_app, request):
     Returns
     -------
     tuple
-      baseurl, client, auth, pool (pool name is `http_pool_id`), poolurl, pstore, server_type
+      baseurl, client, auth, pool (pool name is chosen by set_ids), poolurl, pstore, server_type
     """
     #    yield from server2(pc, pytestconfig, 'http', reuest=request)
     try:
@@ -794,7 +797,7 @@ def clean_csdb_ro(csdb_server_ro):
 @ pytest.fixture(scope=SHORT)
 def new_csdb(csdb_server, set_ids):
     logger.debug('wipe cdb_new. {purl}')
-    urlc, client, auth, test_pool, poolurl, pstore, server_type = csdb_server
+    urlc, client, auth, test_pool, poolurl, pstore, server_type = b_server
     csdb_pool_id, http_pool_id, PTYPES = set_ids    
     url = pc['cloud_scheme'] + \
         urlc[len('csdb'):] + '/' + csdb_pool_id + str(int(time.time()))

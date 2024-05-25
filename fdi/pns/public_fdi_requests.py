@@ -717,7 +717,8 @@ def upload_defintion(full_cls, urlcsdb,
     else:
         alist = False
         fs = [full_cls]
-
+    #__import__("pdb").set_trace()
+    
     # upload
     for f in fs:
         if skip:

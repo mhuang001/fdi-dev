@@ -390,11 +390,11 @@ def toPng(adset, grey=False, compression=0, cspace=8, cmap=None,
                               bitdepth=8, compression=compression)
     if png_file_name:
         #if output PNG, output BIN, too.
-
-        #bf = b''.join(x.tobytes() for x in data)
-        #with open(png_file_name+'.bin', 'wb') as b:
-        #    b.write(bf)
-
+        
+        bf = b''.join(x.tobytes() for x in data)
+        with open(png_file_name+'.bin', 'wb') as b:
+            b.write(bf)
+        
         with open(png_file_name+'.png', 'wb') as b:
             b.write(png_im)
     if 1:

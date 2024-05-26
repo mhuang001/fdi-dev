@@ -1,8 +1,9 @@
-__version_info__ = (2, 0, 6)
+__version_info__ = (2, 0, 7)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '2.0.5-0-gb1762ef'
+__revision__ = '2.0.6-0-g8568a5d'
 
-# shanghai
+# update tofits to image. paho reverted
+# 2.0.6 shanghai
 # 2.0.5 refactor iupload csdt prof defn code to main repo. get bin output ready in `toPng`
 # 2.0.4 paho-mqtt upgrade to 2.1.0
 # 2.0.3 namespace::load

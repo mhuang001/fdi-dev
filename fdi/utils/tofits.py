@@ -374,7 +374,6 @@ def add_header(meta, header, zim={}):
             ex = ((name, kw),) if kw else None
             header = set_parameter_to_header(param, header, name, ex, ignore_error=False, debug=debug)
         elif name in zim:
-            __import__("pdb").set_trace()
             kw = zim[name].get('fits_keyword', None)
             ex = ((name, kw),) if kw else None
         else:
@@ -469,9 +468,10 @@ def expand_template(p, fn, dct=None):
     else:
         logger.debug(f'Template {fn} is expanded.')
         sp = fn
-    return sp
+    
+    return sp.replace('${', '').replace('}', '')
         
-def write_to_file(p, fn, dct=None, ignore_type_error=False, this_fits=None, indent=None):
+def write_to_file(p, fn, dct=None, ignore_type_error=False, this_fits=None, indent=None, cmd=None):
     """write out fits file for the given product and try to send samp notices.
     If product is `BaseProduct` (or `Serializable`),
 
@@ -488,6 +488,8 @@ def write_to_file(p, fn, dct=None, ignore_type_error=False, this_fits=None, inde
         Use this if FITS representation is needed. Default is `None`.
     indent : int
         If to save in JSON, how much indentation is set. Default None.
+    cmd : str or None
+        command_line of `--fits`.
     Returns
     -------
     str
@@ -505,13 +507,28 @@ def write_to_file(p, fn, dct=None, ignore_type_error=False, this_fits=None, inde
        is_Fits(p)):
 
         raise TypeError(f"{lls(p, 100)} is not writable data.")
-
+    _p = None
     if issubclass(p.__class__, Serializable):
-        _p = this_fits if this_fits else p.fits(headers_only=True)
-        sp = expand_template(_p, fn, dct)
+        if cmd and cmd.strip():
+            # cmd line
+            if is_Fits(this_fits):
+                _p = this_fits
+            else:
+                # make one
+                _p = p.fits()
+            sp = expand_template(_p, fn, dct)
+                
+        else:
+            # only need headers to fill template
+            if is_Fits(this_fits):
+                _p = this_fits
+            else:
+                _p = p.fits(headers_only=True)
+            sp = expand_template(_p, fn, dct)
+            _p = None
     else:
         sp = expand_template(p, fn, dct)
-
+        
     sp = sp.replace(':', '').replace(' ', '_')
     try:
         if is_Fits(p):
@@ -524,6 +541,12 @@ def write_to_file(p, fn, dct=None, ignore_type_error=False, this_fits=None, inde
             with open(sp, 'w+') as prodf:
                 prodf.write(serialize(p, indent=indent))
             # logger.info(f'Cannot save {p.__class__} to FITS.')
+            # cmd line
+            if _p:
+                _sp = os.path.splitext(sp)[0] + '.fit'
+                with open(_sp, 'wb') as prodf:
+                    prodf.write(_p)
+
     except TypeError as e:
         if ignore_type_error:
             return sp

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from .common import trbk
+from .common import trbk, lls
 from fdi.dataset.mediawrapper import MediaWrapper
 from fdi.dataset.numericparameter import NumericParameter
 from fdi.dataset.arraydataset import ArrayDataset
@@ -382,7 +382,8 @@ def toPng(adset, grey=False, compression=0, cspace=8, cmap=None,
                 wtr.write(iob, img)
                 png_im = iob.getvalue()
         except png.ProtocolError as e:
-            logger.error(f'{png_file_name} {width}x{height} {len(data[0])} {e} {trbk(e)}')
+            logger.error(f'{png_file_name} {width}x{height} {lls(bytes(data[1]))}  {len(data[0])} {e} {trbk(e)}')
+
             return b''
 
     else:

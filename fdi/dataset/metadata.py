@@ -1171,7 +1171,7 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
                 # l = list(map(str, att.values()))
                 l = list(str(att[n]) for n in thewidths)
                 if extra:
-                    l.extend(map(str, ext.values()))
+                    l.extend(map(lambda x:'' if issubclass(x.__class__, bool) else str(x), ext.values()))
                 #print('+++ %s' % str(l))
                 #if 'isten' in l[0]:
                 #    __import__("pdb").set_trace()

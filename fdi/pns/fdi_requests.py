@@ -472,7 +472,7 @@ def put_on_server(urn, poolurl, contents='pool', headers=None, result_only=False
     try:
         return result['result'], result['msg']
     except (KeyError, TypeError):
-        return 'FAILED', result['msg']
+        return 'FAILED', str(result)
 
 
 def delete_from_server(urn, poolurl, contents='product', headers=None, result_only=False, auth=None, client=None, asyn=False):

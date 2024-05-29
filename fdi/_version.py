@@ -1,8 +1,9 @@
-__version_info__ = (2, 0, 8)
+__version_info__ = (2, 0, 9)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '2.0.7-0-g3e29ad9'
+__revision__ = '2.0.8-0-g299b8ae'
 
-# add toPng debug code
+# fix fragile error hadling of fdi_requests
+# 2.0.8 add toPng debug code
 # 2.0.7 update tofits to image. paho reverted
 # 2.0.6 shanghai
 # 2.0.5 refactor iupload csdt prof defn code to main repo. get bin output ready in `toPng`

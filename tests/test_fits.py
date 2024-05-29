@@ -92,7 +92,7 @@ def test_arr_toFits():
 
 def test_tab_fits():
     d = {'col1': aCol(data=[1, 4.4, 5.4E3], unit='eV'),
-         'col2': aCol(data=[0, 43, 2E3], unit='cnt')}
+         'col2': aCol(data=[0, 43, 2E3], unit='ct')}
     d['col1'].type = 'd'
     d['col2'].type = 'i'
     ds = TableDataset(data=d)
@@ -168,7 +168,7 @@ def test_toFits_metadata(make_composite_prd):
             ima = ds(data=[[1, 2, 3, 4], [5, 6, 7, 8]], description='a')
         elif issubclass(ds, TableDataset):
             d = {'col1': aCol(data=[1, 4.4, 5.4E3], unit='eV'),
-                 'col2': aCol(data=[0, -43, 2E3], unit='cnt')}
+                 'col2': aCol(data=[0, -43, 2E3], unit='ct')}
             d['col1'].typecode = 'd'
             d['col2'].typecode = 'i'
             ima = ds(data=d)

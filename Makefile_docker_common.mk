@@ -136,6 +136,10 @@ vol:
 	docker volume create log
 	docker volume inspect httppool log
 
+# pull: docker pull registry.cn-beijing.aliyuncs.com/www/xxx:yyy
+# docker tag xxx:yyy im:latest
+# to run pulled docker: docker run -it --name xxx --entrypoint '/bin/bash' im
+
 pull_server:
 	im=$(DKRREPO)/$(SERVER_NAME)  &&\
 	docker pull $$im:latest &&\
@@ -205,4 +209,5 @@ cleanup:
 	docker rmi -f `docker images -a|grep pool|awk 'BEGIN{FS=" "}{print $3}'`
 	docker rmi -f `docker images -a|grep csc |awk 'BEGIN{FS=" "}{print $3}'`
 	docker rmi -f `docker images -a|grep m/fdi|awk 'BEGIN{FS=" "}{print $3}'`
+	docker rmi -f `docker images -a|grep csc-mqtt|awk 'BEGIN{FS=" "}{print $3}'`
 

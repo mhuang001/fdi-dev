@@ -1,8 +1,9 @@
-__version_info__ = (2, 0, 9)
+__version_info__ = (2, 0, 10)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '2.0.8-0-g299b8ae'
+__revision__ = '2.0.9-0-gd6e464e'
 
-# fix fragile error hadling of fdi_requests
+# paho mqtt back to == 1.6.1 in setup.py
+# 2.0.9 fix fragile error hadling of fdi_requests
 # 2.0.8 add toPng debug code
 # 2.0.7 update tofits to image. paho reverted
 # 2.0.6 shanghai

@@ -147,14 +147,15 @@ def getToken(poolurl, client, user_urlbase=None, verify=False, two_tries= False)
     if sess and SESSION:
         # saved token
         current_token = sess.get('tokens', {}).get(poolurl, '')
-
+        logger.debug(f'Get "{lls(current_token,20)}" session token.')
     if not current_token:
         if f"{pcc['cloud_host']}:{pcc['cloud_port']}" == poolurl.split('/')[2]:
-            current_token = pcc['cloud_token']
+            current_token = getConfig('cloud_token')
+            logger.debug(f'Get "{lls(current_token,20)}" conf token.')
     if verify:
         trouble = verifyToken(current_token, client, user_urlbase=user_urlbase)
         if trouble:
-            logger.info(f'Cloud token {lls(current_token, 50)} {"not" if trouble else ""} passed verification. Try getting new...')
+            logger.info(f'Cloud token "{lls(current_token, 50)}" {"not" if trouble else ""} passed verification. Try getting new...')
             current_token = ''
 
 

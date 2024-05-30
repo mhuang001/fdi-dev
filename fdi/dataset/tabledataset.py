@@ -4,6 +4,7 @@ from .indexed import Indexed
 from .ndprint import ndprint
 from .odict import ODict
 from ..utils.common import wls
+from ..utils.fetch import META_NAME_HIER_SEPARATOR
 from .dataset import make_title_meta_l0, CompositeDataset
 from .shaped import Shaped
 from .metadata import MetaData
@@ -92,23 +93,34 @@ class TableModel():
         """
         self.getColumn(columnIndex).data[rowIndex] = value
 
+SEPARATORS = ('.', '_', '/')
+"""`META_NAME_HIER_SEPARATOR` must be the first one. """
 
-def maybe2rows(header_names, units=None, col_width=None, sep='.', one_row=False, linebreak='\n'):
+if META_NAME_HIER_SEPARATOR != SEPARATORS[0]:
+    _SEPARATORS = [META_NAME_HIER_SEPARATOR]
+    for x in SEPARATORS:
+        if x != META_NAME_HIER_SEPARATOR:
+            # works for string or a sequence
+            _SEPARATORS += x
+    SEPARATORS = _SEPARATORS
+
+def maybe2rows(header_names, units=None, col_width=None, sep=None, one_row=False, linebreak='\n'):
     """ makes one-row or two-row column headers
     :units: will not show line if all blank.
-    :sep: a string of separator characters to split header into two fragments. a header only uses the first matching char from left. Grouping does not distinguish which sep-char was used to split a header. Example: '.' (default), '._/'
+    :sep: a string of separator characters or a `Sequence` of strings, to split header into two fragments. a header only uses the first matching char from left. Grouping does not distinguish which sep-char was used to split a header. Example: '.', '._/'
     :one_row: Force one row but add line breaks at sep
 
     """
     if col_width is None:
         col_width = -1
+    if sep is None:
+        sep = SEPARATORS
 
     found_repeat = False
     hd, hd2 = [], []
     last = None
     for x in header_names:
         try:
-            # only test if there is '.'
             if not any(s in x for s in sep):
                 raise ValueError()
             f = float(x)
@@ -119,7 +131,7 @@ def maybe2rows(header_names, units=None, col_width=None, sep='.', one_row=False,
         except ValueError:
             # 'a.b', 'a.c' -> ('a','b'), ('a','c')
             r = str(x)
-            # try splitting with all sep chars until the first successful split to get the right-most fragment
+            # try splitting with all sep members until the first successful split to get the right-most fragment
 
             for s in sep:
                 p = r.rsplit(s, 1)
@@ -142,14 +154,22 @@ def maybe2rows(header_names, units=None, col_width=None, sep='.', one_row=False,
                     found_repeat = True
                 last = p0
 
+    def addn(x):
+        for s in sep:
+            if s in x:
+                return x.replace(s, s+'\n')
+        return x
+            
     # [(column name, unit), ...]. Widths of column head is limited
-    hdr1 = [wls(x.replace('.', '.\n') if one_row else x,
+    hdr1 = [wls(addn(x) if one_row else x,
                 width=col_width, linebreak=linebreak)
             for x in (hd if found_repeat else header_names)]
-    # name and unit rows.
-    if any(units):
+    # name and unit rows. make a list lest units is a generator which
+    # any() will consume
+    _u = list(units)
+    if any(_u):
         hdr = list('%s%s(%s)' % (nu[0], linebreak, nu[1])
-                   for nu in zip(hdr1, units))
+                   for nu in zip(hdr1, _u))
     else:
         hdr = hdr1
 

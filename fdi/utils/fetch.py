@@ -8,7 +8,7 @@ from itertools import chain
 
 META_NAME_HIER_SEPARATOR = '.'
 
-def fetch(paths, nested, re='', sep='/', exe=['is'], not_quoted=True):
+def fetch(paths, nested, re='', sep='/', exe=['is'], not_quoted=True, sep_out=META_NAME_HIER_SEPARATOR):
     """ Use paths to access values of internal elements of a nested python object.
 
     :paths: 1). If given as a string, the string will be splitted with `sep` into a list of strings, then go on to 2); 2). If given as a list of strings, its 0th member is to match one of the first level of nested attributes, keys, or method names. If the list was made in 1) the 0th member will be converted to an integer if possible.
@@ -20,7 +20,7 @@ def fetch(paths, nested, re='', sep='/', exe=['is'], not_quoted=True):
     :re: datapath representation for `nested`. Can be applied to reproduce the result.
     :exe: 1) A list of patterns which if found in the name of a method/function the matching method/function is allowed to run. 2) If one of the pattern is '*', all methods/functions are allowed to run. 3) If a pattern starts with a '-' then the matching method/function to the pattern ('-' removed) is not allowed to run (overriding previous rules.
     :not_quoted: the method-args string is not encoded with `quote`.
-
+    :sep_out: separator string used for output. default is `META_NAME_HIER_SEPARATOR`
     Result
     A found object and a string of python code e.g.  '.meta["speed"].isValid()'
     """
@@ -66,7 +66,7 @@ def fetch(paths, nested, re='', sep='/', exe=['is'], not_quoted=True):
     
     if hasattr(nested, p0):
         v0 = getattr(nested, p0)
-        rep = f"{re}{META_NAME_HIER_SEPARATOR}{p0}"
+        rep = f"{re}{sep_out}{p0}"
         if inspect.ismethod(v0) or inspect.isfunction(v0):
             if '*' in exe:
                 can_exec = True

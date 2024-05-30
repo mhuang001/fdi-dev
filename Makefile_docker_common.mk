@@ -201,7 +201,7 @@ update_docker:
 	$(MAKE) test_docker &&\
 	$(MAKE) test_server &&\
 	$(MAKE) rm_docker &&\
-	@echo Done. `pwd; cat ../docker_version`) 2>&1 | tee update.log
+	@echo Done. `pwd; cat docker_version`) 2>&1 | tee update.log
 
 sss:
 	$(MAKE) build_server && $(MAKE) push_d PUSH_NAME=$(SERVER_NAME) 

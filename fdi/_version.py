@@ -1,8 +1,9 @@
-__version_info__ = (2, 0, 11)
+__version_info__ = (2, 0, 12)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '2.0.10-0-gb94b44e'
+__revision__ = '2.0.11-0-gd3ea146'
 
-# get cloudd_token
+# fix test bug.
+# 2.0.11 get cloudd_token
 # 2.0.10 paho mqtt back to == 1.6.1 in setup.py
 # 2.0.9 fix fragile error hadling of fdi_requests
 # 2.0.8 add toPng debug code

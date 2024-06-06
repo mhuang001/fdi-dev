@@ -777,6 +777,7 @@ def reqst(meth, apis, *args, server_type='httppool', auth=None, return_response=
         if SHOW_REQ_SENT:
             __import__("pdb").set_trace()
             apis = f'https://httpbin.org/{meth.__func__.__name__}'
+        #__import__("pdb").set_trace()
 
         content = safe_client(meth, apis, *args, auth=auth, **kwds)
         

@@ -1,8 +1,9 @@
-__version_info__ = (2, 0, 12)
+__version_info__ = (2, 0, 13)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '2.0.11-0-gd3ea146'
+__revision__ = '2.0.12-0-gf12d78a'
 
-# fix test bug.
+# de pdb
+# 2.0.12 fix test bug.
 # 2.0.11 get cloudd_token
 # 2.0.10 paho mqtt back to == 1.6.1 in setup.py
 # 2.0.9 fix fragile error hadling of fdi_requests

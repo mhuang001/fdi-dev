@@ -63,6 +63,9 @@ _BASEURL = ''
 PC = None
 """ debug msg for session """
 
+APIDOCS_SPEC_ROUTE = '/swagger/'
+""" Where to get Swagger style API Documents. """
+
 app = Flask(__name__.split('.')[0], instance_relative_config=False,
             root_path=os.path.abspath(os.path.dirname(__file__)))
 
@@ -419,7 +422,7 @@ def create_app(config_object=None, level=None, logstream=None, preload=False):
         'title': 'FDI %s HTTPpool Server' % __revision__,
         'universion': 3,
         'openapi': '3.0.4',
-        'specs_route': '/swagger/',
+        'specs_route': APIDOCS_SPEC_ROUTE,
         'url_prefix': _BASEURL
     }
     swag['servers'].insert(0, {

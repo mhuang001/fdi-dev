@@ -5,7 +5,7 @@
 https://stackoverflow.com/questions/13751277/how-can-i-use-an-app-factory-in-flask-wsgi-servers-and-why-might-it-be-unsafe
 """
 
-from fdi.httppool import create_app, LOGGING_NORMAL, LOGGING_DETAILED
+from fdi.httppool import create_app, LOGGING_NORMAL, LOGGING_DETAILED, APIDOCS_SPEC_ROUTE
 from fdi.httppool.model.user import User
 
 from fdi._version import __version__, __revision__
@@ -97,7 +97,7 @@ if __name__ == '__main__':
 
     print('Check ' + pc['scheme'] + '://' + pc['host'] +
           ':' + str(pc['port']) + pc['baseurl'] +
-          '/apidocs' + ' for API documents.')
+          '/' + APIDOCS_SPEC_ROUTE + '/ for API documents.')
 
     pc = getconfig.getConfig()
     lev = logger.getEffectiveLevel()

@@ -284,7 +284,7 @@ def unregister2(pool):
     return unregister(pool)
 
 ######################################
-#### /pools/lock         ####
+#### /lock         ####
 ######################################
 
 
@@ -301,15 +301,15 @@ def lock():
     if logger.isEnabledFor(logging_DEBUG):
         logger.debug('Load all pools.')
     # will have / at the end
-    burl = request.base_url.rsplit('lock', 1)[0]
-    app.config['SERVER_LOCKED'] = True
+    #burl = request.base_url.rsplit('lock', 1)[0]
+    current_app.config['SERVER_LOCKED'] = True
     result = 'OK'
     msg = 'Server successfully locked.'
     code = 200
     return resp(code, result, msg, ts)
 
 ######################################
-#### /pools/unlock         ####
+#### /unlock         ####
 ######################################
 
 

@@ -1,8 +1,9 @@
-__version_info__ = (2, 0, 13)
+__version_info__ = (2, 0, 14)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '2.0.12-0-gf12d78a'
+__revision__ = '2.0.13-0-gc783bbf'
 
-# de pdb
+# APIDocs route on swagger ui. fix missing 'current' in 'current_app'
+# 2.0.13 de pdb
 # 2.0.12 fix test bug.
 # 2.0.11 get cloudd_token
 # 2.0.10 paho mqtt back to == 1.6.1 in setup.py

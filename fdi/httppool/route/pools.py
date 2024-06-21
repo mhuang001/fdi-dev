@@ -163,7 +163,7 @@ def get_name_all_pools(path=None, make_dir = False):
     """
 
     PM_S = PM_S_from_g(g)
-        
+
     logger = current_app.logger
     path = current_app.config['FULL_BASE_LOCAL_POOLPATH'] if path is None else path
     if logger.isEnabledFor(logging_DEBUG):
@@ -293,7 +293,7 @@ def unregister2(pool):
 
 @ pools_api.route('/lock', methods=['PUT', 'GET'])
 @ pools_api.route('/lock/', methods=['PUT', 'GET'])
-@ auth.login_required(role=['locker'])
+#@ auth.login_required(role=['locker'])
 def lock():
     """ Stop serving except the `unlock` one.
 
@@ -317,7 +317,7 @@ def lock():
 
 @ pools_api.route('/unlock', methods=['PUT', 'GET'])
 @ pools_api.route('/unlock/', methods=['PUT', 'GET'])
-@ auth.login_required(role=['locker'])
+#@ auth.login_required(role=['locker'])
 def unlock():
     """ Resume serving.
 
@@ -343,7 +343,7 @@ def unlock():
 
 @ pools_api.route('/pools/register_all', methods=['PUT', 'GET'])
 @ pools_api.route('/pools/register_all/', methods=['PUT', 'GET'])
-@ auth.login_required(role=['all_doer'])
+#@ auth.login_required(role=['all_doer'])
 def register_all():
     """ Register (Load) all pools on the server.
 
@@ -414,7 +414,7 @@ def load_pools(poolnames, usr):
 
 @ pools_api.route('/pools/unregister_all', methods=['PUT', 'GET'])
 @ pools_api.route('/pools/unregister_all/', methods=['PUT', 'GET'])
-@ auth.login_required(role=['all_doer'])
+#@ auth.login_required(role=['all_doer'])
 def unregister_all():
 
     logger = current_app.logger
@@ -466,7 +466,7 @@ def unregister_pools(poolnames=None):
 
 @ pools_api.route('/pools/wipe_all', methods=['DELETE'])
 # @ pools_api.route('/pools/wipe_all/', methods=['DELETE'])
-@ auth.login_required(role=['all_doer'])
+#@ auth.login_required(role=['all_doer'])
 def wipe_all():
     """ Remove contents of all pools.
 

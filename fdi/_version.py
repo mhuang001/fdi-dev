@@ -1,8 +1,9 @@
-__version_info__ = (2, 1, 0)
+__version_info__ = (2, 1, 1)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '2.0.14-2-g7a8e467'
+__revision__ = '2.1.0-0-g45fa611'
 
-# fix missing user_id in session. fix login-logout and ctx
+# temporarily remove loker and all_doer prev in pools.py
+# 2.1.0 fix missing user_id in session. fix login-logout and ctx
 # 2.0.14 APIDocs route on swagger ui. fix missing 'current' in 'current_app'
 # 2.0.13 de pdb
 # 2.0.12 fix test bug.

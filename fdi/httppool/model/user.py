@@ -381,6 +381,8 @@ def logout():
     if logger.isEnabledFor(logging_DEBUG):
         logger.debug('logout')
     # session.get('user_id') is the name
+    __import__("pdb").set_trace()
+
 
     if SESSION and hasattr(g, 'user') and hasattr(g.user, 'username'):
         nm, rl = g.user.username, g.user.roles
@@ -394,7 +396,7 @@ def logout():
     if SESSION:
         #__import__("pdb").set_trace()
         r = request.cookies
-        session.clear()
+        session['user_id'] = None
         g.user = None
         g.pools = None
         session.modified = True

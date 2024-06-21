@@ -142,7 +142,7 @@ def getUsers(pc):
     _gpc = (
         (getConfig('rw_user'), getConfig('rw_pass')),
         (getConfig('ro_user'), getConfig('ro_pass')),
-        (getConfig('admin'), getConfig('admin_pass')),
+        (getConfig('admin_user'), getConfig('admin_pass')),
     )
     for u, p in _gpc:
         if not issubclass(u.__class__, list):
@@ -150,6 +150,8 @@ def getUsers(pc):
         if not issubclass(p.__class__, list):
             p = [p]
         for usernames, hashed_pwd in zip(u, p):
+            if not usernames:
+                continue
             roles = NAMES2ROLES[usernames]
             users[usernames] = User(usernames, None, hashed_pwd, roles)
 
@@ -232,9 +234,9 @@ if SESSION:
             return resp
 
         gu = getattr(g, 'user', None)
-        if not gu or gu.username  == session.get('user_id', None): 
+        if not gu or 'user_id' not in session or gu.username == session['user_id']:
             if SES_DBG and logger.isEnabledFor(logging_DEBUG):
-                logger.debug(f'No need to save g.user.')
+                logger.debug('No need to save g.user.')
             return resp
 
         session['user_id'] = gu.username
@@ -246,7 +248,7 @@ if SESSION:
         if SES_DBG and logger.isEnabledFor(logging_DEBUG):
             user_id = session['user_id']
             _d = (f"Updated Ses Uid {_YELLOW}{user_id}")
-            logger.debug('%s %sSave_Ses U "%s"<%d, %s' %
+            logger.debug('%s %s Save_Ses U "%s" snt %d, %s' %
                          (_d, _BLUE, str(user_id),
                           current_app.config['ACCESS']['usrcnt'][user_id],
                           ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=auth)))

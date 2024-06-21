@@ -18,6 +18,7 @@ from ...pal import poolmanager as pm_mod
 from ...pal.poolmanager import Ignore_Not_Exists_Error_When_Delete, PM_S_from_g
 from ...pal.productpool import PoolNotFoundError
 from ...pal.publicclientpool import PublicClientPool
+from ...pal.localpool import LocalPool
 from ...pal.webapi import WebAPI
 # from ...pal.urn import parseUrn
 from ...pal.dicthk import HKDBS
@@ -100,7 +101,7 @@ def get_pools_url():
     logger = current_app.logger
 
     PM_S = PM_S_from_g(g)
-    
+
     ts = time.time()
     burl = request.base_url
 
@@ -110,10 +111,10 @@ def get_pools_url():
     maps.append(PM_S._GlobalPoolList.UNLOADED)
 
     for rank in (0, 1, 2):
-        m = dict((f"({symbols[rank]} "
-                  f"{po.__class__.__name__.replace('Pool','')}) {n}",
-                  urljoin(burl,n)) \
-                 for n, po in maps[rank].items())
+        m = {}
+        for n, po in maps[rank].items():
+            pooltype = 'CSDBpool' if issubclass(po.__class__, PublicClientPool) else 'HTTPpool' if issubclass(po.__class__, LocalPool) else ""
+            m[f"({symbols[rank]} {pooltype}) {n}"] = join(burl,n)        
         res.update(m)
 
     dvers = getConfig('docker_version')
@@ -566,7 +567,12 @@ def get_pool_info(poolname, serialize_out=False):
     allpools = get_name_all_pools(
         current_app.config['FULL_BASE_LOCAL_POOLPATH'])
 
-    PM_S = PM_S = PM_S_from_g(g)
+    if poolname not in allpools:
+        code, result, msg = 404, FAILED, poolname + ' is not an existing Pool ID.'
+        display = {'result': result}
+        return resp(code, display, msg, ts, False)
+
+    PM_S = PM_S_from_g(g)
     try:
         poolobj = PM_S.getPool(poolname)
     except ValueError as e:
@@ -574,7 +580,7 @@ def get_pool_info(poolname, serialize_out=False):
 
     if msg != '':
         display = {'result': result}
-    elif poolname in allpools:
+    else:
         not_c = not isinstance(poolobj, PublicClientPool)
         code, result, mes = load_HKdata([poolname], serialize_out=not_c)
         if not_c:
@@ -621,9 +627,6 @@ def get_pool_info(poolname, serialize_out=False):
         _, count, _, sz = get_data_count(None, poolname)
         msg += '%d data items recorded. %d counted. %d bytes total.' % (
             rec_u, count, sz)
-    else:
-        code, result, msg = 404, FAILED, poolname + ' is not an existing Pool ID.'
-        display = {'result': result}
     return resp(code, display, msg, ts, False)
 
 

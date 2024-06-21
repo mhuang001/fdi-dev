@@ -97,7 +97,7 @@ if __name__ == '__main__':
 
     print('Check ' + pc['scheme'] + '://' + pc['host'] +
           ':' + str(pc['port']) + pc['baseurl'] +
-          '/' + APIDOCS_SPEC_ROUTE + '/ for API documents.')
+          APIDOCS_SPEC_ROUTE + ' for API documents.')
 
     pc = getconfig.getConfig()
     lev = logger.getEffectiveLevel()

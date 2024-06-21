@@ -491,19 +491,31 @@ if 1:
         cnt += 1
 
         logger = current_app.logger
-
         locked = app.config['SERVER_LOCKED']
 
-        if 0 and locked:
-            if app.logger.isEnabledFor(logging_DEBUG):
-                    app.logger.debug(f"System locked: {locked}")
-            
-            return jsonify ({"result": "BUSY",
-                             "msg": "Server initializing or in maintenance.",
-                             "ts": time.time()}), 409
+        from .model.user import auth as r_auth
+        c, au, su, gu = ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=r_auth, users=True)
+
+        #if 'locker' not in getattr(current_app.config['USERS'].get(au,''), 'role','')
+
+        if au:
+            if locked:
+                if r_auth.authorize('locker', au, r_auth):
+                    # sail through
+                    if app.logger.isEnabledFor(logging_DEBUG):
+                            app.logger.debug(f"System locked but not for {au}")
+
+                    pass
+                else:
+                    if app.logger.isEnabledFor(logging_DEBUG):
+                            app.logger.debug(f"System locked: {locked}")
+
+                    return jsonify ({"result": "BUSY",
+                                     "msg": "Server initializing or in maintenance.",
+                                     "ts": time.time()}), 409
 
         if logger.getEffectiveLevel() < logging.WARNING: 
-            a = lls(request.view_args,50)
+            a = lls(request.view_args, 50)
             # remove leading e.g. /fdi/v0.17
             s = request.path.split(_BASEURL)
             p = s[0] if len(s) == 1 else s[1] if s[0] == '' else request.path
@@ -516,7 +528,6 @@ if 1:
             info = f"{cnt} {l}{_WHITE_RED}>>> [{method}] {lls(p, 50)}, {a}, {d}"
             if logger.getEffectiveLevel() < logging.INFO:
                 #if SES_DBG and logger.isEnabledFor(logging_DEBUG):
-                c = ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=None)
                 info += c
             logger.info(info)
 
@@ -549,7 +560,7 @@ if 1:
 
         PM_S = PM_S_from_g(g)
         
-        c = ctx(PM_S=None, app=current_app, session=session, request=request, auth=None)
+        c = ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=None)
         logger.debug(c)
         if  0:
             #from .model.user import save_registered_pools
@@ -561,7 +572,7 @@ if 1:
 
         return resp
 
-def ctx(PM_S, app, session, request, auth, **kwds):
+def ctx(PM_S, app, session, request, auth, users=False, **kwds):
     G = hex(id(PM_S.getMap().maps[0]))[-4:] if PM_S else "nul"
     _a = hex(id(app))[-4:]
     _r = hex(id(request))[-4:]
@@ -569,19 +580,24 @@ def ctx(PM_S, app, session, request, auth, **kwds):
     #_g = hex(id(g._get_current_object()))[-4:]
     _g = hex(id(g))[-4:]
     _ps = ' '.join(map(str, map(list,PM_S.getMap().maps))) if PM_S else "nul"
-    _u = f"auth.cuser{auth.current_user()}" if auth else "no-auth"
+    c_user = auth.current_user() if auth else None
+    _u = f"cur_user={c_user if c_user else 'no-auth'}"
     if hasattr(request, 'authorization'):
-        _u += f" req.ausr={request.authorization['username']}" if request.authorization else "none"
+        auth_usr = request.authorization['username'] if request.authorization else "none"
     else:
-        _u += "no-autho"
+        auth_usr = None
+    _u += f'req.auth_usr={auth_usr}'
     m = f"{_MAGENTA}GPL:{_HIWHITE}{G} {_GREEN}{_ps}{_MAGENTA}, app:{_a} req:{_r} sess:{_HIWHITE}{_s}{_MAGENTA} g:{_g}"
     headers = dict(request.headers)
     cook = dict(request.cookies)
-    user_id = getattr(session,'user_id', 'None')
-    guser = getattr(g,'user', 'No g usr')
-    m += (f" {_BLUE}Ses'{user_id}'>{current_app.config['ACCESS']['usrcnt'][user_id]} {headers.get('Authorization', '')[:12]}, gusr={guser} cookie.ses={cook.get('session', 'None')[-5:]}")
-    return m
-
+    ses_user_id = session.get('user_id', 'No')
+    guser = getattr(g,'g_usr', 'No')
+    m += (f" {_BLUE}Ses'{ses_user_id}' cnt{current_app.config['ACCESS']['usrcnt'][ses_user_id]} {headers.get('Authorization', '')[:12]}, gusr={guser} cookie.ses={cook.get('session', 'None')[-5:]}")
+    if users:
+        return m, c_user if c_user else auth_usr, ses_user_id, guser
+    else:
+        return m
+    
 def add_errorhandlers(app):
     @app.errorhandler(Exception)
     def handle_excep(error):

@@ -62,9 +62,14 @@ if conf == 'dev':
     pnsconfig['ro_user'] = pnsconfig['password']
     pnsconfig['ro_pass'] = 'pbkdf2:sha256:260000$8vrAxZeeJJhTrZLQ$70fd3819d62bb46fe89fc1cd933fb8052e83da75d66624b6146f105288be0bfd'
 
+    pnsconfig['admin_user'] = None
+    pnsconfig['admin_pass'] = None
+
     # server's own in the context of its os/fs/globals
     pnsconfig['self_host'] = pnsconfig['host']
     pnsconfig['self_port'] = pnsconfig['port']
+
+    # provide OS login and pass if login the server or interact as a user.
     pnsconfig['self_username'] = 'USERNAME'
     pnsconfig['self_password'] = 'ONLY_IF_NEEDED'
     pnsconfig['base_local_poolpath'] = '/tmp'

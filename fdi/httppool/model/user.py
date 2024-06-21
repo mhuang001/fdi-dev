@@ -40,7 +40,6 @@ from flask_httpauth import HTTPBasicAuth
 
 import datetime
 import time
-import copy
 from collections import defaultdict
 import functools
 import logging
@@ -107,16 +106,19 @@ class User():
 
 
 def get_names2roles_mapping(pc):
-    """ returns a mapping of {'read_write':[names]..} """
+    """ returns a mapping of e.g. {'read_write':[names]..} """
     # pc is pnsconfig from config files
     mapping = defaultdict(set)
-    for authtype in ('rw_user', 'ro_user'):
-        unames = pc[authtype]
+    for authtype in ('rw_user', 'ro_user', 'admin'):
+        unames = getConfig(authtype)
         # can be a list.
         unames = unames if isinstance(unames, list) else [unames]
         for n in unames:
-            if authtype == 'rw_user':
+            if authtype in ('rw_user', 'admin'):
                 mapping[n].add('read_write')
+                if authtype == 'admin':
+                    for r in ('read_write', 'locker', 'all_doer'):
+                        mapping[n].add(r)
             else:
                 mapping[n].add('read_only')
     return mapping
@@ -137,14 +139,20 @@ def getUsers(pc):
 
     #_pc = ((pc['rw_user'], pc['rw_pass']),
     #       (pc['ro_user'], pc['ro_pass']))
-    _gpc = ((getConfig('rw_user'), getConfig('rw_pass')),
-           (getConfig('ro_user'), getConfig('ro_pass')))
-    for usernames, hashed_pwd in _gpc: 
-        if issubclass(usernames.__class__, str):
-            usernames = [usernames]
-        for u in usernames:
-            roles = NAMES2ROLES[u]
-            users[u] = User(u, None, hashed_pwd, roles)
+    _gpc = (
+        (getConfig('rw_user'), getConfig('rw_pass')),
+        (getConfig('ro_user'), getConfig('ro_pass')),
+        (getConfig('admin'), getConfig('admin_pass')),
+    )
+    for u, p in _gpc:
+        if not issubclass(u.__class__, list):
+            u = [u]
+        if not issubclass(p.__class__, list):
+            p = [p]
+        for usernames, hashed_pwd in zip(u, p):
+            roles = NAMES2ROLES[usernames]
+            users[usernames] = User(usernames, None, hashed_pwd, roles)
+
     return users
     # users = dict(((u, User(u, None, hashed_pwd,
     #                        roles=[r for r, names in NAMES2ROLES.items() if u in names]))
@@ -163,25 +171,24 @@ if SESSION:
             logger.debug('No session. Return.')
             return
 
-        PM_S =  PM_S_from_g(g)
+        PM_S = PM_S_from_g(g)
         if logger.isEnabledFor(logging_DEBUG):
             logger.debug(ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=auth))
             
         if not username:
-            g.user = None
-        elif session.get('user_id', None) == username:
             return
-        else:
+        if session.get('user_id', None) != username:
+            session['user_id'] = username
             g.user = current_app.config['USERS'][username]
             # this will trigger session cookie-remaking
             session.new = new
         current_app.config['ACCESS']['usrcnt'][username] += 1
+        load_logged_in_user(username)
         
         if logger.isEnabledFor(logging_DEBUG):
             m = (ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=auth))
-            logger.debug(f'END of sus GPL {m}')
+            logger.debug(f'END of set_usr_ses GPL {m}')
 
-        load_logged_in_user(username)
         
     def load_logged_in_user(username):
         """ put session user ID to g.user.
@@ -211,7 +218,7 @@ if SESSION:
 
         if SES_DBG and logger.isEnabledFor(logging_DEBUG):
             _d = f"Updated g.usr {_YELLOW}{g.user}"
-            _c =  (ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=auth))
+            _c = (ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=auth))
             logger.debug(f"{_BLUE}Load_Usr, {_d} {_c}")
 
     @user_api.after_app_request
@@ -287,54 +294,72 @@ def login():
 
     from ..route.httppool_server import resp
 
-    if request.method == 'POST':
+    logger.info(request.method)
+    if request.method == 'GET':
+        guser = getattr(g, 'user', None)
+        if guser is None and  (request.authorization is None or not request.authorization.get('username', '')):
+            msg = 'Username and password please.'
+            if SESSION:
+                if LOGIN_TMPLT:
+                    flash(msg)
+                    return make_response(render_template(LOGIN_TMPLT))
+            return resp(401, 'Authentication needed.', msg, ts, req_auth=True)
+        # now request.authorization is None or len(request.authorization.get('username', '') == ''.get('username', '')) > 0
+        pass
+            
+    elif request.method == 'POST':
         rnm = request.form.get('username', None)
         rpas = request.form.get('password', None)
         if logger.isEnabledFor(logging_DEBUG):
             logger.debug(f'Request form {rnm}')
-
-        # if not (rpas and rnm):
-        #     msg = 'Bad username or password posted %s' % str(rnm)
-        #     if logger.isEnabledFor(logging_WARNING):
-        #         logger.warning(msg)
-        #     if reqanm and reqaps:
-        #         if logger.isEnabledFor(logging_WARNING):
-        #             msg = f'Username {reqanm} and pswd in auth header used.'
-        #             logger.warning(msg)
-        #         rnm, rpas = reqanm, reqaps
-        # vp = verify_password(rnm, rpas, check_session=False)
-
-        vp = verify_password(rnm, rpas, check_session=True)
-        if vp in (False, None):
-            if logger.isEnabledFor(logging_DEBUG):
-                msg = f'Verifying {rnm} with password failed.'
-                logger.debug(msg)
-            return resp(401, FAILED, msg, ts, req_auth=True)
-        else:
-            msg = 'User %s logged-in %s.' % (vp, vp.roles)
-            if logger.isEnabledFor(logging_DEBUG):
-                logger.debug(msg)
-            # return redirect(url_for('pools.get_pools_url'))
-            if SESSION:
-                if LOGIN_TMPLT:
-                    flash(msg)
-            return resp(200, 'OK.', msg, ts, req_auth=True)
-    elif request.method == 'GET':
-        if logger.isEnabledFor(logging_DEBUG):
-            logger.debug('start login')
     else:
         msg = f'The method should be GET or POST, not {request.method}.'
         if logger.isEnabledFor(logging_ERROR):
             logger.error(msg)
-        raise resp(409, FAILED, msg, ts)
-    if SESSION:
-        if LOGIN_TMPLT:
-            flash(msg)
-            return make_response(render_template(LOGIN_TMPLT))
+        return resp(409, FAILED, msg, ts)
+
+    if 1:
+        if request.authorization is None:
+            if getattr(g, 'user', None) is None:
+                # not logged_in
+                rnm = rpas = None
+            else:
+                # still logged in
+                #__import__("pdb").set_trace()
+                # use User as the password
+                rnm, rpas = g.user.username, g.user
+        else:
+            if getattr(g, 'user', None) is None:
+                # not logged_in
+                rnm = request.authorization.get('username', None)
+                rpas = request.authorization.get('password', None)
+            else:
+                # still logged in XXX take new
+                rnm = request.authorization.get('username', None)
+                rpas = request.authorization.get('password', None)
+        if logger.isEnabledFor(logging_DEBUG):
+            logger.debug(f'Request auth {rnm}')
+
+
+    vp = verify_password(rnm, rpas, check_session=True)
+    if vp not in (False, None):
+        msg = 'User %s logged-in %s.' % (vp, vp.roles)
+        if logger.isEnabledFor(logging_DEBUG):
+            logger.debug(msg)
+        # return redirect(url_for('pools.get_pools_url'))
+        if SESSION:
+            if LOGIN_TMPLT:
+                flash(msg)
+        return resp(200, 'OK.', msg, ts)
     else:
+        msg = f'Verifying {rnm} with password failed.'
         if logger.isEnabledFor(logging_INFO):
             logger.info(msg)
-    return resp(401, 'Authentication needed.', 'Username and password please.', ts)
+        if SESSION:
+            if LOGIN_TMPLT:
+                flash(msg)
+                return make_response(render_template(LOGIN_TMPLT))
+        return resp(401, 'Authentication needed.', 'Username and password please.', ts, req_auth=True)
 
 
 ######################################
@@ -367,6 +392,8 @@ def logout():
     if logger.isEnabledFor(logging_DEBUG):
         logger.debug(msg)
     if SESSION:
+        #__import__("pdb").set_trace()
+        r = request.cookies
         session.clear()
         g.user = None
         g.pools = None
@@ -407,7 +434,8 @@ def verify_password(username, password, check_session=True):
     no Session  no 'user_id'          ''                   r/t None
     no Session  no 'user_id'          None, u/k            login, r/t `False`
     no SESSION  not enabled           not empty  cleartext approve
-    In session  w/ 'user_id'  ''|None different   valid      new session, r/t new u
+    In session  w/ 'user_id'  ''      different   valid      new session, r/t new u
+    In session  w/ 'user_id'  None    empty          --      no session, r/t no u
     ..                                not same
     In session  w/ 'user_id'          not empty  invalid   login, return `False`
     In session  w/ 'user_id'  user    == user      valid   login, return same user
@@ -434,7 +462,7 @@ def verify_password(username, password, check_session=True):
     Parameters
     ----------
     username : str
-    password : str
+    password : str or User
         from header.
     """
     logger = current_app.logger
@@ -462,7 +490,7 @@ def verify_password(username, password, check_session=True):
                 gname = user.username
                 newu = current_app.config['USERS'].get(username, None)
                 # first check if the username is actually unchanged and valid
-                if newu is not None and newu.is_correct_password(password):
+                if newu is not None and ((password is user) or newu.is_correct_password(password)):
                     if gname == username:
                         # username is from header AUTHR..
                         if logger.isEnabledFor(logging_DEBUG):
@@ -492,7 +520,7 @@ def verify_password(username, password, check_session=True):
                     ('w/' if 'user_id' in session else 'w/o'),
                     ('' if hasattr(g, 'user') else 'no'),
                     (g.get('user', 'None')))
-                if username == '':
+                if username in (None, ''):
                     if logger.isEnabledFor(logging_DEBUG):
                         logger.debug(f"{stat}Anonymous user.")
                     return None
@@ -506,6 +534,7 @@ def verify_password(username, password, check_session=True):
                         logger.debug(f"{stat}Unknown user {username}")
                     return False
                     #################
+                
                 if newu.is_correct_password(password):
                     if logger.isEnabledFor(logging_INFO):
                         logger.info(
@@ -571,20 +600,25 @@ def user_register():
     return resp(300, 'FAILED', 'Not available.', ts)
 
 
-if LOGIN_TMPLT:
-    # @auth.error_handler
-    def XXXhandle_auth_error_codes(error=401):
-        """ if verify_password returns False, this gets to run.
+#@auth.error_handler
+def handle_auth_error_codes(error=401):
+    """ if verify_password returns False, this gets to run.
 
-        Note that this is decorated with flask_httpauth's `error_handler`, not flask's `errorhandler`.
-        """
-        if error in [401, 403]:
-            # send a login page
-            current_app.logger.debug("Error %d. Start login page..." % error)
+    Note that this is decorated with flask_httpauth's `error_handler`, not flask's `errorhandler`.
+    """
+    #__import__("pdb").set_trace()
+
+    if error in [401, 403]:
+        # send a login page
+        msg = "Error %d. Start login page..." % error if error == 401 else  "Error %d. Need extra authorization." % error
+        current_app.logger.debug(msg)
+        if LOGIN_TMPLT:
             page = make_response(render_template(LOGIN_TMPLT))
             return page
         else:
-            raise ValueError('Must be 401 or 403. Nor %s' % str(error))
+            return error, msg
+    else:
+        raise ValueError('Must be 401 or 403. Nor %s' % str(error))
 
 
 # open text passwd

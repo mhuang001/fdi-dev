@@ -572,6 +572,7 @@ This is done by calling the getPool() method, which will return an existing pool
     def _get_poolurl(cls, name):
         gpl_pool = None
 
+        #__import__("pdb").set_trace()
         if not name:
             raise ValueError('Cannot get pool name.')
         # detect if there is secondary_poolurl
@@ -787,10 +788,11 @@ Pools registered are kept as long as the last reference remains. When the last i
             gpl_pool = cls._GlobalPoolList[poolname]
         need_to_reg_save = True
         need_to_set_cl_auth = True
+
         # These are not saved:
         # pool does not exist but gpl_pool does or
         # both exist but are the same object
-        if ((not pool and gpl_pool) or (pool and pool is gpl_pool)):
+        if (((not pool) and gpl_pool) or (pool and (pool is gpl_pool))):
             need_to_reg_save = False
             logger.debug(f'{pool} is already registered with {poolname}')
 
@@ -832,6 +834,9 @@ Pools registered are kept as long as the last reference remains. When the last i
             # if is running on a server, put pool in the sesssion
             from ..httppool.model.user import SESSION
             from flask import session as sess
+            #from ..httppool.session import requests_retry_session
+            #sess = requests_retry_session()
+
 
             # if sess and SESSION:
             #     # save registered pools

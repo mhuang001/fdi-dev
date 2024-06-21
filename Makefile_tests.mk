@@ -72,4 +72,4 @@ test14:
 	$(PYTEST) $(OPT) tests/test_classes.py $(T)
 
 test15:
-	$(PYTEST) $(OPT) tests/serv/test_thread.py $(T)
+	$(PYTEST) $(OPT) --id test_threaded tests/serv/test_thread.py $(T)

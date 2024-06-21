@@ -53,7 +53,7 @@ MAX_RETRIES = 0
 @session_api.before_app_request
 def b4req_session():
     """ Every session keeps record of what pools it had
-    registered is the last request, everyone make the
+    registered in the last request, everyone makes the
     record when leaving a request, and registers when
     entering a request when current Poolmanager does not
     have the pool.
@@ -63,7 +63,7 @@ def b4req_session():
     logger = current_app.logger
 
     PM_S = PM_S_from_g(g)
-    
+
     if not SESSION:
         if logger.isEnabledFor(logging_DEBUG):
             logger.warning('Called with no SESSION')
@@ -75,7 +75,7 @@ def b4req_session():
     if SES_DBG and logger.isEnabledFor(logging_DEBUG):
         from . import ctx
         from .model.user import auth
-        _c =  (ctx(PM_S=PM_S, app=current_app, session=session,
+        _c = (ctx(PM_S=PM_S, app=current_app, session=session,
                    request=request, auth=auth))
         logger.debug(f"{_c}")
     for pn, pu in pools.items():
@@ -86,17 +86,15 @@ def b4req_session():
             logger.info(f'{_RED}{pn} is not found in GPL.')
             #code, po, msg = register_pool(
             #    pn, current_app.config['USERS'][username], poolurl=pu)
-            #ssert po is GPL[pn]
+            #assert po is GPL[pn]
         else:
             #assert pn in GPL
             gpu = GPL[pn]._poolurl
             logger.info(f'GPL.purl {gpu}{"==" if gpu == pu else "!="}cookie {pu}.')
 
     if SES_DBG and logger.isEnabledFor(logging_DEBUG):
-        from .model.user import auth
-        from . import ctx
-        _c =  (ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=auth))
-        logger.debug(f"{_BLUE}Load_Ses, {_c}")
+        _c1 =  ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=auth)
+        logger.debug(f"{_BLUE}Load_Ses, {'ctx unchanged.' if _c == _c1 else _c1}")
     return 
 
 @session_api.after_app_request
@@ -114,17 +112,21 @@ def aftreq_session(resp):
     if SES_DBG and logger.isEnabledFor(logging_DEBUG):
         from . import ctx
         from .model.user import auth
-        logger.debug(ctx(PM_S=PM_S, app=current_app, session=session,
-                         request=request, auth=auth))
+        _c = ctx(PM_S=PM_S, app=current_app, session=session,
+                         request=request, auth=auth)
+        logger.debug(_c)
 
     GPL = PM_S.getMap().maps[0]
-    session['registered_pools'] = dict((pn, x._poolurl) for pn, x in GPL.items())
+    _d = {} if len(GPL) == 0 else dict((pn, x._poolurl) for pn, x in GPL.items())        
+    session['registered_pools'] = _d
     session.modified = True
-    logger.debug(f"Updated SesPools {_YELLOW}{' '.join(session['registered_pools'])}")
-
+    _m = ''
     if SES_DBG and logger.isEnabledFor(logging_DEBUG):
-        logger.debug(ctx(PM_S=PM_S, app=current_app, session=session,
-                         request=request, auth=auth))
+        _c2 = ctx(PM_S=PM_S, app=current_app, session=session,
+                  request=request, auth=auth)
+        _m = 'ctx unchanged.' if _c == _c2 else _c2
+    logger.debug(f"{_YELLOW}Updated SesPools {' '.join(session['registered_pools'])}. {_m}")
+
     
     return resp
 

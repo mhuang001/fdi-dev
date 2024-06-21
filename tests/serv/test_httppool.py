@@ -320,6 +320,20 @@ def test_new_user_read_only(new_user_read_only, pc):
     logger.debug('Done.')
 
 
+def test_new_user_admin(new_user_admin, pc):
+    """
+    GIVEN a User model
+    WHEN a new User is created
+    THEN check the username, hashed_password, authenticated, and roles fields are defined correctly
+    """
+    new_user, headers = new_user_read_only
+    assert new_user.username == 'admin'
+    assert not new_user.hashed_password.startswith('o')
+    assert not new_user.authenticated
+    assert set(new_user.roles) != {'locker', 'all_doer', 'read_write'}
+    logger.debug('Done.')
+
+
 def getapis(server_ro, client):
     aburl, headers = server_ro
     x = safe_client(client.get, aburl.strip(

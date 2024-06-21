@@ -73,6 +73,7 @@ def resp(code, result, msg, ts, serialize_out=False,
     :result: if is `Response`, this is returned req_auth applied.
     :ctype: Content-Type. Default is `application/json`
     :serialize_out: if True `result` is in already in serialized form.
+    :req_auth: send http header to ask the browser to prompt login.
     """
     logger = current_app.logger
     # return if `result` is already a Response
@@ -91,9 +92,10 @@ def resp(code, result, msg, ts, serialize_out=False,
             w = result
 
         if logger.isEnabledFor(logging_DEBUG):
-            logger.debug(lls(w, length))
-            # logger.debug(pprint.pformat(w, depth=3, indent=4))
-            if issubclass(w.__class__, bytes):
+            logger.debug('resp result:' + lls(w, length))
+            #import pprint
+            #logger.debug(pprint.pformat([w, code], depth=3, indent=4))
+            if 0: #issubclass(w.__class__, bytes):
                 with open(f'/tmp/test_{time.time()}_.png', 'wb') as b:
                     b.write(w)
         resp = make_response(w, code)
@@ -113,9 +115,9 @@ def excp(e, code=400, msg='', serialize_out=True):
     msg = '%s\n%s: %s.\nTrace back: %s' % (
         msg, e.__class__.__name__, str(e), trbk(e))
     if 'not exist' in msg:
-        t=trbk2(e)
-        __import__("pdb").set_trace()
-        pass
+        t = trbk2(e)
+        msg += t
+
     return code, result, msg
 
 

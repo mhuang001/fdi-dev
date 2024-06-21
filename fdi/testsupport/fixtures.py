@@ -82,20 +82,20 @@ def pytest_addoption(parser):
         action='store',
         #dest='SERVER_RUN',
         default=0,
-        type=int,
+        type= str , #if isinstance(x, (int, str)) else 
         help=\
-        "0 for csdb_pool_id = 'test_fdi_demo_classes' ;"
+        "'0' for csdb_pool_id = 'test_fdi_demo_classes' ;"
         "http_pool_id = 'test_fdi_demo_classes_fdi' "
-        "1 for csdb_pool_id = 'test_all_csc_type_1' ; "
+        "'1' for csdb_pool_id = 'test_all_csc_type_1' ; "
         "http_pool_id = 'test_all_csc_type_1_fdi' ; "
-        "2 csdb_pool_id = 'test_sdb_type_vt_2' ; "
+        "'2' csdb_pool_id = 'test_sdb_type_vt_2' ; "
         "http_pool_id = 'test_sdb_type_vt_2_fdi' "
-        "3 for csdb_pool_id = 'test_sdb_type_all_4' ; "
+        "'3' for csdb_pool_id = 'test_sdb_type_all_4' ; "
         "http_pool_id = 'test_sdb_type_all_4_fdi'"
-        "4 for csdb_pool_id = 'test_all_types_5' ; "
+        "'4' for csdb_pool_id = 'test_all_types_5' ; "
         "http_pool_id = 'test_all_types_5_fdi' "
         ,
-        choices=(0, 1, 2, 3, 4)
+        #choices=(0, 1, 2, 3, 4)
     )
 
 def pytest_configure(config):
@@ -151,7 +151,8 @@ def set_ids(pytestconfig):
         http_pool_id = 'test_fdi_demo_classes_fdi'
         PTYPES = ('DemoProduct', 'TB', 'TP', 'TC', 'TM', 'SP', 'TCC')
     else:
-        csdb_pool_id = http_pool_id = PTYPES = None
+        csdb_pool_id = http_pool_id = cmd
+        PTYPES = ('DemoProduct', 'TB', 'TP', 'TC', 'TM', 'SP', 'TCC')
     return csdb_pool_id, http_pool_id, PTYPES
         
 url_c = None
@@ -195,6 +196,20 @@ def new_user_read_only():
 
 
 @ pytest.fixture(scope='session')
+def new_user_admin(userpass_admin):
+    """
+    GIVEN a User model
+    https://www.patricksoftwareblog.com/testing-a-flask-application-using-pytest/
+    """
+    users = getUsers()
+    new_user = users['admin']
+    un, pw = userpass_admin
+    headers = auth_headers(username=un, password=pw)
+
+    return new_user, headers
+
+
+@ pytest.fixture(scope='session')
 def userpass():
     auth_user = pc['username']
     auth_pass = pc['password']
@@ -204,6 +219,12 @@ def userpass():
 def userpass_ro():
     auth_user = pc['ro_user']
     auth_pass = pc['ro_pass']
+    return auth_user, auth_pass
+
+@ pytest.fixture(scope='session')
+def userpass_admin():
+    auth_user = getConfig('admin_user')
+    auth_pass = getConfig('admin_pass')
     return auth_user, auth_pass
 
 
@@ -534,7 +555,7 @@ def server(pytestconfig, set_ids, userpass, mock_app, request):
         auth = Authorization(
             "basic", {"username": userpass[0], "password": userpass[1]})
         logger.info('**** mock_app as client *****')
-        with mock_app.test_client() as client:
+        with mock_app.test_client(authentication=auth) as client:
             if 0:
                 with mock_app.app_context():
                     mock_app.preprocess_request()
@@ -549,6 +570,7 @@ def server(pytestconfig, set_ids, userpass, mock_app, request):
         logger.info('**** requests as live-client *****')
         with the_session as live_client:
             #yield live_client
+
             pstore.register(poolurl=poolurl, client=live_client, auth=auth)
             # ps.register(poolname=test_pool.poolname, poolurl=poolurl)
             # PublicClientPool(poolurl=url)

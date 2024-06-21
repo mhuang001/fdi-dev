@@ -44,21 +44,21 @@ logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 
 
 @pytest.fixture
-def num_pool(tmp_remote_storage_no_wipe, server, client, auth):
+def num_pool(tmp_remote_storage_no_wipe, server, client):
 
     ps, pool = tmp_remote_storage_no_wipe
-    aburl, header = server
-    poolurl = pool.poolurl
+    aburl, client, auth, pool, poolurl, pstore, server_type = server
+    header = client.headers
     print(pool.poolname)
-    Number = 100
-    return aburl, header, pool, poolurl, auth, Number
+    Number = 1
+    return aburl, header, pool, poolurl, client.auth, Number
 
 
-what_ = pytest.mark.skip
+what_ = pytest.mark.skipif(0, reason="requires ..")
 
 
 @what_
-def xtest_cio_post(num_pool):
+def test_cio_post(num_pool):
     aburl, header, pool, poolurl, auth, Number = num_pool
     pool.removeAll()
     plist = [Product(description=str(i)).serialized() for i in range(Number)]
@@ -75,9 +75,8 @@ def xtest_cio_post(num_pool):
                     get_aio_result(session.post, poolurl, data=d, headers=header)))
 
             content = await asyncio.gather(*tasks)
-            res = [deserialize(c)['result'] for code, c in content]
+            res = [deserialize(one[1])['result'] if len(one)==2 else list(map(str, one)) for one in content]
             print('pppp', res[0])
-            print(len(res))
             return res
 
     urns = asyncio.run(m100())
@@ -87,6 +86,7 @@ def xtest_cio_post(num_pool):
     res = []
     out = ''
     for n in range(Number):
+        assert(isinstance(n, str)), n        
         idx = int(urns[n].rsplit(':', 1)[1])
         out += f"{n} idx={idx} "
     logger.debug(out)

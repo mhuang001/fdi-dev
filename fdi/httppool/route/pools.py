@@ -119,17 +119,20 @@ def get_pools_url():
     dvers = getConfig('docker_version')
     svers = getConfig('server_version')
 
-    if 0:
-        from ..model.user import getUsers
-        # report lru_cache info
-        lru = 'LRU user '
-        for name, usr in current_app.config['USERS'].items():
-            lru += '%s: %s ' % (name, usr.getCacheInfo())
-        if logger.isEnabledFor(logging_DEBUG):
-            logger.debug(lru)
+    from ..model.user import getUsers
+    # report user info
+    u = 'User '
+    guser = getattr(g, 'user', None)
+    name = getattr(guser, 'username', '')
+    roles = getattr(guser, 'roles', '')
+    loggedin = guser is not None and getattr(guser, 'logged_in', False)
+    u += '%s: logged in as %s.' % (name, str(roles)) if loggedin else "not logged in."
+    if logger.isEnabledFor(logging_DEBUG):
+            logger.debug(u)
 
-    msg = '%d pools found. Version: fdi %s docker %s pool server %s' % (
-        len(res), __revision__, dvers, svers)
+    msg = '%d pools found. Version: fdi %s, docker %s, HTTPPool server %s, %s' % (
+        len(res), __revision__, dvers if dvers else 'None',
+        svers if svers else 'None', u)
     code = 200
     return resp(code, res, msg, ts)
 
@@ -290,12 +293,11 @@ def unregister2(pool):
 
 @ pools_api.route('/lock', methods=['PUT', 'GET'])
 @ pools_api.route('/lock/', methods=['PUT', 'GET'])
-@ auth.login_required(role='read_write')
+@ auth.login_required(role=['locker'])
 def lock():
     """ Stop serving except the `unlock` one.
 
     """
-
     logger = current_app.logger
     ts = time.time()
     if logger.isEnabledFor(logging_DEBUG):
@@ -315,7 +317,7 @@ def lock():
 
 @ pools_api.route('/unlock', methods=['PUT', 'GET'])
 @ pools_api.route('/unlock/', methods=['PUT', 'GET'])
-@ auth.login_required(role='read_write')
+@ auth.login_required(role=['locker'])
 def unlock():
     """ Resume serving.
 
@@ -335,13 +337,13 @@ def unlock():
 
 
 ######################################
-#### /pools/regfister_all         ####
+#### /pools/register_all         ####
 ######################################
 
 
 @ pools_api.route('/pools/register_all', methods=['PUT', 'GET'])
 @ pools_api.route('/pools/register_all/', methods=['PUT', 'GET'])
-@ auth.login_required(role='read_write')
+@ auth.login_required(role=['all_doer'])
 def register_all():
     """ Register (Load) all pools on the server.
 
@@ -412,7 +414,7 @@ def load_pools(poolnames, usr):
 
 @ pools_api.route('/pools/unregister_all', methods=['PUT', 'GET'])
 @ pools_api.route('/pools/unregister_all/', methods=['PUT', 'GET'])
-@ auth.login_required(role='read_write')
+@ auth.login_required(role=['all_doer'])
 def unregister_all():
 
     logger = current_app.logger
@@ -458,13 +460,13 @@ def unregister_pools(poolnames=None):
     return good, notgood
 
 ######################################
-#### /pools/wipe_all  pools/wipe_all/  ####
+#### /pools/wipe_all   ####
 ######################################
 
 
 @ pools_api.route('/pools/wipe_all', methods=['DELETE'])
 # @ pools_api.route('/pools/wipe_all/', methods=['DELETE'])
-@ auth.login_required(role='read_write')
+@ auth.login_required(role=['all_doer'])
 def wipe_all():
     """ Remove contents of all pools.
 
@@ -536,7 +538,7 @@ def wipe_pools(poolnames, usr):
 
 @ pools_api.route('/<string:pool>/', methods=['GET'])
 @ pools_api.route('/<string:pool>', methods=['GET'])
-# @ auth.login_required(role=['read_only', 'read_write'])
+# @ auth.login_required(role=['read_only'])
 def get_pool(pool):
     """ Get information of the given pool.
 

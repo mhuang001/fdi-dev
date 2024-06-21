@@ -17,7 +17,7 @@ def test_pool_server_url(server, pytestconfig, set_ids):
     print(url, client, pool, server_type)
 
     res = client.get(url).text
-    assert 'pool server' in res
+    assert 'HTTPPool server' in res
     print(client.get(url).text)
     assert len(pstore.getPools()) == 1
 

@@ -702,6 +702,10 @@ def content2result_csdb(content):
             msg = obj.get('msg', '')
             ocode = obj.get('code', None)
 
+            if msg is None:
+                if code == 200:
+                    msg = f"Got None as reqst return 'msg'. Code 200."
+                    logger.info(msg)                
             if 'not exist' in msg:
                 code = 404
             if code != 200:

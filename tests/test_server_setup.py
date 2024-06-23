@@ -1,6 +1,6 @@
 
 
-import pytest, os, sys, time
+import pytest, os, sys
 
 from fdi.testsupport.fixtures import BG_SERVER_LOG
 

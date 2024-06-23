@@ -81,7 +81,7 @@ def pytest_addoption(parser):
         "--id",
         action='store',
         #dest='SERVER_RUN',
-        default=0,
+        default="0",
         type= str , #if isinstance(x, (int, str)) else 
         help=\
         "'0' for csdb_pool_id = 'test_fdi_demo_classes' ;"
@@ -146,7 +146,7 @@ if 1:
 def set_ids(pytestconfig):
 
     cmd = pytestconfig.getoption("--id")
-    if cmd == 0:
+    if cmd == '0':
         csdb_pool_id = 'test_fdi_demo_classes'
         http_pool_id = 'test_fdi_demo_classes_fdi'
         PTYPES = ('DemoProduct', 'TB', 'TP', 'TC', 'TM', 'SP', 'TCC')
@@ -371,8 +371,7 @@ def checkserver(aburl, times=0):
                 server_type = 'mock'
         else:
             # a different code
-            logger.warning(aburl + ' is alive. but trouble is ')
-            logger.warning(e)
+            logger.warning(f"{aburl} is alive with troublecode={e.code} {e}")
             logger.warning('Live server')
             server_type = 'trouble'
     except (URLError, OSError, socket.timeout) as e:
@@ -819,7 +818,7 @@ def clean_csdb_ro(csdb_server_ro):
 @ pytest.fixture(scope=SHORT)
 def new_csdb(csdb_server, set_ids):
     logger.debug('wipe cdb_new. {purl}')
-    urlc, client, auth, test_pool, poolurl, pstore, server_type = b_server
+    urlc, client, auth, test_pool, poolurl, pstore, server_type = csdb_server
     csdb_pool_id, http_pool_id, PTYPES = set_ids    
     url = pc['cloud_scheme'] + \
         urlc[len('csdb'):] + '/' + csdb_pool_id + str(int(time.time()))

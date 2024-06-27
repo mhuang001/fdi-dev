@@ -1,6 +1,7 @@
 # syntax=docker/dockerfile:1.2
 
-FROM ubuntu:18.04 AS fdi
+FROM ubuntu:22.04 AS fdi
+# 10 upgrade to ubuntu:22.04
 # 8 inherit ENTRYPOINT
 # 1-6 M. Huang <mhuang@nao.cas.cn>
 # 0.1 yuxin<syx1026@qq.com>

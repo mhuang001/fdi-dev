@@ -1,8 +1,9 @@
-__version_info__ = (2, 2, 0)
+__version_info__ = (2, 2, 1)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '2.1.2-0-gc5f98bf'
+__revision__ = '2.2.0-0-gf1aea55'
 
-# try ubuntu22.04 with dockerfile
+# minor improvement with real data
+# 2.2.0 try ubuntu22.04 with dockerfile
 # 2.1.3 merge develop to master
 # 2.1.2 fix set_id fixture default.
 # 2.1.1 fix making unawnted pools and missing version in poolurl

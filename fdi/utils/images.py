@@ -382,7 +382,9 @@ def toPng(adset, grey=False, compression=0, cspace=8, cmap=None,
                 wtr.write(iob, img)
                 png_im = iob.getvalue()
         except png.ProtocolError as e:
-            logger.error(f'{png_file_name} {width}x{height} {lls(bytes(data[1]))}  {len(data[0])} {e} {trbk(e)}')
+            #__import__("pdb").set_trace()
+
+            logger.error(f'{png_file_name} {width}x{height} {lls(bytes(data[1]))}  len(data[0])={len(data[0])} {e} {trbk(e)}')
 
             return b''
 
@@ -392,9 +394,9 @@ def toPng(adset, grey=False, compression=0, cspace=8, cmap=None,
     if png_file_name:
         #if output PNG, output BIN, too.
         
-        bf = b''.join(x.tobytes() for x in data)
-        with open(png_file_name+'.bin', 'wb') as b:
-            b.write(bf)
+        # bf = b''.join(x.tobytes() for x in data)
+        # with open(png_file_name+'.bin', 'wb') as b:
+        #     b.write(bf)
         
         with open(png_file_name+'.png', 'wb') as b:
             b.write(png_im)

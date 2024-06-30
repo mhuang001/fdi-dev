@@ -237,3 +237,10 @@ def get_All_Products(what='Full_Class_Names'):
                 raise ValueError(
                     "Allowed parameters: 'Class_Names', 'Full_Class_Names' and 'Classes'.")
     return res
+
+def getCacheInfo():
+
+    r = dict((i.__name__, i.cache_info()) for i in [get_All_Products])
+    r['Classes'] = Classes.cannot_copy()
+
+    return r

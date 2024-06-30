@@ -25,7 +25,7 @@ Config_NameSpace = {}
 """ `NameSpace` managers for configuration key-value pairs."""
 
 Config_Look_Up = {}
-""" `Lazy_Loading_ChainMap`s for getting value with a key from Configuration dictionaries in files and in OS Environment.. """
+""" map of `Lazy_Loading_ChainMap`s for getting value with a key from Configuration dictionaries in files and in OS Environment.. """
 
 
 # DO NOT USE lru_cache, or local config wil not update the map
@@ -165,6 +165,7 @@ def loader(key, mapping, remove=True, exclude=None, ignore_error=False):
 
 @functools.lru_cache(8)
 def getConfClass(conf_name, builtin):
+    
     if issubclass(builtin.__class__, ReadOnlyDict):
         builtin = dict(builtin)
     maps = getMappings(conf_name, builtin)
@@ -572,6 +573,11 @@ def get_projectclasses(clp, exclude=None, verbose=False):
         sys.path.pop(0)
     return pc
 
+def getCacheInfo():
+    funlist = dict((i.__name__, i.cache_info()) for i in [getConfClass])
+    # all configs
+    funlist.update((cn, c.cannot_copy) for cn, c in Config_Look_Up.items())
+    return funlist
 
 if __name__ == '__main__':
 

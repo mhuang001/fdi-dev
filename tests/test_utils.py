@@ -11,6 +11,7 @@ from fdi.pal.urn import Urn
 from fdi.pal.productref import ProductRef
 from fdi.utils.checkjson import checkjson
 from fdi.utils.loadfiles import loadcsv
+import fdi.utils.getconfig
 from fdi.utils import moduleloader
 from fdi.utils.common import fullname, wls, find_all_files
 from fdi.utils.options import opt
@@ -700,7 +701,7 @@ def test_getConfig_ENV():
 
     os.environ[typ.upper()+'_HOST'] = 'lichen'
     assert '://lichen:' in getConfig('poolurl:', conf=typ, force=True)
-
+    print("*** Config_Look_Up cannot_copy ", fdi.utils.getconfig.getCacheInfo())
 
 def test_getConfig_conf():
     # clear previous load

@@ -52,9 +52,13 @@ def test_Lazy(NSmeta):
     # e has only 1 unique key. len =  + (len(e)-1)
     assert len(v) == len(v.initial) + len(v.cache) + (len(e)-1)
     assert len(v.cache) == 1
+    v.copy = False
     assert v.cache['a'] is d
-    # accessing again won't move anything
+    # accessing again won't move anything if copy is False
     assert v["a"] is d
+    # but will be a copy if copy is True (default)
+    v.copy = True
+    assert v["a"] is not d    
     assert len(a) == 2
     assert len(b) == 1
     assert len(v.initial) == lab-1
@@ -257,8 +261,7 @@ def test_Classes(claz):
     assert prjcls['maxsize'] == sys.maxsize
     assert 'f_' in prjcls
     assert issubclass(prjcls['f_'], foo)
-
-# add name spacw
+    print("*** classes cannot_copy:", prjcls.getCacheInfo())
 
 
 def test_gb(claz):

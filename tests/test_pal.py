@@ -1494,8 +1494,8 @@ def doquery(poolpath, newpoolpath, client=None, auth=None):
     chk(res[2], rec1[3])
 
     # report lru_cache info
-    print('***cache*** %s ' % str(thepool.getCacheInfo()))
-
+    print('***cache*** thepool %s ' % str(thepool.getCacheInfo()))
+    print('Class_Look_Up.cannot_copy:', Class_Look_Up.cannot_copy)
 
 def test_query_local_mem():
     cleanup()
@@ -1504,7 +1504,6 @@ def test_query_local_mem():
     doquery('mem://'+thepoolpath, 'mem://'+thepoolpath)
     doquery('file://'+thepoolpath, 'mem://'+thepoolpath)
     doquery('mem://'+thepoolpath, 'file://'+thepoolpath)
-
 
 def test_query_http(server):
 

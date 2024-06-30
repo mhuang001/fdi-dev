@@ -255,12 +255,38 @@ class Lazy_Loading_ChainMap(ChainMap):
     used to do the loading.
     """
 
-    def __init__(self, *args, extensions=None, load=None, **kwds):
+    def __init__(self, *args, extensions=None, load=None, copy=True, **kwds):
+        """A chain map that only loads when need to give.
+
+        Parameters
+        ----------
+        extensions : list
+            A collection of maps that extends the original ones. Default is `refloader`.
+        load : function
+            moves items from source maps to the working one.
+        copy : bool
+            make a deep copy of the result item and return it.
+        **kwds : dict
+            extra
+
+        Returns
+        -------
+        object
+            the result of get.
+
+        Examples
+        --------
+        FIXME: Add docs.
+
+        """
 
         if extensions is None:
             extensions = []
         if load is None:
             load = refloader
+        self.copy = copy
+        # the name of uncopyable values (module, frozenset or immutables
+        self.cannot_copy = set()
         self.load = load
 
         self.extensions = extensions
@@ -299,8 +325,10 @@ class Lazy_Loading_ChainMap(ChainMap):
                          str(self.initial)[:300]
                       ))
 
-    def __getitem__(self, key):
+    got_hit = 0
 
+    def __getitem__(self, key):
+        self.got_hit += 1
         for i, m in enumerate(self.maps):
             if m is self.initial:
                 loaded = self.load(key, self.initial, remove=True,
@@ -311,6 +339,15 @@ class Lazy_Loading_ChainMap(ChainMap):
                         self.cache[k] = re
                         # is what we look for
                         if k == key:
+                            #return re
+                            if self.copy and key not in self.cannot_copy:
+                                try:
+                                    r = copy.deepcopy(re)
+                                except (TypeError, AttributeError):
+                                    self.cannot_copy.add(key)
+                                    r = re
+                            else:
+                                r = re
                             return re
                     else:
                         #  ignore to let future calls try.
@@ -324,7 +361,18 @@ class Lazy_Loading_ChainMap(ChainMap):
                         logger.debug(
                             'Find "%s" in map%d but it is excluded.' % (key, i))
                         return None
-                    return m[key]
+                    #return m[key]
+                    if self.copy and key not in self.cannot_copy:
+                        re = m[key]
+                        try:
+                            r = copy.deepcopy(re)
+                        except (TypeError, AttributeError):
+                            self.cannot_copy.add(key)
+                            r = re
+                    else:
+                        r = m[key]
+                    return r
+                    
         if not self.ignore_error:
             raise KeyError('Key "%s" not found in any namespace.' % key)
         return None
@@ -419,3 +467,9 @@ class Lazy_Loading_ChainMap(ChainMap):
 
         raise(NotImplementedError)
         
+    def getCacheInfo(self):
+
+        return {
+            'uncopyable items': self.cannot_copy,
+            'got_hit': self.got_hit
+        }

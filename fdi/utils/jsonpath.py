@@ -116,11 +116,7 @@ def jexp(expr, *args, **kwds):
 
 
 def getCacheInfo():
-    info = {}
-    for i in [jexp]:
-        info[i] = i.cache_info()
-
-    return info
+    return dict((i.__name__, i.cache_info()) for i in [jexp])
 
 
 def jsonPath(data, expr, val='simple', sep='/', indent=None, *args, **kwds):

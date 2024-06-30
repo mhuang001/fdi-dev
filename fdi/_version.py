@@ -1,8 +1,9 @@
-__version_info__ = (2, 2, 1)
+__version_info__ = (2, 2, 3)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '2.2.0-0-gf1aea55'
+__revision__ = '2.2.1-0-g4cf0d21'
 
-# minor improvement with real data
+# make Lazy_Loading_ChainMap xxLook_Up output deepcopy be default.
+# 2.2.1 minor improvement with real data
 # 2.2.0 try ubuntu22.04 with dockerfile
 # 2.1.3 merge develop to master
 # 2.1.2 fix set_id fixture default.

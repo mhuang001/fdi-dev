@@ -316,7 +316,7 @@ def getFitsKw(name, ndigits=-1, extra=None, multi=False):
         return pre_translation[:8].upper()
 
 @lru_cache(maxsize=32)
-def is_Internal_Keyword(name) :
+def is_Internal_Keyword(name):
     """ These are maintained internally by astrofots """
 
     if name in ['SIMPLE', 'BITPIX', 'NAXIS', 'GCOUNT', 'PCOUNT', 'GROUPS',
@@ -325,6 +325,11 @@ def is_Internal_Keyword(name) :
         return True
     if name.strip('1234567890') in ['TTYPE', 'TFORM', 'TUNIT', 'TFIELDS', 'TBCOL', 'CTYPE']:
         return True
+
+def getCacheInfo():
+    funlist = dict((i.__name__, i.cache_info()) for i in [
+        getFitsKw, is_Internal_Keyword])
+    return funlist
 
 
     

@@ -146,7 +146,7 @@ if 1:
 def set_ids(pytestconfig):
 
     cmd = pytestconfig.getoption("--id")
-    if cmd == '0':
+    if cmd == '00':
         csdb_pool_id = 'test_fdi_demo_classes'
         http_pool_id = 'test_fdi_demo_classes_fdi'
         PTYPES = ('DemoProduct', 'TB', 'TP', 'TC', 'TM', 'SP', 'TCC')

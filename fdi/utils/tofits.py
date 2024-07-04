@@ -365,7 +365,11 @@ def set_parameter_to_header(param, header, name, ex, ignore_error=False, debug=d
         des = getattr(param, 'description', 'Parameter "%s" of unknown type' % str(pval))
         header[kw] = (v, des)
     return header
-    
+
+#from .fits_kw import SVOM_VT_KW_FMT
+#import fdi.utils.ydump as ydump
+#ydump.yinit()
+
 def add_header(meta, header, zim={}):
     """ Populate  header with keyword lines extracted from MetaData.
 
@@ -383,7 +387,8 @@ def add_header(meta, header, zim={}):
     #     lst.extend(mc.keys())
     # else:
     #     lst = list(meta)
-
+    #l1cy = {}
+    
     lst = list()
     lst.extend(set(zim) | set(meta))
     for name in lst:
@@ -399,9 +404,16 @@ def add_header(meta, header, zim={}):
             kw = zim[name].get('fits_keyword', None)
             ex = ((name, kw),) if kw else None
         header = set_parameter_to_header(param, header, name, ex, ignore_error=False, debug=debug)
-
+        
+        if 0: #kw:
+            _k = kw.replace('-','_')
+            if _k in SVOM_VT_KW_FMT:
+                l1cy[name] = {'fits_format': SVOM_VT_KW_FMT.get(_k)}
+        
     if debug:
         print('*** add_header ', header)
+    if 0:
+        print(ydump.ydump({'metadata':l1cy}))
     return header
 
 

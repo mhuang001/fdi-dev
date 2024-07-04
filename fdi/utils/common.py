@@ -288,7 +288,8 @@ def binhexstring(val, typ_, width=0, v=None, p=None, level=0, **kwds):
 Ommitted_Valid_Rule_Names = ['valid', 'default', '', 'range']
 
 
-def attrstr(p, v, missingval='', ftime=False, state=True, width=1, **kwds):
+def attrstr(p, v, missingval='', ftime=False, state=True, width=1,
+            output_fmt=None, formatter=None, **kwds):
     """
     generic string representation of an attribute of a parameter or dataset.
 
@@ -297,9 +298,11 @@ def attrstr(p, v, missingval='', ftime=False, state=True, width=1, **kwds):
     missingval: string used when the parameter does not have the attribute.
     ftime: True means that attribute value will be FineTime if _type is 'finetime'.
     state: The state validity of the parameter is returned in place of value, if the state is not in Ommitted_Valid_Rule_Names -- 'valid', 'range', '' or 'default'.
+    output_fmt: how to show validity and val. default is '%s (%s)'.
+    formatter: default is `binhexstring`
     """
 
-    ts = getattr(p, '_type') if hasattr(p, '_type') else missingval
+    ts = getattr(p, '_type', missingval)
     if ts is None:
         ts = 'None'
 
@@ -309,6 +312,12 @@ def attrstr(p, v, missingval='', ftime=False, state=True, width=1, **kwds):
     if not hasattr(p, v):
         return missingval
 
+    if output_fmt is None:
+        output_fmt =  '%s (%s)'
+        
+    if formatter is None:
+        formatter = binhexstring
+        
     val = getattr(p, v)
     if val is None:
         return 'None'
@@ -333,7 +342,7 @@ def attrstr(p, v, missingval='', ftime=False, state=True, width=1, **kwds):
             if state:
                 vv, vdesc = p.validate(val)
                 if vdesc.lower() not in Ommitted_Valid_Rule_Names:
-                    vs = '%s (%s)' % (
+                    vs = output_fmt % (
                         vdesc, val.toString(width=width, **kwds))
                 else:
                     vs = val.toString(width=width, **kwds)
@@ -350,7 +359,7 @@ def attrstr(p, v, missingval='', ftime=False, state=True, width=1, **kwds):
                 # not binary masked
                 vv, vdesc = validity
                 if vdesc.lower() not in Ommitted_Valid_Rule_Names:
-                    vs = '%s (%s)' % (
+                    vs = output_fmt % (
                         vdesc, binhexstring(val, ts, v=v, **kwds))
                 else:
                     vs = binhexstring(val, ts, v=v, **kwds)
@@ -358,7 +367,7 @@ def attrstr(p, v, missingval='', ftime=False, state=True, width=1, **kwds):
                 # binary masked. validity is a list of tuple/lists
                 # validity is (val, state, mask height, mask width)
                 sep = '\n' if width else ', '
-                vs = sep.join(r[1] if r[1] == 'Invalid' else '%s (%s)' %
+                vs = sep.join(r[1] if r[1] == 'Invalid' else output_fmt %
                               (r[1], format(r[0], '#0%db' % (r[3]+2))) for r in validity)
     return vs
 
@@ -395,7 +404,7 @@ def attrstr1(p, v, missingval='', ftime=False, state=True, width=1, **kwds):
                 elif state:
                     vv, vdesc = p.validate(val)
                     if vdesc.lower() not in Ommitted_Valid_Rule_Names:
-                        s = '%s (%s)' % (
+                        s = output_fmt % (
                             vdesc, val.toString(width=width, **kwds))
                     else:
                         s = val.toString(width=width, **kwds)
@@ -414,7 +423,7 @@ def attrstr1(p, v, missingval='', ftime=False, state=True, width=1, **kwds):
                     # not binary masked
                     vv, vdesc = validity
                     if vdesc.lower() not in Ommitted_Valid_Rule_Names:
-                        vs = '%s (%s)' % (
+                        vs = output_fmt % (
                             vdesc, binhexstring(val, ts, v=v, **kwds))
                     else:
                         vs = binhexstring(val, ts, v=v, **kwds)
@@ -422,7 +431,7 @@ def attrstr1(p, v, missingval='', ftime=False, state=True, width=1, **kwds):
                     # binary masked. validity is a list of tuple/lists
                     # validity is (val, state, mask height, mask width)
                     sep = '\n' if width else ', '
-                    vs = sep.join('%s (%s)' %
+                    vs = sep.join(output_fmt %
                                   (r[1], format(r[0], '#0%db' % r[3])) for r in validity)
         else:
             # must be string

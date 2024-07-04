@@ -1,8 +1,8 @@
-__version_info__ = (2, 2, 5)
+__version_info__ = (2, 2, 6)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '2.2.5-0-gcc2833b'
+__revision__ = '2.2.5-1-g55051bd'
 
-# refactor attrstr, fits improvements for l1c
+# 2.2.6 refactor attrstr, fits improvements for l1c
 # 2.2.5 AId in fits. Fix missing params of deserialized parameters.
 # 2.2.4 improve cache info report
 # 2.2.3 make Lazy_Loading_ChainMap xxLook_Up output deepcopy be default.

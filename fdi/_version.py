@@ -1,8 +1,9 @@
-__version_info__ = (2, 2, 4)
+__version_info__ = (2, 2, 5)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '2.2.3-0-g3738b5c'
+__revision__ = '2.2.4-0-g12391bf'
 
-# improve cache info report
+# AId in fits. Fix missing params of deserialized parameters.
+# 2.2.4 improve cache info report
 # 2.2.3 make Lazy_Loading_ChainMap xxLook_Up output deepcopy be default.
 # 2.2.1 minor improvement with real data
 # 2.2.0 try ubuntu22.04 with dockerfile

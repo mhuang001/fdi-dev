@@ -12,6 +12,7 @@ from ..dataset.baseproduct import BaseProduct
 from ..dataset.dateparameter import DateParameter
 from ..dataset.stringparameter import StringParameter
 from ..dataset.numericparameter import NumericParameter, BooleanParameter
+from ..dataset.attributable import value2parameter
 from ..dataset.datatypes import Vector
 from ..pal.context import RefContainer
 from .common import lls
@@ -20,6 +21,7 @@ import os
 from collections.abc import Sequence
 import io
 import copy
+import datetime
 import itertools
 import logging
 # create logger
@@ -114,6 +116,8 @@ def convert_name(n):
 def toFits(data, file='', headers_only=False, **kwds):
     """convert dataset to FITS.
 
+    Sets "Astronomers ID" for the data product to data and the fits.
+    
     :data: a list of Dataset or a BaseProduct (or its subclass).
     :file: A non-empty string for file name. `None` means return HDUList only. Default '', for only returning fits stream/BLOB.
     :headers_only: Only fill the headers (metadata).
@@ -151,6 +155,22 @@ def toFits(data, file='', headers_only=False, **kwds):
     else:
         raise TypeError(
             'Making FITS needs a dataset or a product, or a Sequence of them.')
+
+    sp = expand_template(hdul, fn=get_template(data))
+    value = sp.replace(':', '').replace(' ', '_')
+
+    desc = 'Astronomers product ID'
+    if issubclass(data.__class__, (BaseProduct)):
+        zim = data.zInfo['metadata']
+        if 'aId' in zim:
+            x = value2parameter('aId', value, zim)
+            if data.meta['aId'] != x:
+                data.meta['aId'] = x
+                hdul[0].header['aId'] = (value, desc)
+        else:
+            data.meta['aId'] = StringParameter(value, desc)
+            hdul[0].header['aId'] = (value, desc)
+    
     if file:
         hdul.writeto(file, **kwds)
         return hdul
@@ -367,17 +387,18 @@ def add_header(meta, header, zim={}):
     lst = list()
     lst.extend(set(zim) | set(meta))
     for name in lst:
+        kw = -1
         if name in meta:
             # first check if fits can be found in meta, including non-SDPs.
             param = meta[name]
             kw = getattr(param, 'fits_keyword', None)
             ex = ((name, kw),) if kw else None
-            header = set_parameter_to_header(param, header, name, ex, ignore_error=False, debug=debug)
-        elif name in zim:
+        if (kw == -1) and not (name in zim):
+            raise KeyError(f"{name} was not found in meta or zim when generating FITS.")
+        if (kw is None or kw == -1) and name in zim:
             kw = zim[name].get('fits_keyword', None)
             ex = ((name, kw),) if kw else None
-        else:
-            raise KeyError(f"{name} was not found in meta or zim when generating FITS.")
+        header = set_parameter_to_header(param, header, name, ex, ignore_error=False, debug=debug)
 
     if debug:
         print('*** add_header ', header)
@@ -444,17 +465,27 @@ def expand_template(p, fn, dct=None):
         lst = p if issubclass(p.__class__, HDUList) else  fits_header_list(p)
         # get a k-v dictionary  for this data
         kv = dct if dct else lst[0].header
-
+    
         # expand name
         #kv = {'date-obs':'ASD', 'e-o':'4543'}
         #sp = '${date-obs} ${e-o}'
-
+        def try_time(k):
+            sv = str(k)
+            try:
+                d = datetime.datetime.fromisoformat(sv)
+                #sv = "%s.%06d" % (d.strftime('%y%m%dX%H%M%S'), d.microseconds))
+                #x = 'B' if 'B' in sv else 'T'
+                sv = sv.replace(':','').replace('-','')
+            except ValueError:
+                pass
+            return sv
         pars = re.findall(Template_Pattern, fn)
         sp = fn
         # expand kwfound in p and try - _ if needed
         for k in pars:
             if k in kv:
-                sp = sp.replace('${%s}' % k, str(kv[k]))
+                sv = try_time(kv[k])
+                sp = sp.replace('${%s}' % k, sv)
             else:
                 try:
                     nm = FitsParameterName_Look_Up[k]
@@ -462,7 +493,8 @@ def expand_template(p, fn, dct=None):
                     nm = k
                 for kk in getFitsKw(nm, multi=True):
                     if kk != k and kk in kv:
-                        sp = sp.replace('${%s}' % k, str(kv[kk]))
+                        sv = try_time(kv[kk])
+                        sp = sp.replace('${%s}' % k, sv)
                         break
         logger.debug(f'Template {fn} is expanded to {sp}.')
     else:
@@ -471,7 +503,7 @@ def expand_template(p, fn, dct=None):
     
     return sp.replace('${', '').replace('}', '')
         
-def write_to_file(p, fn, dct=None, ignore_type_error=False, this_fits=None, indent=None, cmd=None):
+def write_to_file(p, fn, dct=None, ignore_type_error=False, this_fits=None, indent=None, cmd=None, expand_only=False):
     """write out fits file for the given product and try to send samp notices.
     If product is `BaseProduct` (or `Serializable`),
 
@@ -490,6 +522,8 @@ def write_to_file(p, fn, dct=None, ignore_type_error=False, this_fits=None, inde
         If to save in JSON, how much indentation is set. Default None.
     cmd : str or None
         command_line of `--fits`.
+    expand_only : Return expanded path without writing to file.
+    
     Returns
     -------
     str
@@ -530,6 +564,11 @@ def write_to_file(p, fn, dct=None, ignore_type_error=False, this_fits=None, inde
         sp = expand_template(p, fn, dct)
         
     sp = sp.replace(':', '').replace(' ', '_')
+
+    logger.debug(f"{sp} ({fn})" if sp != fn else f"{sp}")
+    if expand_only:
+        return sp
+    
     try:
         if is_Fits(p):
             with open(sp, 'wb') as prodf:
@@ -552,7 +591,6 @@ def write_to_file(p, fn, dct=None, ignore_type_error=False, this_fits=None, inde
             return sp
         logger.debug('error writing file:'+str(e))
         raise
-    logger.debug(f"{sp} ({fn})" if sp != fn else f"{sp}")
 
     return sp
 

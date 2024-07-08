@@ -7,6 +7,7 @@ from fdi.dataset.baseproduct import BaseProduct
 from builtins import str
 from fdi.dataset.finetime import FineTime
 
+from fdi.dataset.readonlydict import ReadOnlyDict, make_mutable
 import copy
 
 import logging
@@ -18,7 +19,7 @@ logger = logging.getLogger(__name__)
 class Product(BaseProduct):
     """ Product class schema 1.6 inheriting ['BaseProduct'].
 
-Automatically generated from product.yml on 2024-03-08 14:45:45.376996.
+Automatically generated from product.yml on 2024-07-08 07:02:11.302912.
 
 Description:
 Project level product
@@ -57,7 +58,7 @@ Project level product
 
         global Model
         if zInfo is None:
-            zInfo = Model
+            zInfo = make_mutable(Model)
 
         # print('@1 zInfo', id(self.zInfo['metadata']), id(self), id(self.zInfo),
         #      self.zInfo['metadata']['version'], list(metasToBeInstalled.keys()))
@@ -236,7 +237,7 @@ _Model_Spec = {
         },
     }
 
-Model = copy.deepcopy(_Model_Spec)
+Model = ReadOnlyDict(_Model_Spec)
 
 MdpInfo = Model['metadata']
 

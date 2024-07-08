@@ -1065,6 +1065,8 @@ def get_cmdline(ypath):
                         help="A string that is a revision identification, for example a git hash to be appended to attribute FORMATV.")
     parser.add_argument("-u", "--upgrade_to_version", type=str, default="",
                         help="Upgrade the file(s) to this schema")
+    parser.add_argument("-i", "--preserve_init",  action='store_true', default=True,
+                        help="Modify ___init.py to shorten class name.")
     parser.add_argument("-n", "--dry_run",  action='store_true', default=False,
                         help="No writing. Dry run.")
     parser.add_argument("-d", "--debug",  action='store_true', default=False,
@@ -1104,6 +1106,7 @@ def main():
     project_class_path = args.userclasses
     schema_version = args.upgrade_to_version
     revision = args.revision
+    modify_init = not args.preserve_init
     dry_run = args.dry_run
     debug = args.debug
 
@@ -1312,25 +1315,26 @@ def main():
                 f.write(sp)
             print('Done saving ' + fout + '\n')
 
-            full_path_init = os.path.join(opath, '__init__.py')
+            if modify_init:
+                full_path_init = os.path.join(opath, '__init__.py')
 
-            if MAKE_GEN_PY:
-                full_path_genpy = os.path.join(opath, GENERATED_PY)
-            # will update __init__.py
-            # wr = append_if_not_exists(full_path_init, '')
-            # print('Done updating __init__.py')
-            # the import line
-            im = f"from .{modulename} import {modelName}"
-            if MAKE_GEN_PY:
-                # write to GENERATED_PY
-                with open(full_path_genpy, gmode) as g:
-                    g.write(im)
-                    print('Done modifying ' + full_path_genpy + '\n' + '='*40)
-            else:
-                # write to __init__
-                wr = append_if_not_exists(full_path_init, im)
-                if wr:
-                    print('Done modifying ' + full_path_init + '\n' + '='*40)
+                if MAKE_GEN_PY:
+                    full_path_genpy = os.path.join(opath, GENERATED_PY)
+                # will update __init__.py
+                # wr = append_if_not_exists(full_path_init, '')
+                # print('Done updating __init__.py')
+                # the import line
+                im = f"from .{modulename} import {modelName}"
+                if MAKE_GEN_PY:
+                    # write to GENERATED_PY
+                    with open(full_path_genpy, gmode) as g:
+                        g.write(im)
+                        print('Done modifying ' + full_path_genpy + '\n' + '='*40)
+                else:
+                    # write to __init__
+                    wr = append_if_not_exists(full_path_init, im)
+                    if wr:
+                        print('Done modifying ' + full_path_init + '\n' + '='*40)
 
         # import the newly made module to test and, for class generatiom, so the following classes could use it
         importexclude.remove(modulename)

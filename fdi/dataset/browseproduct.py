@@ -7,6 +7,7 @@ from fdi.dataset.baseproduct import BaseProduct
 from builtins import str
 from fdi.dataset.finetime import FineTime
 
+from fdi.dataset.readonlydict import ReadOnlyDict
 import copy
 
 import logging
@@ -18,7 +19,7 @@ logger = logging.getLogger(__name__)
 class BrowseProduct(BaseProduct):
     """ BrowseProduct class schema 1.6 inheriting ['BaseProduct'].
 
-Automatically generated from browseproduct.yml on 2024-03-08 14:45:45.318961.
+Automatically generated from browseproduct.yml on 2024-07-08 07:02:11.313439.
 
 Description:
 Container of media data for browsing.
@@ -167,7 +168,7 @@ _Model_Spec = {
         },
     }
 
-Model = copy.deepcopy(_Model_Spec)
+Model = ReadOnlyDict(_Model_Spec)
 
 MdpInfo = Model['metadata']
 

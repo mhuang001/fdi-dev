@@ -255,7 +255,7 @@ class Lazy_Loading_ChainMap(ChainMap):
     used to do the loading.
     """
 
-    def __init__(self, *args, extensions=None, load=None, copy=True, **kwds):
+    def __init__(self, *args, extensions=None, load=None, copy=False, **kwds):
         """A chain map that only loads when need to give.
 
         Parameters

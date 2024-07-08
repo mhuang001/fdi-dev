@@ -6,7 +6,7 @@ from collections import OrderedDict
 from builtins import str
 from builtins import list
 
-
+from .readonlydict import ReadOnlyDict, make_mutable
 import copy
 
 import logging
@@ -58,4 +58,4 @@ _Model_Spec = {
         },
     }
 
-Model = copy.deepcopy(_Model_Spec)
+Model = ReadOnlyDict(_Model_Spec)

@@ -13,6 +13,9 @@ def make_readonly(d, excluded=None):
     Returns
     -------
     """
+    if issubclass(d.__class__, ReadOnlyDict):
+        return d
+    
     if excluded is None:
         excluded = set()
     else:
@@ -27,6 +30,37 @@ def make_readonly(d, excluded=None):
         else:
             continue
     return d
+
+
+def make_mutable(d, excluded=None):
+    """ Recursively make values of Mapping type at all levels mutable.
+    Parameters
+    ----------
+
+    Returns
+    -------
+    """
+
+    if excluded is None:
+        excluded = set()
+
+    i = id(d)
+    if i in excluded:
+        return d
+    else:
+        is_rod = issubclass(d.__class__, ReadOnlyDict)
+        if is_rod:
+            m = dict()
+            excluded.add(id(m))
+        else:
+            m = d
+            excluded.add(i)
+    for k, v in d.items():
+        if issubclass(v.__class__, ReadOnlyDict):
+            m[k] = make_mutable(v, excluded=excluded)
+        else:
+            m[k] = v
+    return m
 
 
 class frozendict(dict):

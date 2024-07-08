@@ -4,6 +4,7 @@ $WARNING
 
 $IMPORTS
 
+from fdi.dataset.readonlydict import ReadOnlyDict, make_mutable
 import copy
 
 import logging
@@ -37,7 +38,7 @@ $INITARGS
 
         global Model
         if zInfo is None:
-            zInfo = Model
+            zInfo = make_mutable(Model)
 
         # print('@1 zInfo', id(self.zInfo['metadata']), id(self), id(self.zInfo),
         #      self.zInfo['metadata']['version'], list(metasToBeInstalled.keys()))
@@ -52,7 +53,7 @@ $PROPERTIES
 # Data Model specification for mandatory components
 $MODELSPEC
 
-Model = copy.deepcopy(_Model_Spec)
+Model = ReadOnlyDict(_Model_Spec)
 
 MdpInfo = Model['metadata']
 

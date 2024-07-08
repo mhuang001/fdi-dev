@@ -398,10 +398,12 @@ def add_header(meta, header, zim={}):
             param = meta[name]
             kw = getattr(param, 'fits_keyword', None)
             ex = ((name, kw),) if kw else None
+            # check fits synonimous XXX
         if (kw == -1) and not (name in zim):
             raise KeyError(f"{name} was not found in meta or zim when generating FITS.")
         if (kw is None or kw == -1) and name in zim:
             kw = zim[name].get('fits_keyword', None)
+            # check fits synonimous XXX
             ex = ((name, kw),) if kw else None
         header = set_parameter_to_header(param, header, name, ex, ignore_error=False, debug=debug)
         

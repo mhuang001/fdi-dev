@@ -2,6 +2,7 @@
 
 # Automatically generated from /home/mh/code/fdi/fdi/dataset/resources/UnstructuredDataset_DataModel.yml. Do not edit.
 
+from .readonlydict import ReadOnlyDict, make_mutable
 from collections import OrderedDict
 from builtins import str
 
@@ -59,4 +60,4 @@ _Model_Spec = {
         },
     }
 
-Model = copy.deepcopy(_Model_Spec)
+Model = ReadOnlyDict(_Model_Spec)

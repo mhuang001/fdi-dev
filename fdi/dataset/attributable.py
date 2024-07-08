@@ -349,14 +349,15 @@ def value2parameter(name, value, descriptor):
     if dt == 'string' or not dt:
         from .stringparameter import StringParameter
         cs = ext.pop('typecode', 'B')
+
         ret = StringParameter(value=value,
-                              description=im['description'],
-                              typ_=dt,
-                              default=fs,
-                              valid=gs,
-                              typecode=cs,
-                              **ext,
-                              )
+                          description=im['description'],
+                          typ_=dt,
+                          default=fs,
+                          valid=gs,
+                          typecode=cs,
+                          **ext,
+                          )
     elif dt in ('finetime', 'finetime1'):
         from .dateparameter import DateParameter
         if issubclass(value.__class__, str):

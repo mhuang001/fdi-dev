@@ -1,7 +1,8 @@
-__version_info__ = (2, 2, 6)
+__version_info__ = (2, 3, 0)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '2.2.5-1-g55051bd'
+__revision__ = '2.2.6-0-g8eabff2'
 
+# restore ReadOnlyDic
 # 2.2.6 refactor attrstr, fits improvements for l1c
 # 2.2.5 AId in fits. Fix missing params of deserialized parameters.
 # 2.2.4 improve cache info report

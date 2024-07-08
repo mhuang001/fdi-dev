@@ -62,7 +62,7 @@ else ifeq ($(WHEEL_INSTALL), 14)
 	@echo ----- `pwd`
 	# This does not pickup fdi updates in system cache
 	$(PYEXE) -m pip wheel $(fdi_PIPOPT) --wheel-dir $(fdi_WHEELS) -e .$(fdi_EXT) $(I)
-	@echo ===== svom wheels ====; (cd $(PROJ_PIPWHEELS);ls svom* | tr ' ' '\n') ; echo ^^^^^
+	@echo ===== svom wheels ====; (cd $(PROJ_PIPWHEELS);ls svom* | tr ' ' '\n') ; echo '<><>'
 	@echo "*** DEV INSTALL $(FPK) ***"
 	$(PYEXE) -m pip install -e .$(fdi_EXT) $(fdi_PIPOPT) $(I)
 

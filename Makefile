@@ -39,7 +39,7 @@ DSETS_YAML	= $(foreach y,$(DSETS),$(RESDIR)/$(y).yml)
 DSETS_TEMPL	= $(foreach y,$(DSETS),$(RESDIR)/$(y).template)
 DSETSpy		= $(addprefix $(PYDIR)/,$(DSETS_PY))
 
-YML2PY = $(PYEXE) -m fdi.dataset.yaml2python -r $(RevString)
+YML2PY = $(PYEXE) -m fdi.dataset.yaml2python -r $(RevString) -i
 # YML2PY = $(PYEXE) $(PYDIR)/yaml2python.py -r $(RevString) -n
 
 # BaseProduct, Product and datasets

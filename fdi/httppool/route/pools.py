@@ -179,7 +179,7 @@ def get_name_all_pools(path=None, make_dir = False):
             if os.path.isdir(filepath):
                 alldirs[file] = file
     if logger.isEnabledFor(logging_DEBUG):
-        logger.debug(f"PoolManager and {path} have {lls(alldirs, 100)}")
+        logger.debug(f"PoolManager and {path} have {lls(alldirs, 1000)}")
     return list(alldirs.keys())
 
 
@@ -623,10 +623,13 @@ def get_pool_info(poolname, serialize_out=False):
             dt_display[t] = cdict
         display['Tags'] = dt_display
 
-        msg = 'Getting pool %s information. %s.' % (str(poolobj), mes)
         _, count, _, sz = get_data_count(None, poolname)
-        msg += '%d data items recorded. %d counted. %d bytes total.' % (
-            rec_u, count, sz)
+        msg ={ 'Getting information pool URL': str(poolobj.poolurl),
+               'mes': mes,
+               'data items recorded': rec_u,
+               'counted': count,
+               'bytes total': sz
+               }
     return resp(code, display, msg, ts, False)
 
 
@@ -993,7 +996,7 @@ def get_data_count(data_type, pool_id, check_register=False):
         poolnm, paths = (None, pool_id+'/' +
                          data_type) if data_type else (pool_id, None)
         prds = pool.getDataInfo('', paths=paths, pool=poolnm,
-                                nulltype=False, limit=1000)
+                                nulltype=False, limit=1000000)
         res = len(prds)
         size = sum(map(itemgetter('size'), prds))
 
@@ -1011,7 +1014,7 @@ def get_data_count(data_type, pool_id, check_register=False):
     s = str(nm)
     if logger.isEnabledFor(logging_DEBUG):
         logger.debug(('All types' if data_type is None else data_type) +
-                     ' found ' + lls(s, 120))
+                     ' found ' + s)
     return 200, res, 'Counted %d %s files OK.' % (res, data_type if data_type else 'all types'), size
 
 

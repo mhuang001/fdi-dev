@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from .common import trbk, lls
-from fdi.dataset.mediawrapper import MediaWrapper
 from fdi.dataset.numericparameter import NumericParameter
 from fdi.dataset.arraydataset import ArrayDataset
 
@@ -113,7 +112,7 @@ def longrainbowl(n=8):
 
 
 def toPng(adset, grey=False, compression=0, cspace=8, cmap=None,
-          png_file_name=None, return_medw=False, return_bin=False,
+          png_file_name=None, return_bin=False,
           verbose=False):
     """ Make a PNG an image from an `ArrayDataset`.
 

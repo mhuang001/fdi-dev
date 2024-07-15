@@ -594,7 +594,7 @@ class PublicClientPool(ManagedPool):
         return r if alist else res[0]
 
     def getDataInfo(self, what='', paths=None, pool=None,
-                    nulltype=True, limit=10000, asyn=False,
+                    nulltype=True, limit=1000000, asyn=False,
                     excpt=True):
         """Returns the CSDB storage information of one or a list of URNs.
 

@@ -8,6 +8,7 @@ from .ndprint import ndprint
 from .shaped import Shaped
 from ..utils.common import mstr, bstr, lls, exprstrs, findShape
 from .dataset import GenericDataset, make_title_meta_l0
+
 try:
     from .arraydataset_datamodel import Model
 except ImportError as e:
@@ -169,6 +170,11 @@ class ArrayDataset(GenericDataset, Iterable, Shaped):
         self.getData().remove(*args, **kwargs)
         self.updateShape()
 
+    def png(self, *args, **kwds):
+        from ..utils.images import toPng
+        
+        return toPng(*args, **kwds)
+        
     def __repr__(self):
         return self.toString(level=2)
 

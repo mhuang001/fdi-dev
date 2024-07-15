@@ -307,7 +307,8 @@ def init_poolmanager(app, g, pc, preload):
         from ..pal.productstorage  import ProductStorage
         ps = ProductStorage(poolmanager=PM_S)
         PM_S.getMap().UNLOADED.update(pc['read_only_pools'])
-
+        __import__("pdb").set_trace()
+        
         logger.info('PM_S initializing..'+hex(id(PM_S._GlobalPoolList.maps[0])) + ' ' + str(PM_S()))
     
     # pool-related paths

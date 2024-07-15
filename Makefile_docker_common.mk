@@ -193,7 +193,7 @@ update_docker:
 	$(MAKE) rm_docker &&\
 	$(MAKE) docker_version &&\
 	rm -f ../wheels/svom.product*.whl ;\
-	$(MAKE) PROJ-INSTALL CLEAN=1 WHEEL_INSTALL=14 I="$(I)"  PROJ_PIPCACHE=$(st_PIPCACHE) PROJ_PIPWHEELS=$(st_WHEELS) &&\
+	#$(MAKE) PROJ-INSTALL CLEAN=1 WHEEL_INSTALL=14 I="$(I)"  PROJ_PIPCACHE=$(st_PIPCACHE) PROJ_PIPWHEELS=$(st_WHEELS) &&\
 	rm -f ../wheels/svom.product*.whl &&\
 	$(MAKE) build_docker && $(MAKE) push_d PUSH_NAME=$(DOCKER_NAME) &&\
 	$(MAKE) build_server && $(MAKE) push_d PUSH_NAME=$(SERVER_NAME) &&\

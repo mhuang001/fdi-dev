@@ -16,7 +16,7 @@ User root
 RUN apt-get update \
 && apt-get install -y apt-utils sudo nano net-tools telnet locales graphviz  \
 #&& apt-get install -y git python3-pip python3.6-venv libpython3.6-dev \
-&& apt-get install -y ${PYEXE}-venv ${PYEXE} lib${PYEXE}-dev pip
+&& apt-get install -y ${PYEXE}-venv ${PYEXE} lib${PYEXE}-dev pip git
 
 # have to do this
 RUN ln -s /usr/lib/x86_64-linux-gnu/libpython$lib${PYEXE}.so.1.0 /usr/lib/libpython$lib${PYEXE}.so.1.0 \

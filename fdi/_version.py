@@ -1,9 +1,10 @@
 __version_info__ = (2, 4, 0.1)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '2.4.0-0-g7d557c8'
+__revision__ = '2.4.0.1-0-g5559512'
 
-# changing makefiles and dockerfile
-# to python10
+# fix copy kw for array copying tofrom numpy
+# 2.4.1 changing makefiles and dockerfile
+# 2.4.0 to python10
 # 2.3.2 misc fixes regarding NumericParameter
 # 2.3.1 misc pool improvements. png upxdates
 # 2.3.0 restore ReadOnlyDic

@@ -1,7 +1,7 @@
 
 .PHONY: i, t
 
-PYEXE   = python3.8
+PYEXE   = python3.10
 LATEST  =im:latest
 DKRREPO = mhastro
 DKRREPO = registry.cn-beijing.aliyuncs.com/svom

@@ -1,7 +1,8 @@
-__version_info__ = (2, 4, 0)
+__version_info__ = (2, 4, 0.1)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '2.3.2-0-gc4c76a4'
+__revision__ = '2.4.0-0-g7d557c8'
 
+# changing makefiles and dockerfile
 # to python10
 # 2.3.2 misc fixes regarding NumericParameter
 # 2.3.1 misc pool improvements. png upxdates

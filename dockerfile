@@ -6,7 +6,7 @@ FROM ubuntu:22.04 AS fdi
 # 1-6 M. Huang <mhuang@nao.cas.cn>
 # 0.1 yuxin<syx1026@qq.com>
 #ARG DEBIAN_FRONTEND=noninteractive
-ARG PYTHON_VER=3.8
+ARG PYTHON_VER=3.10
 ARG PYEXE=python${PYTHON_VER}
 ENV PYEXE=${PYEXE}
 
@@ -15,8 +15,8 @@ User root
 #ENV TZ=Etc/UTC
 RUN apt-get update \
 && apt-get install -y apt-utils sudo nano net-tools telnet locales graphviz  \
-&& apt-get install -y git python3-pip python3.6-venv libpython3.6-dev \
-${PYEXE}-venv ${PYEXE} lib${PYEXE}-dev
+#&& apt-get install -y git python3-pip python3.6-venv libpython3.6-dev \
+&& apt-get install -y ${PYEXE}-venv ${PYEXE} lib${PYEXE}-dev pip
 
 # have to do this
 RUN ln -s /usr/lib/x86_64-linux-gnu/libpython$lib${PYEXE}.so.1.0 /usr/lib/libpython$lib${PYEXE}.so.1.0 \

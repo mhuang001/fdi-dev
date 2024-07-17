@@ -1,8 +1,9 @@
-__version_info__ = (2, 3, 1)
+__version_info__ = (2, 3, 2)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '2.3.0-0-g4bfd8ed'
+__revision__ = '2.3.1-0-gf4f4ea7'
 
-# misc pool improvements. png upxdates
+# misc fixes regarding NumericParameter
+# 2.3.1 misc pool improvements. png upxdates
 # 2.3.0 restore ReadOnlyDic
 # 2.2.6 refactor attrstr, fits improvements for l1c
 # 2.2.5 AId in fits. Fix missing params of deserialized parameters.

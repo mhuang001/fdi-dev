@@ -576,7 +576,7 @@ def write_to_file(p, fn, dct=None, ignore_type_error=False, this_fits=None, inde
             _p = None
     else:
         sp = expand_template(p, fn, dct)
-        
+
     sp = sp.replace(':', '').replace(' ', '_')
 
     logger.debug(f"{sp} ({fn})" if sp != fn else f"{sp}")

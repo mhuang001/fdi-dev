@@ -611,7 +611,7 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
         self_class = classes.Classes.mapping[self_cls_name]
         # if value type is a subclass of self type
         # if issubclass(value_class, float):
-
+        from .numericparameter import NumericParameter
         if issubclass(value_class, self_class):
             return value
         elif issubclass(value_class, Number) and issubclass(self_class, Number):

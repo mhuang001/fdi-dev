@@ -1,8 +1,9 @@
-__version_info__ = (2, 3, 2)
+__version_info__ = (2, 4, 0)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '2.3.1-0-gf4f4ea7'
+__revision__ = '2.3.2-0-gc4c76a4'
 
-# misc fixes regarding NumericParameter
+# to python10
+# 2.3.2 misc fixes regarding NumericParameter
 # 2.3.1 misc pool improvements. png upxdates
 # 2.3.0 restore ReadOnlyDic
 # 2.2.6 refactor attrstr, fits improvements for l1c

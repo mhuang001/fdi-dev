@@ -2,7 +2,7 @@ include Makefile_tests.mk
 #include Makefile_docs.mk
 include Makefile_docker.mk
 
-PYEXE	= python3.8
+PYEXE	= python3
 
 info:
 	$(PYEXE) -c "import sys, time; print('sys.hash_info.width', sys.hash_info.width, 'epoch', time.gmtime(0))"

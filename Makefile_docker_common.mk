@@ -206,8 +206,7 @@ update_docker:
 sss:
 	$(MAKE) build_server && $(MAKE) push_d PUSH_NAME=$(SERVER_NAME) 
 cleanup:
-	docker rmi -f `docker images -a|grep pool|awk 'BEGIN{FS=" "}{print $3}'`
-	docker rmi -f `docker images -a|grep csc |awk 'BEGIN{FS=" "}{print $3}'`
-	docker rmi -f `docker images -a|grep m/fdi|awk 'BEGIN{FS=" "}{print $3}'`
-	docker rmi -f `docker images -a|grep csc-mqtt|awk 'BEGIN{FS=" "}{print $3}'`
-
+	for i in pool csc m/fdi csc-mqtt; do \
+	lst=`docker images -a|grep $${i}|awk 'BEGIN{FS=" "}{print $3}' | sort | uniq`; \
+	if [ -z lst ]; then docker rmi -f $$lst; else echo empty:$$lst; fi; \
+	done

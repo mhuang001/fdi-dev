@@ -1,6 +1,6 @@
 include  Makefile_docker_common.mk
 
-PYEXE	= python3.8
+PYEXE	= python3
 
 DOCKER_NAME	= fdi
 DFILE	=fdi/dockerfile

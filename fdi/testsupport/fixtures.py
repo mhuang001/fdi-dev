@@ -81,19 +81,23 @@ def pytest_addoption(parser):
         "--id",
         action='store',
         #dest='SERVER_RUN',
-        default="0",
+        default="00",
         type= str , #if isinstance(x, (int, str)) else 
         help=\
-        "'0' for csdb_pool_id = 'test_fdi_demo_classes' ;"
+        "'00' for csdb_pool_id = 'test_fdi_demo_classes' ;"
         "http_pool_id = 'test_fdi_demo_classes_fdi' "
-        "'1' for csdb_pool_id = 'test_all_csc_type_1' ; "
+        
+        "'11' for csdb_pool_id = 'test_all_csc_type_1' ; "
         "http_pool_id = 'test_all_csc_type_1_fdi' ; "
-        "'2' csdb_pool_id = 'test_sdb_type_vt_2' ; "
+        
+        "'22' csdb_pool_id = 'test_sdb_type_vt_2' ; "
         "http_pool_id = 'test_sdb_type_vt_2_fdi' "
-        "'3' for csdb_pool_id = 'test_sdb_type_all_4' ; "
-        "http_pool_id = 'test_sdb_type_all_4_fdi'"
-        "'4' for csdb_pool_id = 'test_all_types_5' ; "
-        "http_pool_id = 'test_all_types_5_fdi' "
+
+        "'33' for csdb_pool_id = 'test_sdb_type_all_3' ; "
+        "http_pool_id = 'test_sdb_type_all_3_fdi'"
+
+        "'44' for csdb_pool_id = 'test_all_types_4' ; "
+        "http_pool_id = 'test_all_types_4_fdi' "
         ,
         #choices=(0, 1, 2, 3, 4)
     )

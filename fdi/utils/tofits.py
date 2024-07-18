@@ -230,8 +230,13 @@ def fits_dataset(hdul, dataset_list, name_list=None, level=0):
                                     col.typecode]
                 if debug:
                     print('tname:', tname)
+
+                cp = None
+                if np.lib.NumpyVersion(np.__version__) < '2.0.0b1':
+                    if tname in (str, np.float64, np.int16) :
+                        cp = True
                 c = Column(data=col.data, name=name, dtype=tname, shape=[
-                ], length=0, description=col.description, unit=col.unit, format=None, meta=None, copy=None, copy_indices=True)
+                ], length=0, description=col.description, unit=col.unit, format=None, meta=None, copy=cp, copy_indices=True)
                 t.add_column(c)
             if not dataset_only and not isinstance(ima, RefContainer):
                 header = add_header(ima.meta, header)

@@ -580,6 +580,7 @@ def load_from_cloud(requestName, client=None, asyn=False, server_type='csdb', us
                 res = reqst('post', apis, data=data,
                             headers=headers, server_type=server_type, auth=client.auth, **kwds)
             else:
+                logger.info(f'upload {apis}, {files}, {data}, {headers}')
                 res = []
                 for a, f, d, h in zip(apis, files, data, headers):
                     r = reqst(client.post, a, files=f, data=d,

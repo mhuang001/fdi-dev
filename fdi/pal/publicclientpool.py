@@ -791,7 +791,7 @@ class PublicClientPool(ManagedPool):
             msg = f'product {self.poolname}/{pn} saving failed. {e} {trbk(e)}'
             logger.debug(msg)
             raise e
-
+        
         self._format_res(uploadRes, geturnobjs, prd, serialize_out, res)
 
     def _format_res(self, uploadRes, geturnobjs, prd, serialize_out, res):
@@ -799,7 +799,7 @@ class PublicClientPool(ManagedPool):
         utype = uploadRes.get('dataType', '')
         if utype == '':
             raise ServerError('Upload failed: product "%s" to %s:' % (
-                prd.description, self.poolurl) + uploadRes['msg'])
+                prd.description, self.poolurl) + str(uploadRes))
 
         urn = uploadRes['urn']
 

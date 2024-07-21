@@ -1,8 +1,9 @@
-__version_info__ = (2, 4, 1)
+__version_info__ = (2, 4, 2)
 __version__ = '.'.join(map(str, __version_info__))
 __revision__ = '2.4.0.1-1-g07a0c44'
 
-# fix ids that broke make test csdt
+# csdb prod upload return
+# 2.4.1 fix ids that broke make test csdt
 # 2.4.1 fix copy kw for array copying tofrom numpy
 # 2.4.0.1 changing makefiles and dockerfile
 # 2.4.0 to python10

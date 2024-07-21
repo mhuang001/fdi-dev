@@ -572,7 +572,6 @@ This is done by calling the getPool() method, which will return an existing pool
     def _get_poolurl(cls, name):
         gpl_pool = None
 
-        #__import__("pdb").set_trace()
         if not name:
             raise ValueError('Cannot get pool name.')
         # detect if there is secondary_poolurl
@@ -887,8 +886,6 @@ Pools registered are kept as long as the last reference remains. When the last i
     def save(cls, poolname, poolobj, read_only=False):
         """
         """
-        #if not read_only:
-        #    __import__("pdb").set_trace()
 
         if read_only:
             cls._GlobalPoolList.maps[1][poolname] = poolobj
@@ -1457,8 +1454,6 @@ Pools registered are kept as long as the last reference remains. When the last i
     def save(cls, poolname, poolobj, read_only=False):
         """
         """
-        #if not read_only:
-        #    __import__("pdb").set_trace()
 
         if read_only:
             cls._GlobalPoolList.maps[1][poolname] = poolobj

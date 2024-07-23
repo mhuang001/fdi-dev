@@ -1,8 +1,9 @@
-__version_info__ = (2, 4, 4)
+__version_info__ = (2, 4, 5)
 __version__ = '.'.join(map(str, __version_info__))
 __revision__ = '2.4.0.1-1-g07a0c44'
 
-# pool notexist
+# fix include
+# 2.4.4 pool notexist
 # 2.4.3 upload visible
 # 2.4.2 csdb prod upload return
 # 2.4.1 fix ids that broke make test csdt

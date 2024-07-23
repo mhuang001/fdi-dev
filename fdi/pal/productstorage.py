@@ -225,15 +225,17 @@ class ProductStorage(object):
         if logger.getEffectiveLevel() <= logging.DEBUG:
             desc = [x.description[-6:] for x in product] if issubclass(
                 product.__class__, list) else product.description[-6:]
-            logger.debug('saving product:' + str(desc) +
-                         ' to pool ' + str(poolname) + ' with tag ' + str(tag))
+            logger.debug('saving product:' + lls(desc,300) +
+                         ' to pool ' + str(poolname) + ' with tag ' + str(tag)+ f' the writeable pool is {self.getWritablePool()}')
+                         
 
         try:
             ret = self._pools[poolname].saveProduct(
                 product, tag=tag, geturnobjs=geturnobjs,
                 asyn=asyn, **kwds)
         except (PoolNotFoundError, ServerError) as e:
-            logger.error('unable to save to the writable pool.'+str(e))
+            pos = dict((n,self.getPool(n).poolurl) for n in self.getPools())
+            logger.error(f'unable to save to the writable pool {self._pools[poolname].poolurl} e:{e}\npools: {pos}')
             raise
         from fdi.pal.productref import ProductRef
         if issubclass(ret.__class__, list):

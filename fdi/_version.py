@@ -1,8 +1,9 @@
-__version_info__ = (2, 4, 5)
+__version_info__ = (2, 4, 6)
 __version__ = '.'.join(map(str, __version_info__))
 __revision__ = '2.4.0.1-1-g07a0c44'
 
-# fix include
+# more info if cannot save to pool
+# 2.4.5 fix include
 # 2.4.4 pool notexist
 # 2.4.3 upload visible
 # 2.4.2 csdb prod upload return
@@ -10,7 +11,7 @@ __revision__ = '2.4.0.1-1-g07a0c44'
 # 2.4.1 fix copy kw for array copying tofrom numpy
 # 2.4.0.1 changing makefiles and dockerfile
 # 2.4.0 to python10
-# 2.3.2 misc fixes regarding NumericParameter
+# 2.3.2 mrrisc fixes regarding NumericParameter
 # 2.3.1 misc pool improvements. png upxdates
 # 2.3.0 restore ReadOnlyDic
 # 2.2.6 refactor attrstr, fits improvements for l1c

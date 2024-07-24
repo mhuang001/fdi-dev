@@ -229,7 +229,10 @@ class ProductStorage(object):
                 product.__class__, list) else product.description[-6:]
             logger.debug('saving product:' + lls(desc,300) + \
                          ' to pool ' + str(poolname) + ' with tag ' + \
-                         str(tag) + f' The writeable pool is {wp.poolurl}, which {"exists" if wp.poolExists() else "does not exist"}')
+                         str(tag) + f' The writeable pool is {wp.poolurl}')
+            from fdi.pal.publicclientpool import PublicClientPool
+            if issubclass(wp.__class__, PublicClientPool):
+                logger.debug(f', which {"exists" if wp.poolExists() else "does not exist"}')
                          
             
         try:

@@ -249,7 +249,7 @@ def remoteRegister(pool):
 
             try:
                 res = pool.createPool2()
-
+                stat = f'New CSDB {poolurl} created.'
             except ServerError as e:
                 if e.code != 2:
                     if e.code == 1:
@@ -263,7 +263,6 @@ def remoteRegister(pool):
                     logger.error(msg)
                     res = 'FAILED'
                     raise
-                stat = 'Existing'
 
         if 0:
             # check news on server log
@@ -286,7 +285,7 @@ def remoteRegister(pool):
 
         msg = f'{stat} pool registered.'
         res = 'OK'
-
+        logger.info(msg)
         return res, msg
     else:
         raise ValueError(f"Cannot register {pool.__class__} on a server.")

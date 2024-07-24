@@ -2,7 +2,8 @@ __version_info__ = (2, 5, 0)
 __version__ = '.'.join(map(str, __version_info__))
 __revision__ = '2.4.0.1-1-g07a0c44'
 
-# typo, if no existence then register 
+# add pool making code
+# 2.5.0 typo, if no existence then register
 # 2.4.6 more info if cannot save to pool
 # 2.4.5 fix include
 # 2.4.4 pool notexist

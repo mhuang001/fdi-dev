@@ -178,9 +178,13 @@ def getToken(poolurl, client, user_urlbase=None, verify=False, two_tries= False)
                     if not tokenMsg2:
                         logger.error(f'Cannot get token 2nd try from: {poolurl} at {user_urlbase} getting msg: {tokenMsg2}.')
                         return ''
-                    token = tokenMsg2['token']
-                else:
+                    try:
+                        token = tokenMsg2['token']
+                    except KeyError as e:
+                        logger.error(f'Did not get token 2 tries from: {poolurl} @ {user_urlbase} getting msg: {tokenMsg2}.')
                         return ''
+                else:
+                    return ''
                     
     else:
         token = current_token

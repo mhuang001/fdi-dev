@@ -1,8 +1,9 @@
-__version_info__ = (2, 4, 6)
+__version_info__ = (2, 5, 0)
 __version__ = '.'.join(map(str, __version_info__))
 __revision__ = '2.4.0.1-1-g07a0c44'
 
-# more info if cannot save to pool
+# typo, if no existence then register 
+# 2.4.6 more info if cannot save to pool
 # 2.4.5 fix include
 # 2.4.4 pool notexist
 # 2.4.3 upload visible
@@ -31,7 +32,7 @@ __revision__ = '2.4.0.1-1-g07a0c44'
 # 2.0.11 get cloudd_token
 # 2.0.10 paho mqtt back to == 1.6.1 in setup.py
 # 2.0.9 fix fragile error hadling of fdi_requests
-# 2.0.8 add toPng debug code
+# 2.0.8 add toPrrng debug code
 # 2.0.7 update tofits to image. paho reverted
 # 2.0.6 shanghai
 # 2.0.5 refactor iupload csdt prof defn code to main repo. get bin output ready in `toPng`

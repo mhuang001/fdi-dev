@@ -90,7 +90,7 @@ class ProductStorage(object):
         if issubclass(pool.__class__, str) and not poolname:
             pool, poolname = poolname, pool
         with self._locks['w'], self._locks['r']:
-            if pool and issubclass(pool.__class__, ProductPool):
+            if pool is not None and issubclass(pool.__class__, ProductPool):
                 _p = self.PM.getPool(pool=pool, read_only=read_only, **kwds)
                 from fdi.pal.publicclientpool import PublicClientPool
                 if issubclass(pool.__class__, PublicClientPool):
@@ -98,7 +98,7 @@ class ProductStorage(object):
                     if not pe:
                         if not makenew:
                             raise ServerError(
-                                f"CSDB {pool.poolurl} is made but does not exist on the server." +\
+                                f"CSDB {pool.poolurl} is made but does not exist on the server." + \
                                 (", no makenew. Please make it with `ProductStorage`." if makenew else "."))
 
                         
@@ -223,16 +223,14 @@ class ProductStorage(object):
                 raise ValueError('None is not a valid pool name in the `PoolManager`.')
         elif poolname not in self._pools:
             #self.register(poolname)
-            logger.warning('$$$ NOT self registering '+poolname)
+            logger.warning('$$$ NOT registered and self registering '+poolname)
         if logger.getEffectiveLevel() <= logging.DEBUG:
             desc = [x.description[-6:] for x in product] if issubclass(
                 product.__class__, list) else product.description[-6:]
-            logger.debug('saving product:' + lls(desc,300) +
-                         ' to pool ' + str(poolname) + ' with tag ' +
-                         str(tag) + f' the writeable pool is {wp.poolurl}, which {"exists" if wp.poolExists() else "does not exist"}')
+            logger.debug('saving product:' + lls(desc,300) + \
+                         ' to pool ' + str(poolname) + ' with tag ' + \
+                         str(tag) + f' The writeable pool is {wp.poolurl}, which {"exists" if wp.poolExists() else "does not exist"}')
                          
-        If not wp.poolExists():
-            self.register(poolname=poolname, pool=wp, make_new=True)
             
         try:
             ret = self._pools[poolname].saveProduct(
@@ -416,7 +414,7 @@ class ProductStorage(object):
         ---------
         pool_or_urn : str, ProductPool
             Can be a poolname, a pool object, or a URN.
-        
+        If URN, returns product existence; if pool name or pool, returns that of the pool in storage.
         """
         if issubclass(pool_or_urn.__class__, str):
             if pool_or_urn.startswith('urn:'):

@@ -351,7 +351,16 @@ class PublicClientPool(ManagedPool):
         return n if n else ''
 
     def createPool2(self):
-
+        """ CSDB pool creating.
+        {
+        "code": 0,
+        "msg": "success",
+        "data": null,
+        "total": 0,
+        "timestamp": 1721882542714
+        }
+        
+        """
         res = read_from_cloud('createPool', poolname=self.poolname, client=self.client, token=self.token, user_urlbase=self._user_urlbase)
 
         return res

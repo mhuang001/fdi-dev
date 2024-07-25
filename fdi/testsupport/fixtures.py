@@ -127,8 +127,9 @@ def clean_board():
 
     return Classes.mapping
 
+from fdi.utils.getconfig import getConfig 
 
-pc = None
+pc = getConfig()
 # global variable that is initiated by `pc` to be `getConfig`.
 
 #@ pytest.fixture(scope="session")
@@ -141,7 +142,7 @@ if 1:
     #userclasses_file = pc['userclasses']
     from fdi.utils.getconfig import getConfig 
       
-    pc = getConfig(force=True)
+    #!! pc = getConfig(force=True)
     # cfg = get_projectclasses(userclasses_file)
     # logger.debug(json.dumps(cfg))
     #return cfg
@@ -167,10 +168,10 @@ def urlcsdb(set_ids):
     global url_c
 
     url_c = '%s://%s:%s%s/%s' % ('http',
-                                 pc['cloud_host'],
-                                 str(pc['cloud_port']),
-                                 pc['cloud_api_base'],
-                                 pc['cloud_api_version'])
+                                 getConfig('cloud_host'),
+                                 str(getConfig('cloud_port')),
+                                 getConfig('cloud_api_base'),
+                                 getConfig('cloud_api_version'))
 
     return url_c
 
@@ -824,7 +825,7 @@ def new_csdb(csdb_server, set_ids):
     logger.debug('wipe cdb_new. {purl}')
     urlc, client, auth, test_pool, poolurl, pstore, server_type = csdb_server
     csdb_pool_id, http_pool_id, PTYPES = set_ids    
-    url = pc['cloud_scheme'] + \
+    url = getConfig('cloud_scheme') + \
         urlc[len('csdb'):] + '/' + csdb_pool_id + str(int(time.time()))
     # url = pc['cloud_scheme'] + urlc[len('csdb'):] + '/' + csdb_pool_id
     ps = make_ps()

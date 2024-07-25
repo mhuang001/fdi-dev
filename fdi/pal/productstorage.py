@@ -234,8 +234,10 @@ class ProductStorage(object):
             if issubclass(wp.__class__, PublicClientPool):
                 logger.debug(f', which {"exists" if wp.poolExists() else "does not exist"}')
 
-        print(f'@s@@@ {self.getWritablePool(obj=True).poolExists()} {id(self)}')
-                         
+        try:
+            print(f'@s@@@ {self.getWritablePool(obj=True).poolExists()} {id(self)}')
+        except AttributeError:
+            pass
             
         try:
             ret = self._pools[poolname].saveProduct(

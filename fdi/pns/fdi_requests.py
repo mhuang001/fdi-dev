@@ -719,7 +719,7 @@ def content2result_csdb(content):
 
     # print('pppp', res[0])
     if logger.isEnabledFor(logging_DEBUG):
-        logger.debug(f'{len(res)} {"asyn" if is_aio else ""} CSDB Results.')
+        logger.debug(f'{len(res)} {"asyn" if is_aio else ""} CSDB Results. From content {lls(content,200)}')
     return res if alist else res[0]
 
 

@@ -704,11 +704,11 @@ def content2result_csdb(content):
 
             if msg is None:
                 if code == 200:
-                    msg = f"Got None as reqst return 'msg'. Code 200."
+                    msg = f"Got None as reqst-returned 'msg'. Code 200."
                     logger.info(msg)                
             if 'not exist' in msg:
                 code = 404
-            if code != 200:
+            if ocode or (code != 200):
                 raise ServerError(
                     f'Server Code {ocode} Message: {msg}', resp, code=code)
         else:
@@ -785,11 +785,11 @@ def reqst(meth, apis, *args, server_type='httppool', auth=None, return_response=
 
         content = safe_client(meth, apis, *args, auth=auth, **kwds)
         
-        if server_type == 'httppool':
+        if return_response:
             res = content
         elif server_type == 'csdb':
             res = content2result_csdb(content)
-        elif return_response:
+        elif server_type == 'httppool':
             res = content
         else:
             raise ValueError('Unknown server type: {server_type}.')

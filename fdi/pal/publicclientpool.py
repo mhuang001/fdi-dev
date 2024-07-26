@@ -155,7 +155,7 @@ def getToken(poolurl, client, user_urlbase=None, verify=False, two_tries= False)
     if verify:
         trouble = verifyToken(current_token, client, user_urlbase=user_urlbase)
         if trouble:
-            logger.info(f'Cloud token "{lls(current_token, 50)}" {"not" if trouble else ""} passed verification. Try getting new...')
+            logger.info(f'Cloud token "{lls(current_token, 20)}" {"not" if trouble else ""} passed verification. Try getting new...')
             current_token = ''
 
 

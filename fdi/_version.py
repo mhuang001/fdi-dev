@@ -1,8 +1,9 @@
-__version_info__ = (2, 6, 0)
+__version_info__ = (2, 6, 1)
 __version__ = '.'.join(map(str, __version_info__))
 __revision__ = '2.4.0.1-1-g07a0c44'
 
-# throw exception when csdb returns non-zero code.
+# clean up dbg print
+# 2.6.0 throw exception when csdb returns non-zero code.
 # 2.5.3 # more msg from csdb resp content processing
 # 2.5.3 docker bugs
 # 2.5.2 pool creation msg

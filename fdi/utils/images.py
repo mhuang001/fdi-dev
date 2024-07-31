@@ -133,7 +133,6 @@ def toPng(adset, grey=False, compression=0, cspace=8, cmap=None,
         An ordered dictionary that gives (R,G,B) for a pixel value.
     default is `longrainbowl`.
     """
-    #__import__("pdb").set_trace()
 
 
     # add color legend
@@ -251,7 +250,6 @@ def toPng(adset, grey=False, compression=0, cspace=8, cmap=None,
     clegend = [array.array(tcode, uv)]*color_legend_height
 
     height += color_legend_height
-    #__import__("pdb").set_trace()
 
     t1 = time.time()
     cng = cnt.__getitem__
@@ -316,10 +314,10 @@ def toPng(adset, grey=False, compression=0, cspace=8, cmap=None,
             # 29.1
             def para(row): return bytes(map(cnt.__getitem__, row))
             img = list(map(para, chain(data, clegend)))
-        elif 0:  # 29.0sec
+        elif 1:  # 29.0sec
             img = list(bytes(map(cnt.__getitem__, row)) for
                        row in chain(data, clegend))
-        elif 1:  # 32.0
+        elif 0:  # 32.0
             #img = list(
                 #map(lambda row:array.array('B', map(cng, row)),
             img = map(lambda row: bytes(map(cng, row)),

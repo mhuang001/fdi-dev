@@ -31,6 +31,20 @@ from ...utils.common import (lls,
                              logging_DEBUG,
                              trbk
                              )
+from ...utils.colortext import (ctext,
+                               _CYAN,
+                               _GREEN,
+                               _HIWHITE,
+                               _WHITE_RED,
+                               _YELLOW,
+                               _MAGENTA,
+                               _BLUE_DIM,
+                               _BLUE,
+                               _RED,
+                               _BLACK_RED,
+                               _RESET
+                               )
+
 from flask import g, Blueprint, jsonify, request, current_app, url_for, abort, session
 from werkzeug.exceptions import HTTPException
 # from flasgger import swag_from
@@ -126,10 +140,10 @@ def get_pools_url():
     guser = getattr(g, 'user', None)
     name = getattr(guser, 'username', '')
     roles = getattr(guser, 'roles', '')
-    loggedin = guser is not None and getattr(guser, 'logged_in', False)
+    loggedin = guser is not None
     u += '%s: logged in as %s.' % (name, str(roles)) if loggedin else "not logged in."
     if logger.isEnabledFor(logging_DEBUG):
-            logger.debug(u)
+            logger.debug(f"{_YELLOW}{u}")
 
     msg = '%d pools found. Version: fdi %s, docker %s, HTTPPool server %s, %s' % (
         len(res), __revision__, dvers if dvers else 'None',
@@ -466,8 +480,8 @@ def unregister_pools(poolnames=None):
 
 
 @ pools_api.route('/pools/wipe_all', methods=['DELETE'])
-# @ pools_api.route('/pools/wipe_all/', methods=['DELETE'])
-#@ auth.login_required(role=['all_doer'])
+@ pools_api.route('/pools/wipe_all/', methods=['DELETE'])
+@ auth.login_required(role=['all_doer'])
 def wipe_all():
     """ Remove contents of all pools.
 
@@ -532,14 +546,14 @@ def wipe_pools(poolnames, usr):
 
     return good, notgood
 
-######################################
-####    /{pool}    /{pool}/  GET  ####
-######################################
+###########################################
+####    /{pool}    /{pool}/  GET, PUT  ####
+###########################################
 
 
 @ pools_api.route('/<string:pool>/', methods=['GET'])
 @ pools_api.route('/<string:pool>', methods=['GET'])
-# @ auth.login_required(role=['read_only'])
+@ auth.login_required(role=['read_only', 'read_write'])
 def get_pool(pool):
     """ Get information of the given pool.
 
@@ -666,7 +680,7 @@ def register_pool(poolname, usr, poolurl=None):
         return code, result, msg
 
 ################################################
-####  {pool}/register PUT   ####
+####  {pool}                      PUT   ####
 ################################################
 
 
@@ -688,7 +702,7 @@ def register(pool):
         PM_S = PM_S_from_g(g)
         assert id(PM_S._GlobalPoolList.maps[0]) == id(pm_mod._PM_S._GlobalPoolList.maps[0])
         logger.debug(ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=auth))
-        
+    
     if logger.isEnabledFor(logging_DEBUG):
         logger.debug(f"Registering pool @ {pool}")
 
@@ -769,7 +783,7 @@ def unregister_pool(pool):
 ######################################
 
 
-# @ pools_api.route('/<string:pool>/hk', methods=['GET'])
+@ pools_api.route('/<string:pool>/hk', methods=['GET'])
 @ pools_api.route('/<string:pool>/hk/', methods=['GET'])
 @ auth.login_required(role=['read_only', 'read_write'])
 def hk(pool):

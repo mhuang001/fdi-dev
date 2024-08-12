@@ -167,61 +167,82 @@ def getUsers(pc):
 if SESSION:
 
     def set_user_session(username, pools=None, session=None, new=False, logger=logger):
-        """ set session user to username if username is different from the sessioin one.
+        """ set session user to username if username is different from the session one.
+        If the user id is not valid, `NameError` will be thrown.
         """
         if session is None:
             logger.debug('No session. Return.')
             return
 
         PM_S = PM_S_from_g(g)
+        _c = None
         if logger.isEnabledFor(logging_DEBUG):
-            logger.debug(ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=auth))
-            
-        if not username:
-            return
-        if session.get('user_id', None) != username:
-            session['user_id'] = username
-            g.user = current_app.config['USERS'][username]
-            # this will trigger session cookie-remaking
-            session.new = new
-        current_app.config['ACCESS']['usrcnt'][username] += 1
-        load_logged_in_user(username)
-        
-        if logger.isEnabledFor(logging_DEBUG):
-            m = (ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=auth))
-            logger.debug(f'END of set_usr_ses GPL {m}')
+            _c = ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=auth)
+            logger.debug(_c)
 
+        # if not username:
+        #     logger.info(f'Null or blank is not a valid session user id.')
+        #     return
         
-    def load_logged_in_user(username):
-        """ put session user ID to g.user.
-        """
-        logger = current_app.logger
-        
-        if not SESSION:
-            if logger.isEnabledFor(logging_DEBUG):
-                logger.warning('Called with no SESSION')
+        ccu = current_app.config['USERS']
+        if username not in ccu:
+            logger.info(f'{username} is not a valid login id.')
             return
 
-        PM_S = PM_S_from_g(g)
-        assert id(PM_S._GlobalPoolList.maps[0]) == id(pm_mod._PM_S._GlobalPoolList.maps[0])
-        
-        if g is None or not hasattr(g, 'user') or g.user is None or g.user is None or g.user.username == username:
+        if getattr(getattr(g, 'user', ''), 'username', '') == username:
+            logger.info(f'{username} already the session user.')
             return
         else:
-            g.user = username
-            
-        # if user_id:
-        #     if 'registered_pools' not in session:
-        #         session['registered_pools'] = {}
-        #     pools = session.get('registered_pools', {})
-        #     # pools = current_app.config.get('POOLS', {}).get('user_id', {})
-        # else:
-        #    pools = {}
+            session['user_id'] = username
+            g.user = ccu[username]
+            # this will trigger session cookie-remaking
+            session.new = new
+            current_app.config['ACCESS']['usrcnt'][username] += 1
+            #load_logged_in_user(username)
+        
+            from ..session import set_session_pools
+            set_session_pools(session, PM_S, old_ctx=_c)
 
-        if SES_DBG and logger.isEnabledFor(logging_DEBUG):
-            _d = f"Updated g.usr {_YELLOW}{g.user}"
-            _c = (ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=auth))
-            logger.debug(f"{_BLUE}Load_Usr, {_d} {_c}")
+            # logger.debug(f'END of set_usr_ses GPL m')
+
+        
+    # def load_logged_in_user(username):
+    #     """ put session user ID to g.user.
+
+    #     leave restoring the user's pools to session tokens.
+    #     """
+    #     logger = current_app.logger
+        
+    #     if not SESSION:
+    #         if logger.isEnabledFor(logging_DEBUG):
+    #             logger.warning('Called with no SESSION')
+    #         return
+
+    #     PM_S = PM_S_from_g(g)
+    #     assert id(PM_S._GlobalPoolList.maps[0]) == id(pm_mod._PM_S._GlobalPoolList.maps[0])
+    #     ccu = current_app.config['USERS']
+    #     #if g is None or not hasattr(g, 'user') or g.user is None or g.user is None or g.user.username == username:
+    #     try:
+    #         if username not in ccu or g.user.username == username:
+    #             logger.info(f'{username} is bad username or already the session user.')
+    #             return
+    #     except AttributeError:
+    #         pass
+    #     __import__("pdb").set_trace()
+
+    #     g.user = ccu[username]            
+    #     # if user_id:
+    #     #     if 'registered_pools' not in session:
+    #     #         session['registered_pools'] = {}
+    #     #     pools = session.get('registered_pools', {})
+    #     #     # pools = current_app.config.get('POOLS', {}).get('user_id', {})
+    #     # else:
+    #     #    pools = {}
+
+    #     if SES_DBG and logger.isEnabledFor(logging_DEBUG):
+    #         _d = f"Updated g.usr {_YELLOW}{g.user}"
+    #         _c = (ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=auth))
+    #         logger.debug(f"{_BLUE}Load_Usr, {_d} {_c}")
 
     @user_api.after_app_request
     def save_user(resp):
@@ -234,7 +255,13 @@ if SESSION:
             return resp
 
         gu = getattr(g, 'user', None)
-        if not gu or 'user_id' not in session or gu.username == session['user_id']:
+        if not gu or 'user_id' not in session:
+            gu = None
+            session.pop('user_id', '')
+            if SES_DBG and logger.isEnabledFor(logging_DEBUG):
+                logger.debug('Clear any user in sess and g.')
+            return resp
+        if gu.username == session['user_id']:
             if SES_DBG and logger.isEnabledFor(logging_DEBUG):
                 logger.debug('No need to save g.user.')
             return resp
@@ -268,8 +295,8 @@ def get_user_roles(user):
 ######################################
 
 
-@user_api.route('/login/', methods=['GET', 'POST'])
-@user_api.route('/login', methods=['GET', 'POST'])
+@user_api.route('/login/', methods=['POST', 'GET'])
+@user_api.route('/login', methods=['POST', 'GET'])
 # @auth.login_required(role=['read_only', 'read_write'])
 def login():
     """ Logging in on the server.
@@ -290,24 +317,27 @@ def login():
     except (AttributeError, TypeError):
         reqanm = reqaps = ''
     if logger.isEnabledFor(logging_DEBUG):
-        msg = 'LOGIN meth=%s req_auth_nm= "%s"' % (
-            request.method, '*' * len(reqanm))
+        msg = 'LOGIN meth=%s req_auth_nm,ps= "%s" %s' % (
+            request.method, reqanm,'*' * len(reqaps))
         logger.debug(msg)
 
     from ..route.httppool_server import resp
 
     logger.info(request.method)
     if request.method == 'GET':
-        guser = getattr(g, 'user', None)
-        if guser is None and  (request.authorization is None or not request.authorization.get('username', '')):
+        # guser = getattr(g, 'user', None)
+        # if 1:    #guser is None and  (request.authorization is None or not request.authorization.get('username', '')):
+
+        if request.authorization is None or \
+           not request.authorization.get('username', ''):
             msg = 'Username and password please.'
             if SESSION:
                 if LOGIN_TMPLT:
                     flash(msg)
                     return make_response(render_template(LOGIN_TMPLT))
             return resp(401, 'Authentication needed.', msg, ts, req_auth=True)
-        # now request.authorization is None or len(request.authorization.get('username', '') == ''.get('username', '')) > 0
-        pass
+        rnm = request.authorization.get('username', '')
+        rpas = request.authorization.get('passwd', '')
             
     elif request.method == 'POST':
         rnm = request.form.get('username', None)
@@ -327,7 +357,6 @@ def login():
                 rnm = rpas = None
             else:
                 # still logged in
-                #__import__("pdb").set_trace()
                 # use User as the password
                 rnm, rpas = g.user.username, g.user
         else:
@@ -339,13 +368,17 @@ def login():
                 # still logged in XXX take new
                 rnm = request.authorization.get('username', None)
                 rpas = request.authorization.get('password', None)
+                if rnm is None:
+                    # use User as the password
+                    rnm, rpas = g.user.username, g.user
+
         if logger.isEnabledFor(logging_DEBUG):
             logger.debug(f'Request auth {rnm}')
 
 
     vp = verify_password(rnm, rpas, check_session=True)
     if vp not in (False, None):
-        msg = 'User %s logged-in %s.' % (vp, vp.roles)
+        msg = f'User {vp} logged-in {vp.roles}.'
         if logger.isEnabledFor(logging_DEBUG):
             logger.debug(msg)
         # return redirect(url_for('pools.get_pools_url'))
@@ -429,22 +462,22 @@ def verify_password(username, password, check_session=True):
 
     `check_session`=`True` ('u/k' means unknown)
 
-    =========== ============= ======= ========== ========= ==================
-    state          `session`   `g`     username  password      action
-    =========== ============= ======= ========== ========= ==================
-    no Session  no 'user_id'          not empty  valid     new session, r/t new u
-    no Session  no 'user_id'          not empty  invalid   login, r/t `False`
-    no Session  no 'user_id'          ''                   r/t None
-    no Session  no 'user_id'          None, u/k            login, r/t `False`
-    no SESSION  not enabled           not empty  cleartext approve
-    In session  w/ 'user_id'  ''      different   valid      new session, r/t new u
-    In session  w/ 'user_id'  None    empty          --      no session, r/t no u
-    ..                                not same
-    In session  w/ 'user_id'          not empty  invalid   login, return `False`
-    In session  w/ 'user_id'  user    == user      valid   login, return same user
-    In session  w/ 'user_id'  user    None ""              login, return `False`
-    ..                                u/k
-    =========== ============= ======= ========== ========= ==================
+    = =========== ============= ======= ========== ========= =======================
+    n state          `session`   `g`     username  password      action
+    = =========== ============= ======= ========== ========= =======================
+    0 no Session  no 'user_id'          not empty  valid     new session, r/t new u
+    1 no Session  no 'user_id'          not empty  invalid   login, r/t `False`
+    2 no Session  no 'user_id'          ''                   r/t None
+    3 no Session  no 'user_id'          None, u/k            login, r/t `False`
+    4 no SESSION  not enabled           not empty  cleartext approve
+    5 In session  w/ 'user_id'  '' None diff knwn  valid     new ses, r/t new u
+    6 In session  w/ 'user_id'  '' None empty          --    no session, r/t none
+    7 In session  w/ 'user_id'  --      not empty  invalid   login, return `False`
+    8 In session  w/ 'user_id'  user    diff knwn    valid   clos ol sess,new session, r/t new u
+    9 In session  w/ 'user_id'  user    == user      valid   same sess, rt same user
+    A In session  w/ 'user_id'  user    None ""              login, return `False`
+    B                                   unknown              same
+    = =========== ============= ======= ========== ========= =======================
 
     `check_session`=`False`
 
@@ -480,7 +513,8 @@ def verify_password(username, password, check_session=True):
             'check' if check_session else 'nochk',
             session.get('user_id','NO SESS USR') if SESSION else 'noSess',
             getattr(g, 'user','NO g USR')))
-        logger.debug(ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=auth))
+        _c = ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=auth)
+        logger.debug(_c)
             
     if check_session:
         if SESSION:
@@ -495,19 +529,24 @@ def verify_password(username, password, check_session=True):
                 # first check if the username is actually unchanged and valid
                 if newu is not None and ((password is user) or newu.is_correct_password(password)):
                     if gname == username:
+                        # case 9
                         # username is from header AUTHR..
                         if logger.isEnabledFor(logging_DEBUG):
                             pools = dict((p, o._poolurl)
                                          for p, o in PM_S.getMap().items())
                             logger.debug(f"Same session {pools}.")
-                            set_user_session(
+                        set_user_session(
                             username, session=session, logger=logger)
                         return user
                         #################
                     else:
+                        # case 5 case 8
                         # headers do not agree with cookies token. take header's
+                        from ..session import close_session
+                        close_session(session, PM_S, _c)
                         if logger.isEnabledFor(logging_INFO):
                             logger.info(f"New session {username}")
+                        
                         set_user_session(
                             username, session=session, new=True, logger=logger)
                         return newu
@@ -515,6 +554,7 @@ def verify_password(username, password, check_session=True):
                 if logger.isEnabledFor(logging_DEBUG):
                     logger.debug(
                         f"Unknown {username} or Null or anonymous user, or new user '{username}' has invalid password.")
+                # case 7, A, B
                 return False
                 #################
             else:
@@ -533,20 +573,24 @@ def verify_password(username, password, check_session=True):
 
                 newu = current_app.config['USERS'].get(username, None)
                 if newu is None:
+                    # case 6
                     if logger.isEnabledFor(logging_DEBUG):
                         logger.debug(f"{stat}Unknown user {username}")
                     return False
                     #################
                 
                 if newu.is_correct_password(password):
+                    # case 5
                     if logger.isEnabledFor(logging_INFO):
                         logger.info(
                             f"{stat}Approved user {username}. Start session.")
+
                     set_user_session(newu.username, pools=None,
                                      session=session, new=True, logger=logger)
                     return newu
                     #################
                 else:
+                    # case 7
                     if logger.isEnabledFor(logging_DEBUG):
                         logger.debug(
                             f"{stat}new user '{username}' has invalid password.")
@@ -556,11 +600,13 @@ def verify_password(username, password, check_session=True):
             # SESSION not enabled. Use clear text passwd
             newu = current_app.config['USERS'].get(username, None)
             if newu and newu.is_correct_password(password):
+                # case 0
                 if logger.isEnabledFor(logging_INFO):
                     logger.info(f'Approved new user {username} w/o session')
                 return newu
                 #################
             else:
+                # case 1, 3
                 if logger.isEnabledFor(logging_DEBUG):
                     logger.debug(
                         f"Null or anonymous user, or new user '{username}' has invalid password.")
@@ -569,17 +615,20 @@ def verify_password(username, password, check_session=True):
     else:
         # check_session is False. called by login to check formed name/pass
         if username == '':
+            # case 2
             if logger.isEnabledFor(logging_DEBUG):
                 logger.debug('LOGIN: check anon')
             return None
             #################
         newu = current_app.config['USERS'].get(username, None)
         if newu is None:
+            # case 3
             if logger.isEnabledFor(logging_DEBUG):
                 logger.debug(f"LOGIN: Unknown user {username}")
             return False
             #################
         if newu.is_correct_password(password):
+            # case 0
             if logger.isEnabledFor(logging_INFO):
                 logger.info('LOGIN Approved {username}')
             return newu

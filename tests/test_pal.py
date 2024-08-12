@@ -1211,7 +1211,8 @@ def backup_restore(ps, client, auth):
     lst = p2.restore(tar2)
 
     # two pools are the same
-    assert deepcmp(hk1, p2.readHK()) is None
+    p2hk = p2.readHK()
+    assert deepcmp(hk1, p2hk) is None, print(hk1, p2hk)
 
 # @pytest.fixture(scope='function')
 # def mkStorage_1(make_remote_storage):

@@ -167,7 +167,7 @@ def get_secondary_poolurl(poolurl, poolhint='csdb:,,'):
     return poolurl, secondary_poolurl, last_frag, schm
 
 
-def remoteRegister(pool):
+def remoteRegister(pool, makenew=False):
     """ if registered a pool's auth and client will be used.
 
     If the pool has a `secondary_poolurl` property, after '/' is
@@ -210,8 +210,33 @@ def remoteRegister(pool):
         if pool.auth:
             pool.client.auth = pool.auth
 
-        from ..pns.fdi_requests import put_on_server
+        # try logging in
+        from ..pns.fdi_requests import put_on_server, post_to_server
+        from ..httppool.model.user import SESSION
+
+        # if SESSION:
+        #     from ..httppool import g, app
+        #     with app.app_context():
+        #         gvar = getattr(g, 'user', None)
+        #     try:
+        #         # __import__("pdb").set_trace()
+        #         if gvar is None:
+                    # not logged in
         try:
+            # do not serialize this
+            authd = {'username':poolo.auth.username,
+                     'password':poolo.auth.password}
+            code, res, msg = post_to_server(authd,
+                                            'urn:::0', poolurl, 'login',
+                                            auth=poolo.auth, client=poolo.client,
+                                            no_serial=True)
+        except (ConnectionError, NewConnectionError) as e:
+            res, msg = 'FAILED', str(e)
+            logger.error(poolurl + ' ' + lls(msg, 220))
+            raise
+            
+        try:
+
             res, msg = put_on_server(
                 'urn:::0', poolurl, 'register_pool',
                 auth=poolo.auth, client=poolo.client)
@@ -817,7 +842,7 @@ Pools registered are kept as long as the last reference remains. When the last i
         if need_to_reg_save:
             # remote register
             if schm in ('http', 'https', 'csdb'):
-                res, msg = remoteRegister(pool)
+                res, msg = remoteRegister(pool, makenew=makenew)
             # print(getweakrefs(p), id(p), '////')
 
             # If the pool is a client pool, it is this pool that goes into

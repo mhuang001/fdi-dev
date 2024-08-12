@@ -66,7 +66,7 @@ PM_S = None
 
 def resp(code, result, msg, ts, serialize_out=False,
          ctype='application/json',
-         length=80, req_auth=False, extra_headers=None):
+         length=200, req_auth=False, extra_headers=None):
     """
     Make response.
 
@@ -90,6 +90,8 @@ def resp(code, result, msg, ts, serialize_out=False,
                 w = serialize({"result": result, "msg": msg, "time": ts})
         else:
             w = result
+        if 'Only6' in w:
+            __import__("pdb").set_trace()
 
         if logger.isEnabledFor(logging_DEBUG):
             logger.debug('resp result:' + lls(w, length))

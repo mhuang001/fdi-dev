@@ -73,3 +73,14 @@ test14:
 
 test15:
 	$(PYTEST) $(OPT) --id test_threaded tests/serv/test_thread.py $(T)
+
+U = http://127.0.0.1:9885/fdi/v0.16
+P = 
+test16:
+	# clear up remain login info
+	curl -i -X GET $(U)/logout
+	curl -i -X GET $(U)/logout
+	rsp = `curl -i -X GET $(U)/`
+	print(rsp)
+	curl -i -X GET $(U)/logout
+	print(rsp)

@@ -147,7 +147,7 @@ def setup_logging(level=LOGGING_NORMAL, extras=None, tofile=None):
             logging.getLogger("urllib3").setLevel(extras)
     return logging
 
-# for those who cannot wait for create_app to set up  logging
+# for those who cannot wait for create_app to set up  loggingb
 logging = setup_logging()
 
 ########################################
@@ -466,7 +466,7 @@ def create_app(config_object=None, level=None, logstream=None, preload=False):
     # handlers for exceptions and some code
     #add_errorhandlers(app)
 
-    # Do not redirect a URL ends with no spash to URL/
+    # Do not redirect a URL ends with no slash to URL/
     app.url_map.strict_slashes = False
 
     app.config['POOLS'] = {}
@@ -517,7 +517,6 @@ if 1:
 
         if logger.getEffectiveLevel() < logging.WARNING: 
             a = lls(request.view_args, 50)
-            # remove leading e.g. /fdi/v0.17
             s = request.path.split(_BASEURL)
             p = s[0] if len(s) == 1 else s[1] if s[0] == '' else request.path
             method = request.method
@@ -538,7 +537,7 @@ if 1:
             from .model.user import auth
             _c =  (ctx(PM_S=PM_S, app=current_app, session=session,
                        request=request, auth=auth))
-            logger.debug(f"{_c}")
+            logger.debug(f"got sess pools. {_c}")
         if 0:
             GPL = PM_S.getMap().maps[0]
             for pn, pu in pools.items():
@@ -592,7 +591,7 @@ def ctx(PM_S, app, session, request, auth, users=False, **kwds):
     headers = dict(request.headers)
     cook = dict(request.cookies)
     ses_user_id = session.get('user_id', 'No')
-    guser = getattr(g,'g_usr', 'No')
+    guser = getattr(getattr(g,'user',''), 'username', 'No')
     m += (f" {_BLUE}Ses'{ses_user_id}' cnt{current_app.config['ACCESS']['usrcnt'][ses_user_id]} {headers.get('Authorization', '')[:12]}, gusr={guser} cookie.ses={cook.get('session', 'None')[-5:]}")
     if users:
         return m, c_user if c_user else auth_usr, ses_user_id, guser

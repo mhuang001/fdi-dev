@@ -20,6 +20,7 @@ from .common import lls
 import os
 from collections.abc import Sequence
 import io
+from filelock import Timeout, FileLock
 import copy
 import datetime
 import itertools
@@ -164,7 +165,7 @@ def toFits(data, file='', headers_only=False, **kwds):
         zim = data.zInfo['metadata']
         if 'aId' in zim:
             x = value2parameter('aId', value, zim)
-            if data.meta['aId'] != x:
+            if data.meta.get('aId', None) != x:
                 data.meta['aId'] = x
                 hdul[0].header['aId'] = (value, desc)
         else:
@@ -590,20 +591,28 @@ def write_to_file(p, fn, dct=None, ignore_type_error=False, this_fits=None, inde
     
     try:
         if is_Fits(p):
-            with open(sp, 'wb') as prodf:
-                prodf.write(p)
+            lock = FileLock(f'/tmp/{sp}.lock')
+            with lock:
+                with open(sp, 'wb') as prodf:
+                    prodf.write(p)
         elif issubclass(p.__class__, HDUList):
-            with open(sp, 'wb') as prodf:
-                p.writeto(prodf)
+            lock = FileLock(f'/tmp/{sp}.lock')
+            with lock:
+                with open(sp, 'wb') as prodf:
+                    p.writeto(prodf)
         else:
-            with open(sp, 'w+') as prodf:
-                prodf.write(serialize(p, indent=indent))
+            lock = FileLock(f'/tmp/{sp}.lock')
+            with lock:
+                with open(sp, 'w+') as prodf:
+                    prodf.write(serialize(p, indent=indent))
             # logger.info(f'Cannot save {p.__class__} to FITS.')
             # cmd line
             if _p:
                 _sp = os.path.splitext(sp)[0] + '.fit'
-                with open(_sp, 'wb') as prodf:
-                    prodf.write(_p)
+                lock = FileLock(f'/tmp/{_sp}.lock')
+                with lock:
+                    with open(_sp, 'wb') as prodf:
+                        prodf.write(_p)
 
     except TypeError as e:
         if ignore_type_error:
@@ -653,5 +662,35 @@ def send_samp(filepath, client, **kwds):
     
 if __name__ == '__main__':
 
-    # test_fits_kw(fits_data())
-    main()
+
+    import logging
+
+    # create logger
+    logger = logging.getLogger()
+    logging.basicConfig(stream=sys.stdout,
+                    format='%(asctime)s -%(levelname)4s'
+                           ' -[%(filename)s:%(lineno)3s'
+                           ' -%(funcName)10s()] - %(message)s',
+                    datefmt="%Y%m%d %H:%M:%S")
+    logger.setLevel(logging.DEBUG)
+
+    # get commandline options. They may override envirionment variables
+    args, extra_args, remainings = get_args(defaults=CMDLINE_defaults,
+                                            extra_options=CMDLINE_extra_options,
+                                            cmdline=sys.argv[1:])
+
+    # use commandline defaults to override current default
+    df = {}.get if defaults is None else defaults.get
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        epilog=''
+    )
+
+    with open('rb') as f:
+        buf = f.read()
+    from svom.products.loadfits_svom import loadfits_svom
+
+    if is_Fits(buf):
+        p = loadfits_svom
+    
+    exit(main())

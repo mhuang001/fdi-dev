@@ -136,7 +136,7 @@ def urn2fdiurl(urn, poolurl, contents='product', method='GET'):
 
     method:
     'GET' compo for retrieving product or hk or classes, urns, tags,
-    'POST' compo for uploading  product
+    'POST' compo for uploading  product, and login
     'PUT' for registering pool
     'DELETE' compo for removing product or unregistering pool
 
@@ -192,6 +192,8 @@ def urn2fdiurl(urn, poolurl, contents='product', method='GET'):
     elif method == 'POST':
         if contents == 'product':
             ret = baseurl + poolname + '/'
+        elif contents == 'login':
+            return baseurl + '/' + contents
         elif contents.split('__', 1)[0] in WebAPI:
             # append a '/' for flask
             ret = poolurl + '/api/' + contents.split('__', 1)[0] + '/'
@@ -311,7 +313,7 @@ def post_to_server(data, urn, poolurl, contents='product', headers=None,
         print('POST API: ' + api + ' | ' + lls(data, 90))
 
     aheaders = auth_headers(auth.username, auth.password)
-    if headers :
+    if headers:
         aheaders.update(headers)
     headers = aheaders
         
@@ -443,7 +445,7 @@ def put_on_server(urn, poolurl, contents='pool', headers=None, result_only=False
             print('client session cookies', list(client.cookies))
 
     aheaders = auth_headers(auth.username, auth.password)
-    if headers :
+    if headers:
         aheaders.update(headers)
     headers = aheaders
 

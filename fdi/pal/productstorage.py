@@ -317,7 +317,7 @@ class ProductStorage(object):
             if poolname not in self._pools:
                 msg = 'pool ' + poolname + ' not found'
                 logger.error(msg)
-                raise ValueError(msg)
+                raise NameError(msg)
             return self._pools[poolname]
 
     def getWritablePool(self, obj=False):

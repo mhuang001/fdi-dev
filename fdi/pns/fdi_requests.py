@@ -193,7 +193,7 @@ def urn2fdiurl(urn, poolurl, contents='product', method='GET'):
         if contents == 'product':
             ret = baseurl + poolname + '/'
         elif contents == 'login':
-            return baseurl + '/' + contents
+            return baseurl + contents
         elif contents.split('__', 1)[0] in WebAPI:
             # append a '/' for flask
             ret = poolurl + '/api/' + contents.split('__', 1)[0] + '/'

@@ -136,19 +136,25 @@ def get_pools_url():
 
     from ..model.user import getUsers
     # report user info
-    u = 'User '
     guser = getattr(g, 'user', None)
     name = getattr(guser, 'username', '')
     roles = getattr(guser, 'roles', '')
     loggedin = guser is not None
-    u += '%s: logged in as %s.' % (name, str(roles)) if loggedin else "not logged in."
+    user = {'username': name,
+            'logged_in_as': str(roles) if loggedin else "not logged in."                
+            }
+    u = str(user)
     if logger.isEnabledFor(logging_DEBUG):
             logger.debug(f"{_YELLOW}{u}")
 
-    msg = '%d pools found. Version: fdi %s, docker %s, HTTPPool server %s, %s' % (
-        len(res), __revision__, dvers if dvers else 'None',
-        svers if svers else 'None', u)
     code = 200
+    msg = {'pools_found': len(res),
+           'version': {'fdi': __revision__,
+                       'docker': dvers if dvers else 'None',
+                       'HTTPPool_server': svers if svers else 'None',
+                       },
+           'user': user,
+           }
     return resp(code, res, msg, ts)
 
 

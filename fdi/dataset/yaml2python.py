@@ -1065,8 +1065,8 @@ def get_cmdline(ypath):
                         help="A string that is a revision identification, for example a git hash to be appended to attribute FORMATV.")
     parser.add_argument("-u", "--upgrade_to_version", type=str, default="",
                         help="Upgrade the file(s) to this schema")
-    parser.add_argument("-i", "--preserve_init",  action='store_true', default=True,
-                        help="Modify ___init.py to shorten class name.")
+    parser.add_argument("-i", "--preserve_init",  action='store_true', default=False,
+                        help="Modify __init__.py to shorten class name.")
     parser.add_argument("-n", "--dry_run",  action='store_true', default=False,
                         help="No writing. Dry run.")
     parser.add_argument("-d", "--debug",  action='store_true', default=False,

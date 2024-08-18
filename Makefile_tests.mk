@@ -76,11 +76,22 @@ test15:
 
 U = http://127.0.0.1:9885/fdi/v0.16
 P = 
-test16:
+JSON = $(shell $(PYEXE) -c "import json; print(json.load(open('/tmp/test_fdi_json'))$(1))")
+# no '' around the right hand side of =
+
+testJSON:
+	echo '{"a":"foo", "b":[2,3,4]}' > '/tmp/test_fdi_json'
+	@echo 'next line 3 ?'
+	$(call JSON,['b'][1])
+
+xxtest16:
 	# clear up remain login info
-	curl -i -X GET $(U)/logout
-	curl -i -X GET $(U)/logout
-	rsp = `curl -i -X GET $(U)/`
-	print(rsp)
-	curl -i -X GET $(U)/logout
-	print(rsp)
+	#curl -i -X POST $(U)/logout
+	# curl -i -X POST $(U)/logout
+	curl -s -X GET $(U)/ -o '/tmp/test_fdi_json'
+
+ss:
+	$(call JSON,)
+	#['msg']['user']['username'])
+	#curl -i -X POST $(U)/logout
+

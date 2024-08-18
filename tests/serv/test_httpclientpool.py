@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from test_pal import backup_restore
+from test_pal import backup_restore 
 from serv.test_httppool import getPayload, check_response
 
 from fdi.dataset.product import Product
@@ -21,7 +21,7 @@ from fdi.utils.common import fullname, trbk
 import networkx as nx
 
 from flask_httpauth import HTTPBasicAuth
-# from requests.auth import HTTPBasicAuth
+from requests.auth import HTTPBasicAuth
 from requests.exceptions import ConnectionError
 import pytest
 import time

@@ -14,7 +14,7 @@ def test_pool_server_url(server, pytestconfig, set_ids):
     assert '/fdi' in url
     assert server_type in ['mock', 'live']
     assert pytestconfig.getoption('--server') in ['mock', 'background', 'external', '']
-    print(url, client, pool, server_type)
+    print("url, client, pool, server_type", url, client, pool, server_type)
 
     res = client.get(url).text
     assert 'HTTPPool server' in res

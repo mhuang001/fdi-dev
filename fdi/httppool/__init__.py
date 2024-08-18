@@ -307,7 +307,6 @@ def init_poolmanager(app, g, pc, preload):
         from ..pal.productstorage  import ProductStorage
         ps = ProductStorage(poolmanager=PM_S)
         PM_S.getMap().UNLOADED.update(pc['read_only_pools'])
-        __import__("pdb").set_trace()
         
         logger.info('PM_S initializing..'+hex(id(PM_S._GlobalPoolList.maps[0])) + ' ' + str(PM_S()))
     
@@ -541,9 +540,6 @@ if 1:
         if 0:
             GPL = PM_S.getMap().maps[0]
             for pn, pu in pools.items():
-                if 0: #'ol_1' in pn:
-                    __import__("pdb").set_trace()
-
                 if pn not in GPL:
                     logger.info(f'{_RED}{pn} is not found in GPL.')
                     #code, po, msg = register_pool(

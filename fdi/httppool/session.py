@@ -127,10 +127,15 @@ def close_session(session, PM_S, old_ctx):
             logger.debug('Called with no SESSION')
         return resp
 
+    # save session pools
     GPL = PM_S.getMap().maps[0]
     _d = {} if len(GPL) == 0 else dict((pn, x._poolurl) for pn, x in GPL.items())        
     session['registered_pools'] = _d
     session.modified = True
+
+    # del g.user
+    g.user = None
+    
     _m = ''
     if SES_DBG and logger.isEnabledFor(logging_DEBUG):
         from . import ctx

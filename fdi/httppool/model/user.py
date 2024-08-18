@@ -244,9 +244,10 @@ if SESSION:
     #         _c = (ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=auth))
     #         logger.debug(f"{_BLUE}Load_Usr, {_d} {_c}")
 
-    @user_api.after_app_request
-    def save_user(resp):
+@user_api.after_app_request
+def save_user(resp):
 
+    if 0:
         logger = current_app.logger
 
         if not SESSION:
@@ -280,7 +281,7 @@ if SESSION:
                           current_app.config['ACCESS']['usrcnt'][user_id],
                           ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=auth)))
 
-        return resp
+    return resp
 
 @auth.get_user_roles
 def get_user_roles(user):
@@ -327,8 +328,10 @@ def login():
     if request.method == 'GET':
         # guser = getattr(g, 'user', None)
         # if 1:    #guser is None and  (request.authorization is None or not request.authorization.get('username', '')):
+        print(999, request.form.to_dict())
 
-        if request.authorization is None or \
+        if not getattr(g, 'user', None) or\
+           request.authorization is None or \
            not request.authorization.get('username', ''):
             msg = 'Username and password please.'
             if SESSION:

@@ -371,57 +371,92 @@ def test_get_data_in_package(t_package):
 
 def test_loadcsv():
     csvf = '/tmp/fditest/testloadcsv.csv'
+    # by default there is no header line in input,
+    # and col1... are used.
+    # unit is '...' if header were not 0. now set_unit is None
     a = 'as if ...'
     with open(csvf, 'w') as f:
         f.write(a)
     v = loadcsv(csvf, ' ')
-    assert v[0] == ('col1', ['as'], '')
-    assert v[1] == ('col2', ['if'], '')
-    assert v[2] == ('col3', ['...'], '')
+    assert v[0] == ('col1', ['as'])
+    assert v[1] == ('col2', ['if'])
+    assert v[2] == ('col3', ['...'])
 
-    a = ' \t\n'+a
+
+    # empty units
+    a = 'as if ...'
     with open(csvf, 'w') as f:
         f.write(a)
-    v = loadcsv(csvf, ' ')
+    v = loadcsv(csvf, ' ', set_unit='')
     assert v[0] == ('col1', ['as'], '')
     assert v[1] == ('col2', ['if'], '')
     assert v[2] == ('col3', ['...'], '')
 
-    # blank line skipped
+    # blank lines skipped
+    a = 'as if ...'
+    a = '\n\t' + a
+    with open(csvf, 'w') as f:
+        f.write(a)
+    v = loadcsv(csvf, ' ', set_unit='')
+    assert v[0] == ('col1', ['as'], '')
+    assert v[1] == ('col2', ['if'], '')
+    assert v[2] == ('col3', ['...'], '')
+
+    # \n starts a line
+    a = 'as if ...'
     a = a + '\n1 2. 3e3'
     with open(csvf, 'w') as f:
         f.write(a)
-    v = loadcsv(csvf, ' ')
+    # defaults: expect no header in data, unit
+    v = loadcsv(csvf, ' ', set_unit='')
     assert v[0] == ('col1', ['as', 1.0], '')
     assert v[1] == ('col2', ['if', 2.0], '')
     assert v[2] == ('col3', ['...', 3000.], '')
 
     # first line as header
-
-    v = loadcsv(csvf, ' ', header=1)
+    a = 'as if ...'
+    a = a + '\n1 2. 3e3'
+    v = loadcsv(csvf, ' ', header=1, set_unit='')
     assert v[0] == ('as', [1.0], '')
     assert v[1] == ('if', [2.0], '')
-    assert v[2] == ('...', [3000.], '')
+    assert v[2] == ('...', [3000.0], '')
 
-    # a mixed line added. delimiter changed to ','
+    # first 2 lines as header
+    v = loadcsv(csvf, ' ', header=2)
+    assert v[0] == ('as|1.0',[], '')
+    assert v[1] == ('if|2.0',[], '')
+    assert v[2] == ('...|3000.0',[], '')
+
+    # a mixed line added. delimiter changed to ','.
+    # unit default `...` which uses the second line as unit
     a = 'as, if, ...\nm, 0.2,ev\n1, 2., 3e3'
     with open(csvf, 'w') as f:
         f.write(a)
     v = loadcsv(csvf, ',', header=1)
-    assert v[0] == ('as', ['m', 1.0], '')
-    assert v[1] == ('if', ['0.2', 2.0], '')
-    assert v[2] == ('...', ['ev', 3000.], '')
+    assert v[0] == ('as', [1.0], 'm')
+    assert v[1] == ('if', [2.0], '0.2')
+    assert v[2] == ('...', [3000.], 'ev')
 
-    # anothrt line added. two header lines requested -- second line taken as unit line
+    # another line added. one header and one unit line
     a = 'as, if, ...\n A, B, R \n m, 0.2,ev\n1, 2., 3e3'
     with open(csvf, 'w') as f:
         f.write(a)
-    v = loadcsv(csvf, ',', header=2)
+    v = loadcsv(csvf, ',', header=1)
     assert v[0] == ('as', ['m', 1.0], 'A')
     assert v[1] == ('if', ['0.2', 2.0], 'B')
     assert v[2] == ('...', ['ev', 3000.], 'R')
 
+    #two header lines -- the third line taken as unit line
+    a = 'as, if, ...\n A, B, R \n m, 0.2,ev\n1, 2., 3e3'
+    with open(csvf, 'w') as f:
+        f.write(a)
+    v = loadcsv(csvf, ',', header=2)
+    assert v[0] == ('as|A', [1.0], 'm')
+    assert v[1] == ('if|B', [2.0], '0.2')
+    assert v[2] == ('...|R', [3000.], 'ev')
 
+
+    
 def test_loadMedia():
     fname = 'bug.gif'
     fname = op.join(op.join(op.abspath(op.dirname(__file__)),

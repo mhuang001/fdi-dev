@@ -601,7 +601,7 @@ def write_to_file(p, fn, dct=None, ignore_type_error=False, this_fits=None, inde
                 with open(sp, 'wb') as prodf:
                     p.writeto(prodf)
         else:
-            lock = FileLock(f'/tmp/{sp}.lock')
+            lock = FileLock(os.path.join('/tmp',f'{sp}.lock'))
             with lock:
                 with open(sp, 'w+') as prodf:
                     prodf.write(serialize(p, indent=indent))

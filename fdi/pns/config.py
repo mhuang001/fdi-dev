@@ -40,7 +40,7 @@ pnsconfig['cookie_file'] = os.path.join(
 # choose from pre-defined profiles. 'production' is for making docker image.
 conf = ['dev', 'production'][1]
 # https://requests.readthedocs.io/en/latest/user/advanced/?highlight=keep%20alive#timeouts
-pnsconfig['requests_timeout'] = (0.3, 10)
+pnsconfig['requests_timeout'] = (0.3, 307.2)
 
 # nominal username, passwd, flask ip, flask port.
 # For test clients. the username/password must match rw

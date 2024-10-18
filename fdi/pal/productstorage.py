@@ -3,7 +3,6 @@
 from . import productref
 from .poolmanager import PoolManager
 from .productpool import ProductPool, PoolNotFoundError
-from ..pns.fdi_requests import ServerError
 from ..utils.lock import makeLock
 from ..utils.common import lls
 from .urn import Urn
@@ -97,6 +96,7 @@ class ProductStorage(object):
                     pe = _p.poolExists()
                     if not pe:
                         if not makenew:
+                            from ..pns.fdi_requests import ServerError
                             raise ServerError(
                                 f"CSDB {pool.poolurl} is made but does not exist on the server." + \
                                 (", no makenew. Please make it with `ProductStorage`." if makenew else "."))
@@ -237,6 +237,7 @@ class ProductStorage(object):
         if 0: # hasattr(self.getWritablePool(obj=True), 'poolExists'):
             print(f'@s@@@ {self.getWritablePool(obj=True).poolExists()} {id(self)}')
             
+        from ..pns.fdi_requests import ServerError            
         try:
             ret = self._pools[poolname].saveProduct(
                 product, tag=tag, geturnobjs=geturnobjs,

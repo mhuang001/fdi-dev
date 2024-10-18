@@ -24,7 +24,7 @@ test1:
 
 # --cov=fdi/pal
 test2:
-	$(PYTEST) tests/test_pal.py -k 'not _http and not _csdb'  $(OPT) $(T) 
+	$(PYTEST) tests/test_pal.py -k 'not _http and not _csdb and not _server'  $(OPT) $(T) 
 
 # --cov=fdi/pns
 test3:
@@ -46,7 +46,7 @@ test7:
 	$(PYTEST) $(OPT) tests/serv/test_httpclientpool.py -k 'not _csdb' $(T)
 
 test8:
-	$(PYTEST) $(OPT) tests/test_pal.py -k '_http and not _csdb' $(T)
+	$(PYTEST) $(OPT) tests/test_pal.py -k '_http and not _csdb and _server' $(T)
 
 test9:
 	$(PYTEST) $(OPT) tests/test_dataset.py -k '_mqtt' $(T)

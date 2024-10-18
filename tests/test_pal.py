@@ -1106,11 +1106,11 @@ def test_ProdStorage_func_http_csdb(csdb_server, userpass, set_ids):
         userpass, client=client, auth=auth, pstore=pstore)
 
 
-def test_LocalPool(client, userpass):
+def test_LocalPool():
     thepoolname = 'localpool_' + Test_Pool_Name
     thepoolpath = '/tmp/fditest'
     thepoolurl = 'file://' + thepoolpath + '/' + thepoolname
-    HTTPBasicAuth(*userpass)
+
     cleanup(thepoolurl, thepoolname)
     ps = ProductStorage(thepoolname, thepoolurl)
     pname = ps.getPools()[0]
@@ -1173,6 +1173,8 @@ def test_LocalPool(client, userpass):
     assert len(sns) == 2
     p2.remove(resourcetype=dtype, index=sns, asyn=True)
     assert len(ps2.getUrnFromTag('mtag')) == 0
+
+def test_backup_restore_on_server(client, userpass):
 
     auth = HTTPBasicAuth(*userpass)
     backup_restore(ps, client, auth)

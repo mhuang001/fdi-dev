@@ -170,13 +170,16 @@ def init_conf_classes(pc, lggr):
         sys.path.insert(0, os.path.abspath(clpp))
         # print(sys.path)
         # get the 'ProjectClasses' attribute
-        projectclasses = __import__(clpf.rsplit('.py', 1)[0],
-                                    globals(), locals(),
-                                    ['ProjectClasses'], 0)
-        clz = projectclasses.ProjectClasses
-        lggr.debug('User classes: %d found.' % len(clz.mapping))
-        return clz
-
+        try:
+            projectclasses = __import__(clpf.rsplit('.py', 1)[0],
+                                        globals(), locals(),
+                                        ['ProjectClasses'], 0)
+            clz = projectclasses.ProjectClasses
+            lggr.debug('User classes: %d found.' % len(clz.mapping))
+            return clz
+        except BaseException as e:
+            lggr.error(f'Loading {clpf} failed.')
+            raise
 
 SET_OWNER_MODE = False
 

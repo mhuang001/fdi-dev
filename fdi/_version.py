@@ -2,7 +2,7 @@ __version_info__ = (2, 8, 0)
 __version__ = '.'.join(map(str, __version_info__))
 __revision__ = '2.4.0.1-1-g07a0c44'
 
-# 
+#  tagged for ops-v1
 # 2.7.2 fdi passes make test in staged env w/ application.
 # 2.7.1 fix loadcsv, prepend slas to baseurl in pnslocal
 # 2.7.0 rationalise auth verification and login, session. login before rigister

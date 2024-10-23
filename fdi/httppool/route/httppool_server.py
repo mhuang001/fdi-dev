@@ -90,7 +90,7 @@ def resp(code, result, msg, ts, serialize_out=False,
                 w = serialize({"result": result, "msg": msg, "time": ts})
         else:
             w = result
-        if 'Only6' in w:
+        if 0: #'Only6' in w:
             __import__("pdb").set_trace()
 
         if logger.isEnabledFor(logging_DEBUG):

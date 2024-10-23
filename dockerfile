@@ -65,7 +65,7 @@ RUN cp ${UHOME}/.ssh/id_rsa.pub ${UHOME}/.ssh/authorized_keys \
 # RUN --mount=type=secret,id=envs sudo cp /run/secrets/envs . 
 
 RUN umask 0002 ; pwd; echo ${PIPOPT} ----\
-&& python3 -m pip install -U pip setuptools
+&& echo NO python3 -m pip install -U pip setuptools
 
 RUN sudo chown -R ${USR}:${USR} .
 
@@ -112,7 +112,7 @@ ARG PIPOPT="--cache-dir ${PIPCACHE} -f ${PIPWHEELS} --disable-pip-version-check"
 # update pip
 WORKDIR ${UHOME}
 RUN umask 0002 \
-&& ${PYEXE} -m pip install pip setuptools ${PIPOPT} -U 
+&& echo NO ${PYEXE} -m pip install pip setuptools ${PIPOPT} -U 
 
 RUN ${PYEXE} -c 'import sys;print(sys.path)' \
 &&  ${PYEXE} -m pip list --format=columns \

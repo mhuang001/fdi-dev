@@ -200,6 +200,7 @@ def constructSerializable(obj, lookup=None, int_key=False, debug=False):
             indent -= 1
             return inst
         else:
+            import pdb; pdb.set_trace()
             raise ValueError('Class %s is not known.' % classname)
     if debug:
         print(spaces + 'Go through properties of instance')

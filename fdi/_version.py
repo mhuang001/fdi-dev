@@ -2,7 +2,7 @@ __version_info__ = (2, 8, 1)
 __version__ = '.'.join(map(str, __version_info__))
 __revision__ = '2.4.0.1-1-g07a0c44'
 
-# pdb in pool code removed
+# 2.8.1 pdb in pool code removed
 # 2.8.0 tagged for ops-v1
 # 2.7.2 fdi passes make test in staged env w/ application.
 # 2.7.1 fix loadcsv, prepend slas to baseurl in pnslocal

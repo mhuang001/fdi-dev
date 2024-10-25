@@ -74,8 +74,9 @@ setup(
             'wheel>=0.32.1',
             'pytest>=5.4.1',
             'pytest-cov>=4.1.0',
-            'remote-pdb>=2.1.0'
-        ],
+            'remote-pdb>=2.1.0',
+            'traceback-with-variables==2.0.4'
+            ],
         'SERV': [
             'requests == 2.28.1',
             'urllib3 == 1.26.13',

@@ -80,6 +80,7 @@ def get_Values_From_A_list_of_dicts(res, what, get_list=True, excpt=True):
 
 def verifyToken(token, client, user_urlbase=None):
     err = False
+    tokenMsg = "FAILED token read_from_cloud."
     try:
         # None is OK (wtf)
         tokenMsg = read_from_cloud('verifyToken', token=token, client=client, user_urlbase=user_urlbase)
@@ -1248,26 +1249,26 @@ class PublicClientPool(ManagedPool):
             res = super().getUrn(tag)
         return res
 
-    def meta_filter(self, q, typename=None, reflist=None, urnlist=None, snlist=None):
-        """ returns filtered collection using the query.
+    # def meta_filter(self, q, typename=None, reflist=None, urnlist=None, snlist=None):
+    #     """ returns filtered collection using the query.
 
-        q is a MetaQuery
-        valid inputs: typename and ns list; productref list; urn list
-        """
-        pass
+    #     q is a MetaQuery
+    #     valid inputs: typename and ns list; productref list; urn list
+    #     """
+    #     pass
 
-    def prod_filter(self, q, cls=None, reflist=None, urnlist=None, snlist=None):
-        """ returns filtered collection using the query.
+    # def prod_filter(self, q, cls=None, reflist=None, urnlist=None, snlist=None):
+    #     """ returns filtered collection using the query.
 
-        q: an AbstractQuery.
-        valid inputs: cls and ns list; productref list; urn list
-        """
+    #     q: an AbstractQuery.
+    #     valid inputs: cls and ns list; productref list; urn list
+    #     """
 
-    def doSelect(self, query, results=None):
-        """
-        to be implemented by subclasses to do the action of querying.
-        """
-        raise (NotImplementedError)
+    # def doSelect(self, query, results=None):
+    #     """
+    #     to be implemented by subclasses to do the action of querying.
+    #     """
+    #     raise (NotImplementedError)
 
 
 # =================SAVE REMOVE LOAD================

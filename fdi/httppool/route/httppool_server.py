@@ -32,10 +32,11 @@ from ...pns.fdi_requests import POST_PRODUCT_TAG_NAME
 
 from flask import g, request, make_response, Blueprint, current_app, session
 from flask.wrappers import Response
+from traceback_with_variables import format_exc
 
 
 import sys
-import os
+import io
 import time
 import builtins
 import importlib
@@ -114,8 +115,12 @@ def excp(e, code=400, msg='', serialize_out=True):
     # if current_app.config['DEBUG']:
     #    raise e
     result = '"FAILED"' if serialize_out else 'FAILED'
-    msg = '%s\n%s: %s.\nTrace back: %s' % (
-        msg, e.__class__.__name__, str(e), trbk(e))
+    msg_j = '%s\n%s: %s.\nTrace back: %s' % (
+        msg, e.__class__.__name__, str(e), format_exc(e))
+    msg = msg_j
+    # b = io.StringIO()
+    # print(msg_j, file=b )
+    # msg = b.getvalue()
     if 'not exist' in msg:
         t = trbk2(e)
         msg += t

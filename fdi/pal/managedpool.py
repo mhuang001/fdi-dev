@@ -368,8 +368,6 @@ class ManagedPool(dicthk.DictHk):
                 msg = 'product ' + urn + ' saving failed.' + str(e) + trbk(e)
                 logger.debug(msg)
                 # some new ##
-                __import__("pdb").set_trace()
-
                 self._dTypes, self._dTags = tuple(
                     self.readHK().values())
                 raise e
@@ -828,7 +826,7 @@ class ManagedPool(dicthk.DictHk):
                     # snlist = self._classes[cname]['sn']
                     # new ###
                     # assert snlist == list(self._dTypes[cname]['sn'])
-                    snlist = list(self._dTypes[cname]['sn'])
+                    snlist = list(self._dTypes[cname].get('sn', {}))
                     if is_MetaQ:
                         ret += self.meta_filter(q=query, typename=cname,
                                                 snlist=snlist)

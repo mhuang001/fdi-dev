@@ -1,8 +1,9 @@
-__version_info__ = (2, 7, 1)
+__version_info__ = (2, 7, 1, 1)
 __version__ = '.'.join(map(str, __version_info__))
 __revision__ = '2.4.0.1-1-g07a0c44'
 
-# fix loadcsv, prepend slas to baseurl in pnslocal
+# fix loadcsv, prepend slas to baseurl in pnslocal -branch out syncker. commit two synckered files
+
 # 2.7.0 rationalise auth verification and login, session. login before rigister
 # 2.6.2 debug extra or missing pixel re png
 # 2.6.1 clean up dbg print
